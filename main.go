@@ -35,18 +35,17 @@ func fetchBooks(isbn string) (*Book, error) {
 	if err != nil {
 		return nil, err
 	}
-	var book Book
+
 	key := fmt.Sprintf("ISBN:%v",isbn) // our structure's root is "ISBN:xxxxx", we must concatenate in one key
 	rawBook, ok := result[key]
 	if !ok {
 		return nil,errors.New("Value for given key cannot be found")
 	}
 
-	book = parseBook(rawBook)
-	fmt.Println(book.Author[0].Name)
-	fmt.Println(book.Identifier.ISBN10)
+	book := parseBook(rawBook)
+	fmt.Println(book.Identifier.ISBN10[0])
 	fmt.Println(book.Identifier.ISBN13)
-	return &book, nil
+	return book, nil
 }
 
 type Book struct {
@@ -70,10 +69,10 @@ type Cover struct {
 	Url string `json:"small"`
 }
 
-func parseBook(values *json.RawMessage) Book {
+func parseBook(values *json.RawMessage) *Book {
 	var book Book
 	json.Unmarshal(*values,&book)
-	return book
+	return &book
 }
 // I created struct Books, where it will be stored whole concept of Book, so if we need Cover_Id and
 // library id, we will just parse fields from Books. exp: cover_id = strings.Split(Books.Cover,"/")[5]
