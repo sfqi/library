@@ -1,5 +1,5 @@
 CREATE TABLE books (
-    id      int         not null    primary key,
+    id      int    serial primary key not null,
     title   varchar(255)    not null,
     author  varchar(255),
     isbn    varchar(10)     not null    unique,
@@ -8,4 +8,4 @@ CREATE TABLE books (
     cover_id varchar(50),
     year    int ,
     publisher varchar(255)
-)
+);
