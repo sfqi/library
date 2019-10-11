@@ -3,11 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	_ "github.com/lib/pq"
+	"github.com/pkg/errors"
 	"net/http"
 )
 
-type Book struct {
+type Book2 struct {
 	Title         string `json:"title"`
 	AuthorId      string `json:"author_id"`
 	Isbn          string `json:"isbn_10"`
@@ -20,30 +20,40 @@ type Book struct {
 const basePath = "https://openlibrary.org/api/books?bibkeys=ISBN:"
 const queryParams = "&format=json&jscmd=data"
 
-func fetchBooks(isbn string) (*Books, error) {
+func fetchBooks(isbn string) (*Book, error) {
 	url := basePath + isbn + queryParams
 	fmt.Println(url)
 	response, err := http.Get(url)
 	if err != nil {
 		return nil, err
 	}
+	status := response.StatusCode
+	fmt.Println("Status code: ",status)
 	defer response.Body.Close()
 	result := make(map[string]*json.RawMessage, 0)
 	err = json.NewDecoder(response.Body).Decode(&result)
-	var book Books
+	if err != nil {
+		return nil, err
+	}
+	var book Book
 	key := fmt.Sprintf("ISBN:%v",isbn) // our structure's root is "ISBN:xxxxx", we must concatenate in one key
-	fmt.Println("Raw message")
+	rawBook, ok := result[key]
+	if !ok {
+		return nil,errors.New("Value for given key cannot be found")
+	}
 
-	book = parseBook(result[key])
-
+	book = parseBook(rawBook)
+	fmt.Println(book.Author[0].Name)
+	fmt.Println(book.Identifier.ISBN10)
+	fmt.Println(book.Identifier.ISBN13)
 	return &book, nil
 }
 
-type Books struct {
+type Book struct {
 	Title string `json:"title"`
-	Identf identifier `json:"identifiers"`
-	Authr []Author `json:"authors"`
-	Cvr Cover `json:"cover"`
+	Identifier identifier `json:"identifiers"`
+	Author []Author `json:"authors"`
+	Cover Cover `json:"cover"`
 	Year string `json:"publish_date"`
 }
 
@@ -53,26 +63,16 @@ type identifier struct {
 	Openlibrary []string `json:"openlibrary"`
 }
 type Author struct {
-	Url string `json:"url"`
 	Name string `json:"string"`
 }
 
 type Cover struct {
-	Small string `json:"small"`
+	Url string `json:"small"`
 }
 
-func parseBook(values *json.RawMessage) Books {
-	var book Books
+func parseBook(values *json.RawMessage) Book {
+	var book Book
 	json.Unmarshal(*values,&book)
-
-	fmt.Println(book.Title)
-	fmt.Println(book.Authr[0].Name)
-	fmt.Println(book.Authr[0].Url)
-	fmt.Println(book.Identf.ISBN10[0])
-	fmt.Println(book.Identf.ISBN13[0])
-	fmt.Println(book.Identf.Openlibrary[0])
-	fmt.Println(book.Year)
-
 	return book
 }
 // I created struct Books, where it will be stored whole concept of Book, so if we need Cover_Id and
@@ -80,7 +80,7 @@ func parseBook(values *json.RawMessage) Books {
 func main() {
 	book, err := fetchBooks("9780261102736")
 	if err != nil {
-		fmt.Errorf(err.Error())
+		panic(err)
 	}
 	//printMap(*book)
 	fmt.Println(*book)
