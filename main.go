@@ -7,16 +7,6 @@ import (
 	"net/http"
 )
 
-type Book2 struct {
-	Title         string `json:"title"`
-	AuthorId      string `json:"author_id"`
-	Isbn          string `json:"isbn_10"`
-	Isbn13        string `json:"isbn_13"`
-	OpenLibraryId string
-	CoverId       string `json:"cover"`
-	Year          string `json:"publish_date"`
-}
-
 const basePath = "https://openlibrary.org/api/books?bibkeys=ISBN:"
 const queryParams = "&format=json&jscmd=data"
 
@@ -41,11 +31,16 @@ func fetchBooks(isbn string) (*Book, error) {
 	if !ok {
 		return nil,errors.New("Value for given key cannot be found")
 	}
+	var book Book
+	sliceOfBytes, err := rawBook.MarshalJSON()
+	if err != nil {
+		fmt.Println("Error converting *rawMessage into []byte")
+	}
 
-	book := parseBook(rawBook)
+	err =json.Unmarshal(sliceOfBytes,&book)
 	fmt.Println(book.Identifier.ISBN10[0])
 	fmt.Println(book.Identifier.ISBN13)
-	return book, nil
+	return &book, nil
 }
 
 type Book struct {
@@ -69,11 +64,6 @@ type Cover struct {
 	Url string `json:"small"`
 }
 
-func parseBook(values *json.RawMessage) *Book {
-	var book Book
-	json.Unmarshal(*values,&book)
-	return &book
-}
 // I created struct Books, where it will be stored whole concept of Book, so if we need Cover_Id and
 // library id, we will just parse fields from Books. exp: cover_id = strings.Split(Books.Cover,"/")[5]
 func main() {
