@@ -5,13 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
+	f "./fetcher"
+
 	"github.com/gorilla/mux"
-
-	"github.com/pkg/errors"
 )
-
-const basePath = "https://openlibrary.org/api/books?bibkeys=ISBN:"
-const queryParams = "&format=json&jscmd=data"
 
 type BookModel struct {
 	Id            int    `json:"id"`
@@ -73,7 +70,7 @@ func WriteBooks(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	book, err := fetchBook(createBook.ISBN)
+	book, err := f.FetchBook(createBook.ISBN)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -85,69 +82,8 @@ func WriteBooks(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func fetchBook(isbn string) (*Book, error) {
-	url := basePath + isbn + queryParams
-	fmt.Println(url)
-	response, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	status := response.StatusCode
-	fmt.Println("Status code: ", status)
-	defer response.Body.Close()
-	result := make(map[string]*json.RawMessage, 0)
-	err = json.NewDecoder(response.Body).Decode(&result)
-	if err != nil {
-		return nil, err
-	}
-
-	key := fmt.Sprintf("ISBN:%v", isbn) // our structure's root is "ISBN:xxxxx", we must concatenate in one key
-	rawBook, ok := result[key]
-	if !ok {
-		return nil, errors.New("Value for given key cannot be found")
-	}
-	var book Book
-	sliceOfBytes, err := rawBook.MarshalJSON()
-	if err != nil {
-		fmt.Println("Error converting *rawMessage into []byte")
-	}
-
-	err = json.Unmarshal(sliceOfBytes, &book)
-	fmt.Println(book.Identifier.ISBN10[0])
-	fmt.Println(book.Identifier.ISBN13)
-	return &book, nil
-}
-
-type Book struct {
-	Title      string     `json:"title"`
-	Identifier identifier `json:"identifiers"`
-	Author     []Author   `json:"authors"`
-	Cover      Cover      `json:"cover"`
-	Year       string     `json:"publish_date"`
-}
-
-type identifier struct {
-	ISBN10      []string `json:"isbn_10"`
-	ISBN13      []string `json:"isbn_13"`
-	Openlibrary []string `json:"openlibrary"`
-}
-type Author struct {
-	Name string `json:"string"`
-}
-
-type Cover struct {
-	Url string `json:"small"`
-}
-
-// I created struct Books, where it will be stored whole concept of Book, so if we need Cover_Id and
-// library id, we will just parse fields from Books. exp: cover_id = strings.Split(Books.Cover,"/")[5]
 func main() {
 	r := mux.NewRouter()
-	book, err := fetchBook("9780261102736")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(*book)
 
 	r.HandleFunc("/books", GetBooks).Methods("GET")
 	r.HandleFunc("/books", WriteBooks).Methods("POST")
