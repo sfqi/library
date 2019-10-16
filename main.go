@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gorilla/mux"
+
 	"github.com/pkg/errors"
 )
 
@@ -60,9 +62,30 @@ func GetBooks(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(books)
 }
 
-//==============================================
+type createBookRequest struct {
+	ISBN string `json:"ISBN"`
+}
 
-func fetchBooks(isbn string) (*Book, error) {
+func WriteBooks(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var createBook createBookRequest
+	if err := json.NewDecoder(r.Body).Decode(&createBook); err != nil {
+		fmt.Println(err)
+		return
+	}
+	book, err := fetchBook(createBook.ISBN)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(book); err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+
+func fetchBook(isbn string) (*Book, error) {
 	url := basePath + isbn + queryParams
 	fmt.Println(url)
 	response, err := http.Get(url)
@@ -119,14 +142,15 @@ type Cover struct {
 // I created struct Books, where it will be stored whole concept of Book, so if we need Cover_Id and
 // library id, we will just parse fields from Books. exp: cover_id = strings.Split(Books.Cover,"/")[5]
 func main() {
-	book, err := fetchBooks("9780261102736")
+	r := mux.NewRouter()
+	book, err := fetchBook("9780261102736")
 	if err != nil {
 		panic(err)
 	}
-	//printMap(*book)
 	fmt.Println(*book)
 
-	http.HandleFunc("/books", GetBooks)
-	http.ListenAndServe(":8080", nil)
+	r.HandleFunc("/books", GetBooks).Methods("GET")
+	r.HandleFunc("/books", WriteBooks).Methods("POST")
 
+	http.ListenAndServe(":8080", r)
 }
