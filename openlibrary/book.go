@@ -1,4 +1,4 @@
-package fetcher
+package openlibrary
 
 import (
 	"encoding/json"
@@ -13,8 +13,8 @@ const queryParams = "&format=json&jscmd=data"
 type Book struct {
 	Title      string     `json:"title"`
 	Identifier identifier `json:"identifiers"`
-	Author     []Author   `json:"authors"`
-	Cover      Cover      `json:"cover"`
+	Author     []author   `json:"authors"`
+	Cover      cover      `json:"cover"`
 	Year       string     `json:"publish_date"`
 }
 
@@ -23,11 +23,11 @@ type identifier struct {
 	ISBN13      []string `json:"isbn_13"`
 	Openlibrary []string `json:"openlibrary"`
 }
-type Author struct {
+type author struct {
 	Name string `json:"string"`
 }
 
-type Cover struct {
+type cover struct {
 	Url string `json:"small"`
 }
 
@@ -38,9 +38,9 @@ func FetchBook(isbn string) (*Book, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer response.Body.Close()
 	status := response.StatusCode
 	fmt.Println("Status code: ", status)
-	defer response.Body.Close()
 	result := make(map[string]*json.RawMessage, 0)
 	err = json.NewDecoder(response.Body).Decode(&result)
 	if err != nil {
@@ -53,13 +53,10 @@ func FetchBook(isbn string) (*Book, error) {
 		return nil, errors.New("Value for given key cannot be found")
 	}
 	var book Book
-	sliceOfBytes, err := rawBook.MarshalJSON()
-	if err != nil {
-		fmt.Println("Error converting *rawMessage into []byte")
-	}
 
-	err = json.Unmarshal(sliceOfBytes, &book)
-	fmt.Println(book.Identifier.ISBN10[0])
-	fmt.Println(book.Identifier.ISBN13)
+	err = json.Unmarshal(*rawBook, &book)
+	if err != nil {
+		return nil, err
+	}
 	return &book, nil
 }

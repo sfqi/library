@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	f "./fetcher"
-
 	"github.com/gorilla/mux"
+	"github.com/library/openlibrary"
 )
 
 type BookModel struct {
@@ -63,14 +62,14 @@ type createBookRequest struct {
 	ISBN string `json:"ISBN"`
 }
 
-func WriteBooks(w http.ResponseWriter, r *http.Request) {
+func CreateBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var createBook createBookRequest
 	if err := json.NewDecoder(r.Body).Decode(&createBook); err != nil {
 		fmt.Println(err)
 		return
 	}
-	book, err := f.FetchBook(createBook.ISBN)
+	book, err := openlibrary.FetchBook(createBook.ISBN)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -86,7 +85,7 @@ func main() {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/books", GetBooks).Methods("GET")
-	r.HandleFunc("/books", WriteBooks).Methods("POST")
+	r.HandleFunc("/books", CreateBook).Methods("POST")
 
 	http.ListenAndServe(":8080", r)
 }
