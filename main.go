@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/library/openlibrary"
 )
+
 
 type BookModel struct {
 	Id            int    `json:"id"`
@@ -20,40 +22,40 @@ type BookModel struct {
 	Year          string `json:"publish_date"`
 }
 
-func GetBooks(w http.ResponseWriter, r *http.Request) {
+var books = []BookModel{
+	{
+		Id:            1,
+		Title:         "some title",
+		Author:        "some author",
+		Isbn:          "some isbn",
+		Isbn13:        "some isbon13",
+		OpenLibraryId: "again some id",
+		CoverId:       "some cover ID",
+		Year:          "2019",
+	},
+	{
+		Id:            2,
+		Title:         "other title",
+		Author:        "other author",
+		Isbn:          "other isbn",
+		Isbn13:        "other isbon13",
+		OpenLibraryId: "other some id",
+		CoverId:       "other cover ID",
+		Year:          "2019",
+	},
+	{
+		Id:            3,
+		Title:         "another title",
+		Author:        "another author",
+		Isbn:          "another isbn",
+		Isbn13:        "another isbon13",
+		OpenLibraryId: "another some id",
+		CoverId:       "another cover ID",
+		Year:          "2019",
+	},
+}
 
-	books := []BookModel{
-		BookModel{
-			Id:            1,
-			Title:         "some title",
-			Author:        "some author",
-			Isbn:          "some isbn",
-			Isbn13:        "some isbon13",
-			OpenLibraryId: "again some id",
-			CoverId:       "some cover ID",
-			Year:          "2019",
-		},
-		BookModel{
-			Id:            2,
-			Title:         "other title",
-			Author:        "other author",
-			Isbn:          "other isbn",
-			Isbn13:        "other isbon13",
-			OpenLibraryId: "other some id",
-			CoverId:       "other cover ID",
-			Year:          "2019",
-		},
-		BookModel{
-			Id:            3,
-			Title:         "another title",
-			Author:        "another author",
-			Isbn:          "another isbn",
-			Isbn13:        "another isbon13",
-			OpenLibraryId: "another some id",
-			CoverId:       "another cover ID",
-			Year:          "2019",
-		},
-	}
+func GetBooks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(books)
 }
@@ -81,11 +83,33 @@ func CreateBook(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func UpdateBook(w http.ResponseWriter,r *http.Request){
+	w.Header().Set("Content-Type", "application/json")
+	var book BookModel
+	err := json.NewDecoder(r.Body).Decode(&book)
+	if err != nil {
+		fmt.Sprintln("Error decoding")
+	}
+	params := mux.Vars(r)
+	id, err := strconv.Atoi(params["id"])
+	if err != nil {
+		fmt.Println("error converting string to int")
+	}
+
+	for i, b := range books {
+		if b.Id == id {
+			books[i] = book
+			json.NewEncoder(w).Encode(book)
+			break
+		}
+	}
+}
+
 func main() {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/books", GetBooks).Methods("GET")
 	r.HandleFunc("/books", CreateBook).Methods("POST")
-
+	r.HandleFunc("/books/{id}",UpdateBook).Methods("PUT")
 	http.ListenAndServe(":8080", r)
 }
