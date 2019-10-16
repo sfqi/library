@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/library/openlibrary"
+
+	"github.com/pkg/errors"
 )
 
+const basePath = "https://openlibrary.org/api/books?bibkeys=ISBN:"
+const queryParams = "&format=json&jscmd=data"
 
 type BookModel struct {
 	Id            int    `json:"id"`
@@ -22,40 +24,40 @@ type BookModel struct {
 	Year          string `json:"publish_date"`
 }
 
-var books = []BookModel{
-	{
-		Id:            1,
-		Title:         "some title",
-		Author:        "some author",
-		Isbn:          "some isbn",
-		Isbn13:        "some isbon13",
-		OpenLibraryId: "again some id",
-		CoverId:       "some cover ID",
-		Year:          "2019",
-	},
-	{
-		Id:            2,
-		Title:         "other title",
-		Author:        "other author",
-		Isbn:          "other isbn",
-		Isbn13:        "other isbon13",
-		OpenLibraryId: "other some id",
-		CoverId:       "other cover ID",
-		Year:          "2019",
-	},
-	{
-		Id:            3,
-		Title:         "another title",
-		Author:        "another author",
-		Isbn:          "another isbn",
-		Isbn13:        "another isbon13",
-		OpenLibraryId: "another some id",
-		CoverId:       "another cover ID",
-		Year:          "2019",
-	},
-}
-
 func GetBooks(w http.ResponseWriter, r *http.Request) {
+
+	books := []BookModel{
+		BookModel{
+			Id:            1,
+			Title:         "some title",
+			Author:        "some author",
+			Isbn:          "some isbn",
+			Isbn13:        "some isbon13",
+			OpenLibraryId: "again some id",
+			CoverId:       "some cover ID",
+			Year:          "2019",
+		},
+		BookModel{
+			Id:            2,
+			Title:         "other title",
+			Author:        "other author",
+			Isbn:          "other isbn",
+			Isbn13:        "other isbon13",
+			OpenLibraryId: "other some id",
+			CoverId:       "other cover ID",
+			Year:          "2019",
+		},
+		BookModel{
+			Id:            3,
+			Title:         "another title",
+			Author:        "another author",
+			Isbn:          "another isbn",
+			Isbn13:        "another isbon13",
+			OpenLibraryId: "another some id",
+			CoverId:       "another cover ID",
+			Year:          "2019",
+		},
+	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(books)
 }
@@ -64,14 +66,14 @@ type createBookRequest struct {
 	ISBN string `json:"ISBN"`
 }
 
-func CreateBook(w http.ResponseWriter, r *http.Request) {
+func WriteBooks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var createBook createBookRequest
 	if err := json.NewDecoder(r.Body).Decode(&createBook); err != nil {
 		fmt.Println(err)
 		return
 	}
-	book, err := openlibrary.FetchBook(createBook.ISBN)
+	book, err := fetchBook(createBook.ISBN)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -83,33 +85,72 @@ func CreateBook(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func UpdateBook(w http.ResponseWriter,r *http.Request){
-	w.Header().Set("Content-Type", "application/json")
-	var book BookModel
-	err := json.NewDecoder(r.Body).Decode(&book)
+func fetchBook(isbn string) (*Book, error) {
+	url := basePath + isbn + queryParams
+	fmt.Println(url)
+	response, err := http.Get(url)
 	if err != nil {
-		fmt.Sprintln("Error decoding")
+		return nil, err
 	}
-	params := mux.Vars(r)
-	id, err := strconv.Atoi(params["id"])
+	status := response.StatusCode
+	fmt.Println("Status code: ", status)
+	defer response.Body.Close()
+	result := make(map[string]*json.RawMessage, 0)
+	err = json.NewDecoder(response.Body).Decode(&result)
 	if err != nil {
-		fmt.Println("error converting string to int")
+		return nil, err
 	}
 
-	for i, b := range books {
-		if b.Id == id {
-			books[i] = book
-			json.NewEncoder(w).Encode(book)
-			break
-		}
+	key := fmt.Sprintf("ISBN:%v", isbn) // our structure's root is "ISBN:xxxxx", we must concatenate in one key
+	rawBook, ok := result[key]
+	if !ok {
+		return nil, errors.New("Value for given key cannot be found")
 	}
+	var book Book
+	sliceOfBytes, err := rawBook.MarshalJSON()
+	if err != nil {
+		fmt.Println("Error converting *rawMessage into []byte")
+	}
+
+	err = json.Unmarshal(sliceOfBytes, &book)
+	fmt.Println(book.Identifier.ISBN10[0])
+	fmt.Println(book.Identifier.ISBN13)
+	return &book, nil
 }
 
+type Book struct {
+	Title      string     `json:"title"`
+	Identifier identifier `json:"identifiers"`
+	Author     []Author   `json:"authors"`
+	Cover      Cover      `json:"cover"`
+	Year       string     `json:"publish_date"`
+}
+
+type identifier struct {
+	ISBN10      []string `json:"isbn_10"`
+	ISBN13      []string `json:"isbn_13"`
+	Openlibrary []string `json:"openlibrary"`
+}
+type Author struct {
+	Name string `json:"string"`
+}
+
+type Cover struct {
+	Url string `json:"small"`
+}
+
+// I created struct Books, where it will be stored whole concept of Book, so if we need Cover_Id and
+// library id, we will just parse fields from Books. exp: cover_id = strings.Split(Books.Cover,"/")[5]
 func main() {
 	r := mux.NewRouter()
+	book, err := fetchBook("9780261102736")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(*book)
 
 	r.HandleFunc("/books", GetBooks).Methods("GET")
-	r.HandleFunc("/books", CreateBook).Methods("POST")
-	r.HandleFunc("/books/{id}",UpdateBook).Methods("PUT")
+	r.HandleFunc("/books", WriteBooks).Methods("POST")
+
 	http.ListenAndServe(":8080", r)
 }
