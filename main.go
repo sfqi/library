@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -22,6 +23,7 @@ type BookModel struct {
 	Year          string `json:"publish_date"`
 }
 
+var Ol openlibrary.OL
 var books = []BookModel{
 	{
 		Id:            1,
@@ -66,12 +68,15 @@ type createBookRequest struct {
 
 func CreateBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	Ol.Url = os.Getenv("LIBRARY")
 	var createBook createBookRequest
 	if err := json.NewDecoder(r.Body).Decode(&createBook); err != nil {
 		fmt.Println(err)
 		return
 	}
-	book, err := openlibrary.FetchBook(createBook.ISBN)
+	fmt.Println(createBook.ISBN)
+	book, err := Ol.FetchBook(createBook.ISBN)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -106,6 +111,8 @@ func UpdateBook(w http.ResponseWriter,r *http.Request){
 }
 
 func main() {
+	// Setting env var
+	os.Setenv("LIBRARY","https://openlibrary.org/api/")
 	r := mux.NewRouter()
 
 	r.HandleFunc("/books", GetBooks).Methods("GET")

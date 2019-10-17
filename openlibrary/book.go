@@ -7,8 +7,12 @@ import (
 	"net/http"
 )
 
-const basePath = "https://openlibrary.org/api/books?bibkeys=ISBN:"
+const secondPart = "books?bibkeys=ISBN:"
 const queryParams = "&format=json&jscmd=data"
+
+type OL struct {
+	Url string
+}
 
 type Book struct {
 	Title      string     `json:"title"`
@@ -31,8 +35,8 @@ type cover struct {
 	Url string `json:"small"`
 }
 
-func FetchBook(isbn string) (*Book, error) {
-	url := basePath + isbn + queryParams
+func (ol *OL)FetchBook(isbn string) (*Book, error) {
+	url := ol.Url + secondPart+isbn+queryParams
 	fmt.Println(url)
 	response, err := http.Get(url)
 	if err != nil {
