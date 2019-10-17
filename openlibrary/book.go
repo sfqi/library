@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-const secondPart = "books?bibkeys=ISBN:"
+const bibkeys = "books?bibkeys=ISBN:"
 const queryParams = "&format=json&jscmd=data"
 
 type OL struct {
@@ -36,7 +36,7 @@ type cover struct {
 }
 
 func (ol *OL)FetchBook(isbn string) (*Book, error) {
-	url := ol.Url + secondPart+isbn+queryParams
+	url := ol.Url + bibkeys+isbn+queryParams
 	fmt.Println(url)
 	response, err := http.Get(url)
 	if err != nil {
