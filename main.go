@@ -11,7 +11,6 @@ import (
 	"github.com/library/openlibrary"
 )
 
-
 type BookModel struct {
 	Id            int    `json:"id"`
 	Title         string `json:"title"`
@@ -71,39 +70,44 @@ func CreateBook(w http.ResponseWriter, r *http.Request) {
 
 	var createBook createBookRequest
 	if err := json.NewDecoder(r.Body).Decode(&createBook); err != nil {
-		fmt.Println(err)
+		fmt.Println("error while decoding in CreateBook: ", err)
 		return
 	}
 	fmt.Println(createBook.ISBN)
 	book, err := client.FetchBook(createBook.ISBN)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("error while fething book: ", err)
 		return
 	}
 
 	if err := json.NewEncoder(w).Encode(book); err != nil {
-		fmt.Println(err)
+		fmt.Println("error while encode from CreateBook: ", err)
 		return
 	}
 }
 
-func UpdateBook(w http.ResponseWriter,r *http.Request){
+func UpdateBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var book BookModel
 	err := json.NewDecoder(r.Body).Decode(&book)
 	if err != nil {
-		fmt.Sprintln("Error decoding")
+		fmt.Println("error while decoding from UpdateBook", err)
+		return
 	}
 	params := mux.Vars(r)
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
-		fmt.Println("error converting string to int")
+		fmt.Println("error converting string to int from UpdateBook", err)
+		return
 	}
 
 	for i, b := range books {
 		if b.Id == id {
 			books[i] = book
-			json.NewEncoder(w).Encode(book)
+			if err := json.NewEncoder(w).Encode(book); err != nil {
+				fmt.Println("error while Marshaling from UpdateBook: ", err)
+				return
+			}
 			break
 		}
 	}
@@ -119,6 +123,6 @@ func main() {
 
 	r.HandleFunc("/books", GetBooks).Methods("GET")
 	r.HandleFunc("/books", CreateBook).Methods("POST")
-	r.HandleFunc("/books/{id}",UpdateBook).Methods("PUT")
+	r.HandleFunc("/books/{id}", UpdateBook).Methods("PUT")
 	http.ListenAndServe(":8080", r)
 }
