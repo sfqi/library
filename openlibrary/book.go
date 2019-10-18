@@ -6,8 +6,13 @@ import (
 	"net/http"
 )
 
-const basePath = "https://openlibrary.org/api/books?bibkeys=ISBN:"
-const queryParams = "&format=json&jscmd=data"
+const bookPath="books"
+const bibkeys = "?bibkeys=ISBN:%s"
+const formatParams = "&format=json&jscmd=data"
+var fetchBookPath = bookPath+bibkeys + formatParams
+type Client struct {
+	Url string
+}
 
 type Book struct {
 	Title      string     `json:"title"`
@@ -30,8 +35,10 @@ type cover struct {
 	Url string `json:"small"`
 }
 
-func FetchBook(isbn string) (*Book, error) {
-	url := basePath + isbn + queryParams
+func (client *Client)FetchBook(isbn string) (*Book, error) {
+	url := fmt.Sprintf(client.Url + fetchBookPath,isbn)
+	fmt.Println(url)
+
 	response, err := http.Get(url)
 	if err != nil {
 		err := fmt.Errorf("error while getting url: %v", err)
