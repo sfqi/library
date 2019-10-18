@@ -2,7 +2,6 @@ package openlibrary
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 )
@@ -48,13 +47,11 @@ func FetchBook(isbn string) (*Book, error) {
 		return nil, err
 	}
 
-	key := fmt.Sprintf("ISBN:%v", isbn)
-	fmt.Println(key)
+	key := "ISBN:" + isbn
 	rawBook, ok := result[key]
 	if !ok {
-		errorKey := fmt.Sprintf("value for given key cannot be found: %s", result[key])
-		err := errors.New(errorKey)
-		return nil, err
+		errorKey := fmt.Errorf("value for given key cannot be found: ", result[key])
+		return nil, errorKey
 	}
 
 	var book Book
