@@ -7,9 +7,10 @@ import (
 	"net/http"
 )
 
-const bibkeys = "books?bibkeys=ISBN:"
-const queryParams = "&format=json&jscmd=data"
-
+const bookPath="books"
+const bibkeys = "?bibkeys=ISBN:%s"
+const formatParams = "&format=json&jscmd=data"
+var fetchBookPath = bookPath+bibkeys + formatParams
 type OL struct {
 	Url string
 }
@@ -36,7 +37,7 @@ type cover struct {
 }
 
 func (ol *OL)FetchBook(isbn string) (*Book, error) {
-	url := ol.Url + bibkeys+isbn+queryParams
+	url := fmt.Sprintf(ol.Url + fetchBookPath,isbn)
 	fmt.Println(url)
 	response, err := http.Get(url)
 	if err != nil {

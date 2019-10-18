@@ -69,7 +69,6 @@ type createBookRequest struct {
 func CreateBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	Ol.Url = os.Getenv("LIBRARY")
 	var createBook createBookRequest
 	if err := json.NewDecoder(r.Body).Decode(&createBook); err != nil {
 		fmt.Println(err)
@@ -112,7 +111,10 @@ func UpdateBook(w http.ResponseWriter,r *http.Request){
 
 func main() {
 	// Setting env var
-	os.Setenv("LIBRARY","https://openlibrary.org/api/")
+	Ol = openlibrary.OL{}
+	fmt.Println(os.Getenv("LIBRARY"))
+	Ol.Url = os.Getenv("LIBRARY")
+
 	r := mux.NewRouter()
 
 	r.HandleFunc("/books", GetBooks).Methods("GET")
@@ -120,3 +122,5 @@ func main() {
 	r.HandleFunc("/books/{id}",UpdateBook).Methods("PUT")
 	http.ListenAndServe(":8080", r)
 }
+
+//export LIBRARY='https://openlibrary.org/api/'
