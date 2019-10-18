@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-const bookPath="books"
+const bookPath="/books"
 const bibkeys = "?bibkeys=ISBN:%s"
 const formatParams = "&format=json&jscmd=data"
 var fetchBookPath = bookPath+bibkeys + formatParams
@@ -57,7 +57,7 @@ func (client *Client)FetchBook(isbn string) (*Book, error) {
 	key := "ISBN:" + isbn
 	rawBook, ok := result[key]
 	if !ok {
-		errorKey := fmt.Errorf("value for given key cannot be found: ", result[key])
+		errorKey := fmt.Errorf("value for given key cannot be found: %s ", result[key])
 		return nil, errorKey
 	}
 
