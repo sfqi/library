@@ -11,7 +11,7 @@ const bookPath="books"
 const bibkeys = "?bibkeys=ISBN:%s"
 const formatParams = "&format=json&jscmd=data"
 var fetchBookPath = bookPath+bibkeys + formatParams
-type OL struct {
+type Client struct {
 	Url string
 }
 
@@ -36,8 +36,8 @@ type cover struct {
 	Url string `json:"small"`
 }
 
-func (ol *OL)FetchBook(isbn string) (*Book, error) {
-	url := fmt.Sprintf(ol.Url + fetchBookPath,isbn)
+func (client *Client)FetchBook(isbn string) (*Book, error) {
+	url := fmt.Sprintf(client.Url + fetchBookPath,isbn)
 	fmt.Println(url)
 	response, err := http.Get(url)
 	if err != nil {

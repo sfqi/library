@@ -23,7 +23,7 @@ type BookModel struct {
 	Year          string `json:"publish_date"`
 }
 
-var Ol openlibrary.OL
+var client openlibrary.Client
 var books = []BookModel{
 	{
 		Id:            1,
@@ -75,7 +75,7 @@ func CreateBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println(createBook.ISBN)
-	book, err := Ol.FetchBook(createBook.ISBN)
+	book, err := client.FetchBook(createBook.ISBN)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -111,9 +111,9 @@ func UpdateBook(w http.ResponseWriter,r *http.Request){
 
 func main() {
 	// Setting env var
-	Ol = openlibrary.OL{}
+	client = openlibrary.Client{}
 	fmt.Println(os.Getenv("LIBRARY"))
-	Ol.Url = os.Getenv("LIBRARY")
+	client.Url = os.Getenv("LIBRARY")
 
 	r := mux.NewRouter()
 
@@ -122,5 +122,3 @@ func main() {
 	r.HandleFunc("/books/{id}",UpdateBook).Methods("PUT")
 	http.ListenAndServe(":8080", r)
 }
-
-//export LIBRARY='https://openlibrary.org/api/'
