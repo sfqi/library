@@ -2,7 +2,6 @@ package openlibrary
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 )
@@ -33,9 +32,9 @@ type cover struct {
 
 func FetchBook(isbn string) (*Book, error) {
 	url := basePath + isbn + queryParams
-	fmt.Println(url)
 	response, err := http.Get(url)
 	if err != nil {
+		err := fmt.Errorf("error while getting url: %v", err)
 		return nil, err
 	}
 	defer response.Body.Close()
@@ -44,18 +43,22 @@ func FetchBook(isbn string) (*Book, error) {
 	result := make(map[string]*json.RawMessage, 0)
 	err = json.NewDecoder(response.Body).Decode(&result)
 	if err != nil {
+		err := fmt.Errorf("error while decoding from FetchBook: %v", err)
 		return nil, err
 	}
 
-	key := fmt.Sprintf("ISBN:%v", isbn)
+	key := "ISBN:" + isbn
 	rawBook, ok := result[key]
 	if !ok {
-		return nil, errors.New("Value for given key cannot be found")
+		errorKey := fmt.Errorf("value for given key cannot be found: ", result[key])
+		return nil, errorKey
 	}
+
 	var book Book
 
 	err = json.Unmarshal(*rawBook, &book)
 	if err != nil {
+		err := fmt.Errorf("error while Unmarshaling from FetchBook: %v", err)
 		return nil, err
 	}
 	return &book, nil
