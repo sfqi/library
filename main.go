@@ -113,6 +113,26 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func GetBook(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var book BookModel
+
+	params := mux.Vars(r)
+	id, err := strconv.Atoi(params["id"])
+	if err != nil {
+		fmt.Println("error converting string to int from GetOneBook", err)
+		return
+	}
+
+	for i, b := range books {
+		if b.Id == id {
+			book = books[i]
+		}
+	}
+	json.NewEncoder(w).Encode(book)
+
+}
+
 func main() {
 	// Setting env var
 	client = openlibrary.Client{}
@@ -124,5 +144,6 @@ func main() {
 	r.HandleFunc("/books", GetBooks).Methods("GET")
 	r.HandleFunc("/books", CreateBook).Methods("POST")
 	r.HandleFunc("/books/{id}", UpdateBook).Methods("PUT")
+	r.HandleFunc("/book/{id}", GetBook).Methods("GET")
 	http.ListenAndServe(":8080", r)
 }
