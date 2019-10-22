@@ -45,7 +45,7 @@ func TestFetchBook(t *testing.T) {
 		}
 
 		if responseBook != nil {
-			t.Errorf("Expectedto be nil but got: %v", responseBook)
+			t.Errorf("Expected to be nil but got: %v", responseBook)
 		}
 	})
 }
