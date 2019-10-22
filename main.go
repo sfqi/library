@@ -17,7 +17,7 @@ type BookModel struct {
 	Author        string `json:"author"`
 	Isbn          string `json:"isbn_10"`
 	Isbn13        string `json:"isbn_13"`
-	OpenLibraryId string
+	OpenLibraryId string `json:"olid"`
 	CoverId       string `json:"cover"`
 	Year          string `json:"publish_date"`
 }
@@ -58,7 +58,10 @@ var books = []BookModel{
 
 func GetBooks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(books)
+	if err := json.NewEncoder(w).Encode(books); err != nil {
+		fmt.Println("error while Marshaling from GetBooks: ", err)
+		return
+	}
 }
 
 type createBookRequest struct {
