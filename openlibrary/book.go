@@ -59,7 +59,7 @@ func (client *Client) FetchBook(isbn string) (*Book, error) {
 	key := "ISBN:" + isbn
 	rawBook, ok := result[key]
 	if !ok {
-		errorKey := fmt.Errorf("value for given key cannot be found: %s ", result[key])
+		errorKey := fmt.Errorf("value for given key cannot be found: %s", key)
 		return nil, errorKey
 	}
 

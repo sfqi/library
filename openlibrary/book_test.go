@@ -20,7 +20,7 @@ func TestFetchBook(t *testing.T) {
 		}
 		responseBook, err := client.FetchBook("0201558025")
 		if err != nil {
-			t.Errorf("We got error: %s", err)
+			t.Errorf("We got error: %cds", err)
 		}
 
 		if responseBook.Title != "Concrete mathematics" {
@@ -29,11 +29,9 @@ func TestFetchBook(t *testing.T) {
 	})
 
 	t.Run("book with error in title", func(t *testing.T) {
-		expected := `{"ISBN:0140447938": {"title": "War and Peace (Penguin Classics)"}}`
-
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"ISBN:0140447938": {"title": "War and Peace (Penguin Classicssss)"}}`))
+			w.Write([]byte(`{"ISBN:0140447938": {"title": "War and Peace (Penguin Classics)"}}`))
 		}))
 
 		defer server.Close()
@@ -41,14 +39,13 @@ func TestFetchBook(t *testing.T) {
 			server.URL,
 		}
 
-		responseBook, err := client.FetchBook("0140447938")
-		if err != nil {
+		responseBook, err := client.FetchBook("0201558025")
+		if err.Error() != "value for given key cannot be found: ISBN:0201558025" {
 			t.Errorf("We got error: %s", err)
 		}
 
-		if responseBook.Title != "War and Peace (Penguin Classics)" {
-			t.Errorf("We did not get the expected response,expected %s, but got %s", expected, responseBook.Title)
+		if responseBook != nil {
+			t.Errorf("Expectedto be nil but got: %v", responseBook)
 		}
-
 	})
 }
