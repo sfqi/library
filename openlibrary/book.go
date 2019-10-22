@@ -6,10 +6,13 @@ import (
 	"net/http"
 )
 
+
+
 const bookPath="books"
 const bibkeys = "?bibkeys=ISBN:%s"
 const formatParams = "&format=json&jscmd=data"
 var fetchBookPath = bookPath+bibkeys + formatParams
+
 type Client struct {
 	Url string
 }
@@ -35,8 +38,10 @@ type cover struct {
 	Url string `json:"small"`
 }
 
+
 func (client *Client)FetchBook(isbn string) (*Book, error) {
 	url := fmt.Sprintf(client.Url + fetchBookPath,isbn)
+
 	fmt.Println(url)
 
 	response, err := http.Get(url)
@@ -57,7 +62,7 @@ func (client *Client)FetchBook(isbn string) (*Book, error) {
 	key := "ISBN:" + isbn
 	rawBook, ok := result[key]
 	if !ok {
-		errorKey := fmt.Errorf("value for given key cannot be found: ", result[key])
+		errorKey := fmt.Errorf("value for given key cannot be found: %s", key)
 		return nil, errorKey
 	}
 
