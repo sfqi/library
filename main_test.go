@@ -146,6 +146,44 @@ func TestCreateBook(t *testing.T){
 		}
 	})
 	//Testing for encoding
+}
 
+func TestFindBookById(t *testing.T) {
+	t.Run("Given Id can not be converted", func(t *testing.T){
+		req, err := http.NewRequest("GET", "/book/{id}", nil)
+		mapOfParams := map[string]string{}
+		mapOfParams["id"] = "ee"
+		req = mux.SetURLVars(req, mapOfParams)
+		if err != nil {
+			t.Errorf("Error occured, %s", err)
+		}
+
+		rr := httptest.NewRecorder()
+		handler := http.HandlerFunc(FindBookById)
+		handler.ServeHTTP(rr, req)
+
+		expectedError := "Error while converting url parameter into integer"
+		if status := rr.Code; status != http.StatusBadRequest && rr.Body.String() != expectedError {
+			t.Errorf("Expected status code: %d and error: %s,  got: %d and %s", http.StatusBadRequest, expectedError, status, rr.Body.String())
+		}
+	})
+	t.Run("Book with given Id can not be found", func(t *testing.T){
+		req, err := http.NewRequest("GET", "/book/{id}", nil)
+		mapOfParams := map[string]string{}
+		mapOfParams["id"] = "44"
+		req = mux.SetURLVars(req, mapOfParams)
+		if err != nil {
+			t.Errorf("Error occured, %s", err)
+		}
+
+		rr := httptest.NewRecorder()
+		handler := http.HandlerFunc(FindBookById)
+		handler.ServeHTTP(rr, req)
+
+		expectedError := "Book with given Id can not be found"
+		if status := rr.Code; status != http.StatusBadRequest && rr.Body.String() != expectedError {
+			t.Errorf("Expected status code: %d and error: %s,  got: %d and %s", http.StatusBadRequest, expectedError, status, rr.Body.String())
+		}
+	})
 }
 
