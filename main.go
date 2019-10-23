@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -12,7 +13,7 @@ import (
 )
 
 type BookModel struct {
-	Id            int    `json:"id"`
+	Id            int    `json:"id,omitempty"`
 	Title         string `json:"title"`
 	Author        string `json:"author"`
 	Isbn          string `json:"isbn_10"`
@@ -58,7 +59,11 @@ var books = []BookModel{
 
 func GetBooks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(books)
+	err := json.NewEncoder(w).Encode(books)
+	if err != nil {
+		http.Error(w,"Not found",http.StatusNotFound)
+		return
+	}
 }
 
 type createBookRequest struct {
@@ -70,18 +75,18 @@ func CreateBook(w http.ResponseWriter, r *http.Request) {
 
 	var createBook createBookRequest
 	if err := json.NewDecoder(r.Body).Decode(&createBook); err != nil {
-		fmt.Println("error while decoding in CreateBook: ", err)
+		http.Error(w,"Error while decoding from request body",400)
 		return
 	}
 	fmt.Println(createBook.ISBN)
 	book, err := client.FetchBook(createBook.ISBN)
 	if err != nil {
-		fmt.Println("error while fething book: ", err)
+		http.Error(w,"Error while fetching book: " + err.Error(),400)
 		return
 	}
 
 	if err := json.NewEncoder(w).Encode(book); err != nil {
-		fmt.Println("error while encode from CreateBook: ", err)
+		http.Error(w,"Internal server error:"+err.Error(),500)
 		return
 	}
 }
@@ -90,14 +95,24 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var book BookModel
 	err := json.NewDecoder(r.Body).Decode(&book)
+	if strconv.Itoa(book.Id) != "0" {
+		errors.New("Id of the book can not be changed")
+		http.Error(w,"Id cannot be changed",400)
+		return
+	}
 	if err != nil {
-		fmt.Println("error while decoding from UpdateBook", err)
+		http.Error(w,"Error while decoding from request body",400)
 		return
 	}
 	params := mux.Vars(r)
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
-		fmt.Println("error converting string to int from UpdateBook", err)
+		http.Error(w,"Error while converting url parameter into integer",400)
+		return
+	}
+	if id > len(books){
+		// if we have 3 books, and pass 5 as id, its out of range... should be bad request?
+		http.Error(w,"Given index is out of bounds",400)
 		return
 	}
 
@@ -105,7 +120,7 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 		if b.Id == id {
 			books[i] = book
 			if err := json.NewEncoder(w).Encode(book); err != nil {
-				fmt.Println("error while Marshaling from UpdateBook: ", err)
+				http.Error(w,"Bad request: "+err.Error(),400)
 				return
 			}
 			break
@@ -120,7 +135,11 @@ func GetBook(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
-		fmt.Println("error converting string to int from GetOneBook", err)
+		http.Error(w,"Error while converting url parameter into integer",400)
+		return
+	}
+	if id >len(books){
+		http.Error(w,"Given index is out of bounds",400)
 		return
 	}
 
@@ -129,7 +148,11 @@ func GetBook(w http.ResponseWriter, r *http.Request) {
 			book = books[i]
 		}
 	}
-	json.NewEncoder(w).Encode(book)
+	err = json.NewEncoder(w).Encode(book)
+	if err != nil {
+		http.Error(w,"Error encoding response into book", 500)
+		return
+	}
 
 }
 
@@ -147,3 +170,4 @@ func main() {
 	r.HandleFunc("/book/{id}", GetBook).Methods("GET")
 	http.ListenAndServe(":8080", r)
 }
+
