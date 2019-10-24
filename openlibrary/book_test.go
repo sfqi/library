@@ -30,25 +30,6 @@ func TestFetchBook(t *testing.T) {
 		}
 	})
 
-	t.Run("book with error in title", func(t *testing.T) {
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"ISBN:0140447938": {"title": "Warr and Peace (Penguin Classics)"}}`))
-		}))
-		responseTitle := "Warr and Peace (Penguin Classics)" // i added one more 'r' in war
-		defer server.Close()
-		client := &Client{
-			server.URL,
-		}
-
-		responseBook, err := client.FetchBook("0140447938")
-		if err != nil{
-			if responseBook.Title == responseTitle{
-				t.Errorf("Title of the book: %s, should not match with response %s",responseBook.Title,responseTitle)
-			}
-		}
-	})
-
 	t.Run("error decoding from fetchBook",func(t *testing.T){
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
@@ -61,10 +42,8 @@ func TestFetchBook(t *testing.T) {
 		}
 
 		responseBook, err := client.FetchBook("0140447938")
-		chechIfErrorIsNIl(err,t)
-		if !strings.Contains(err.Error(),"error while decoding from FetchBook:"){
-			t.Errorf("Got error: %s", err)
-		}
+
+		checkError(t,err,"error while decoding from FetchBook:")
 
 		checkIfBookIsNil(responseBook,t)
 
@@ -82,12 +61,21 @@ func TestFetchBook(t *testing.T) {
 		}
 		//whatever we pass here as invalid isbn, we will get the error we want
 		responseBook , err := client.FetchBook("0140447932111xxxx")
-		chechIfErrorIsNIl(err,t)
-		if err.Error() != "value for given key cannot be found: ISBN:0140447932111xxxx" {
-			t.Errorf("Got error : %s",err)
-		}
+
+
+		checkError(t,err,"value for given key cannot be found:")
+
 		checkIfBookIsNil(responseBook,t)
 	})
+}
+
+func checkError(t *testing.T,err error,expected string){
+	if err == nil {
+		t.Error("Expected error ,  got nil")
+	}
+	if !strings.Contains(err.Error(),expected){
+		t.Errorf("Got error: %s", err)
+	}
 }
 
 func checkIfBookIsNil(b *Book,t *testing.T){
@@ -96,8 +84,3 @@ func checkIfBookIsNil(b *Book,t *testing.T){
 	}
 }
 
-func chechIfErrorIsNIl(err error,t *testing.T){
-	if err == nil {
-		t.Error("Expected error ,  got nil")
-	}
-}

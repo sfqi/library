@@ -23,6 +23,21 @@ type BookModel struct {
 }
 
 var client openlibrary.Client
+
+type db struct{
+	books []BookModel
+}
+func(bm *db)FindBookById(id int)(book BookModel, found bool){
+	for _, b := range bm.books {
+		if b.Id == id {
+			book = b
+			found = true
+			break
+		}
+	}
+	return book,found
+}
+
 var books = []BookModel{
 	{
 		Id:            1,
@@ -55,6 +70,12 @@ var books = []BookModel{
 		Year:          "2019",
 	},
 }
+//shelf - polica
+var shelf = &db{
+	books: books,
+}
+
+
 
 func GetBooks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -107,25 +128,27 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 		errorConvertingId(w,err)
 		return
 	}
-	found := false
-	for i, b := range books {
-		if b.Id == id {
-			books[i] = book
-			if err := json.NewEncoder(w).Encode(book); err != nil {
-				errorEncoding(w,err)
-				return
-			}
-			found = true
-			break
-		}
-	}
+	bookWithId, found := shelf.FindBookById(id)
+	fmt.Println(bookWithId.Id ,bookWithId.Title,bookWithId.Author)
 	if !found {
 		errorFindingBook(w,err)
 		return
 	}
+
+	for i,b := range shelf.books{
+		if b.Id == book.Id{
+			shelf.books[i] = book
+		}
+	}
+
+	err = json.NewEncoder(w).Encode(book)
+	if err != nil {
+		errorEncoding(w,err)
+		return
+	}
 }
 
-func FindBookById(w http.ResponseWriter, r *http.Request) {
+func GetBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	params := mux.Vars(r)
@@ -134,20 +157,14 @@ func FindBookById(w http.ResponseWriter, r *http.Request) {
 		errorConvertingId(w, err)
 		return
 	}
-
-	found := false
-	for i, b := range books {
-		if b.Id == id {
-			err := json.NewEncoder(w).Encode(books[i])
-			if err != nil {
-				errorEncoding(w, err)
-			}
-			found = true
-			break
-		}
-	}
+	book,found := shelf.FindBookById(id)
 	if !found {
 		errorFindingBook(w, err)
+		return
+	}
+	err = json.NewEncoder(w).Encode(book)
+	if err != nil {
+		errorEncoding(w,err)
 		return
 	}
 }
@@ -163,7 +180,7 @@ func main() {
 	r.HandleFunc("/books", GetBooks).Methods("GET")
 	r.HandleFunc("/books", CreateBook).Methods("POST")
 	r.HandleFunc("/books/{id}", UpdateBook).Methods("PUT")
-	r.HandleFunc("/book/{id}", FindBookById).Methods("GET")
+	r.HandleFunc("/book/{id}", GetBook).Methods("GET")
 	http.ListenAndServe(":8080", r)
 }
 

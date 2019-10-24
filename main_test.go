@@ -10,37 +10,12 @@ import (
 	"testing"
 )
 
-/*
-func TestGetBooks(t *testing.T) {
 
-	req, err := http.NewRequest("GET", "/health-check", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(GetBooks)
-
-	handler.ServeHTTP(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v",
-			status, http.StatusOK)
-	}
-
-	expected := `{"alive": true}`
-	if rr.Body.String() != expected {
-		t.Errorf("handler returned unexpected body: got %v want %v",
-			rr.Body.String(), expected)
-	}
-}
-*/
 func TestUpdateBook(t *testing.T) {
 	t.Run("assertion of expected response, and actual response", func(t *testing.T) {
 		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"Title":"another title","Author":"another author","Isbn":"another isbn","Isbn13":"another isbon13","OpenLibraryId": "another some id","CoverId":"another cover ID","Year":"2019"}`)))
-		mapOfParams := map[string]string{}
-		mapOfParams["id"] = "2"
-		req = mux.SetURLVars(req, mapOfParams)
+		params := map[string]string{"id":"2"}
+		req = mux.SetURLVars(req, params)
 		if err != nil {
 			t.Errorf("Error occured, %s", err)
 		}
@@ -57,9 +32,8 @@ func TestUpdateBook(t *testing.T) {
 	})
 	t.Run("Error decoding Book attributes", func(t *testing.T) {
 		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"id":"12","title":zdravo}`)))
-		mapOfParams := map[string]string{}
-		mapOfParams["id"] = "2"
-		req = mux.SetURLVars(req, mapOfParams)
+		params := map[string]string{"id":"2"}
+		req = mux.SetURLVars(req, params)
 		if err != nil {
 			t.Errorf("Error occured, %s", err)
 		}
@@ -75,9 +49,8 @@ func TestUpdateBook(t *testing.T) {
 
 	t.Run("Converting id parameter into integer", func(t *testing.T) {
 		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"id":12,"title":"zdravo"}`)))
-		mapOfParams := map[string]string{}
-		mapOfParams["id"] = "ss"
-		req = mux.SetURLVars(req, mapOfParams)
+		params := map[string]string{"id":"2ss"}
+		req = mux.SetURLVars(req, params)
 		if err != nil {
 			t.Errorf("Error occured, %s", err)
 		}
@@ -92,9 +65,8 @@ func TestUpdateBook(t *testing.T) {
 	})
 	t.Run("Book with given Id can not be found", func(t *testing.T) {
 		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"id":12,"title":"zdravo"}`)))
-		mapOfParams := map[string]string{}
-		mapOfParams["id"] = "12"
-		req = mux.SetURLVars(req, mapOfParams)
+		params := map[string]string{"id":"12"}
+		req = mux.SetURLVars(req, params)
 		if err != nil {
 			t.Errorf("Error occured, %s", err)
 		}
@@ -107,7 +79,6 @@ func TestUpdateBook(t *testing.T) {
 			t.Errorf("Expected status code: %d and error: %s,  got: %d and %s", http.StatusBadRequest, expectedError, status, rr.Body.String())
 		}
 	})
-	// Ostalo je jos testiranje za error Encoding, ne znam da li je to neophodno
 
 }
 
@@ -145,21 +116,20 @@ func TestCreateBook(t *testing.T){
 			t.Errorf("Expected status code: %d and error: %s,  got: %d and %s", http.StatusBadRequest, expectedError, status, rr.Body.String())
 		}
 	})
-	//Testing for encoding
+
 }
 
-func TestFindBookById(t *testing.T) {
+func TestGetBook(t *testing.T) {
 	t.Run("Given Id can not be converted", func(t *testing.T){
 		req, err := http.NewRequest("GET", "/book/{id}", nil)
-		mapOfParams := map[string]string{}
-		mapOfParams["id"] = "ee"
-		req = mux.SetURLVars(req, mapOfParams)
+		params := map[string]string{"id":"ee"}
+		req = mux.SetURLVars(req, params)
 		if err != nil {
 			t.Errorf("Error occured, %s", err)
 		}
 
 		rr := httptest.NewRecorder()
-		handler := http.HandlerFunc(FindBookById)
+		handler := http.HandlerFunc(GetBook)
 		handler.ServeHTTP(rr, req)
 
 		expectedError := "Error while converting url parameter into integer"
@@ -169,15 +139,14 @@ func TestFindBookById(t *testing.T) {
 	})
 	t.Run("Book with given Id can not be found", func(t *testing.T){
 		req, err := http.NewRequest("GET", "/book/{id}", nil)
-		mapOfParams := map[string]string{}
-		mapOfParams["id"] = "44"
-		req = mux.SetURLVars(req, mapOfParams)
+		params := map[string]string{"id":"44"}
+		req = mux.SetURLVars(req, params)
 		if err != nil {
 			t.Errorf("Error occured, %s", err)
 		}
 
 		rr := httptest.NewRecorder()
-		handler := http.HandlerFunc(FindBookById)
+		handler := http.HandlerFunc(GetBook)
 		handler.ServeHTTP(rr, req)
 
 		expectedError := "Book with given Id can not be found"
