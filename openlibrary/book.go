@@ -6,7 +6,8 @@ import (
 	"net/http"
 )
 
-const bookPath = "/books"
+
+const bookPath="/books"
 const bibkeys = "?bibkeys=ISBN:%s"
 const formatParams = "&format=json&jscmd=data"
 
