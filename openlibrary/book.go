@@ -7,11 +7,11 @@ import (
 )
 
 
-
 const bookPath="/books"
 const bibkeys = "?bibkeys=ISBN:%s"
 const formatParams = "&format=json&jscmd=data"
-var fetchBookPath = bookPath+bibkeys + formatParams
+
+var fetchBookPath = bookPath + bibkeys + formatParams
 
 type Client struct {
 	Url string
@@ -38,9 +38,8 @@ type cover struct {
 	Url string `json:"small"`
 }
 
-
-func (client *Client)FetchBook(isbn string) (*Book, error) {
-	url := fmt.Sprintf(client.Url + fetchBookPath,isbn)
+func (client *Client) FetchBook(isbn string) (*Book, error) {
+	url := fmt.Sprintf(client.Url+fetchBookPath, isbn)
 
 	fmt.Println(url)
 
