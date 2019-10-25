@@ -1,20 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
-	"os"
 	"github.com/gorilla/mux"
-	"github.com/library/openlibrary"
 	"github.com/library/handler"
 
 )
-var Client openlibrary.Client
-func main() {
-	// Setting env var
-	openLibraryURL := os.Getenv("LIBRARY")
-	Client := *openlibrary.NewClient(openLibraryURL)
 
+func main() {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/books", handler.GetBooks).Methods("GET")
