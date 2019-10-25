@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/library/openlibrary"
@@ -24,19 +25,22 @@ type BookModel struct {
 
 var client openlibrary.Client
 
-type db struct {
+
+type db struct{
+	id int
 	books []BookModel
 }
-
-func (bm *db) FindBookById(id int) (book BookModel, found bool) {
-	for _, b := range bm.books {
+func(bm *db)FindBookById(id int)(book BookModel, location int, found bool){
+	for i, b := range bm.books {
 		if b.Id == id {
 			book = b
+			location = i
 			found = true
 			break
 		}
 	}
-	return book, found
+
+	return book,location,found
 }
 
 var books = []BookModel{
@@ -73,13 +77,14 @@ var books = []BookModel{
 }
 
 var shelf = &db{
+	id: len(books), // it should be 0, but we added 3 initial books with id 1,2,3 .. so next book we add will have id=4
 	books: books,
 }
 
 func GetBooks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	err := json.NewEncoder(w).Encode(books)
+	err := json.NewEncoder(w).Encode(shelf.books)
 	if err != nil {
 		fmt.Println("error while getting books: ", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
@@ -107,10 +112,53 @@ func CreateBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	bookToAdd := CreateBookModelFromBook(*book)
+	fmt.Println("PRINTING BOOK MODEL")
+	fmt.Println(bookToAdd)
+	shelf.books = append(shelf.books,bookToAdd)
+
 	if err := json.NewEncoder(w).Encode(book); err != nil {
 		errorEncoding(w, err)
 		return
 	}
+}
+//FetchBook returns book, with whole attributes, but in BookModel we need some parts
+//prim: we need to render Cover, to get CoverId
+func CreateBookModelFromBook(b openlibrary.Book)(bm BookModel){
+	//every time we createBook, Id should increase
+	shelf.id = shelf.id + 1
+	//Here we must hardcode this, because not everybook has both of ISBNs, so in that case we will face segmentation fault
+	//This is one way to do it manualy
+	isbn10 := ""
+	if b.Identifier.ISBN10 != nil{
+		isbn10 = b.Identifier.ISBN10[0]
+	}
+	isbn13 := ""
+	if b.Identifier.ISBN13 != nil{
+		isbn13 = b.Identifier.ISBN13[0]
+	}
+
+////////////    	Rendering CoverId
+	part1 := strings.Split(b.Cover.Url,"/")[5]
+	part2 := strings.Split(part1,".")[0]
+	CoverId := strings.Split(part2,"-")[0]
+////////////
+	libraryId := ""
+	if b.Identifier.Openlibrary != nil {
+		libraryId = b.Identifier.Openlibrary[0]
+	}
+
+	bookToAdd :=BookModel{
+		Id:            shelf.id,
+		Title:         b.Title,
+		Author:        b.Author[0].Name,
+		Isbn:          isbn10,
+		Isbn13:        isbn13,
+		OpenLibraryId: libraryId,
+		CoverId:       CoverId,
+		Year:          b.Year,
+	}
+	return bookToAdd
 }
 
 func UpdateBook(w http.ResponseWriter, r *http.Request) {
@@ -128,19 +176,14 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 		errorConvertingId(w, err)
 		return
 	}
-	bookWithId, found := shelf.FindBookById(id)
-	fmt.Println(bookWithId.Id, bookWithId.Title, bookWithId.Author)
+	bookWithId,location, found := shelf.FindBookById(id)
+	fmt.Println(bookWithId.Id ,bookWithId.Title,bookWithId.Author)
 	if !found {
 		errorFindingBook(w, err)
 		return
 	}
 
-	for i, b := range shelf.books {
-		if b.Id == book.Id {
-			shelf.books[i] = book
-		}
-	}
-
+	shelf.books[location]=book
 	err = json.NewEncoder(w).Encode(book)
 	if err != nil {
 		errorEncoding(w, err)
@@ -157,7 +200,7 @@ func GetBook(w http.ResponseWriter, r *http.Request) {
 		errorConvertingId(w, err)
 		return
 	}
-	book, found := shelf.FindBookById(id)
+	book,_,found := shelf.FindBookById(id)
 	if !found {
 		errorFindingBook(w, err)
 		return

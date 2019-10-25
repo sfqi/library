@@ -31,7 +31,7 @@ type identifier struct {
 	Openlibrary []string `json:"openlibrary"`
 }
 type author struct {
-	Name string `json:"string"`
+	Name string `json:"name"`
 }
 
 type cover struct {
