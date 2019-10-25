@@ -4,17 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
-
-const bookPath="/books"
+const bookPath = "/books"
 const bibkeys = "?bibkeys=ISBN:%s"
 const formatParams = "&format=json&jscmd=data"
 
 var fetchBookPath = bookPath + bibkeys + formatParams
 
 type Client struct {
-	Url string
+	url string
 }
 
 type Book struct {
@@ -38,8 +38,16 @@ type cover struct {
 	Url string `json:"small"`
 }
 
+func NewClient(url string) *Client {
+	url = strings.TrimSuffix(url, "/")
+	return &Client{
+		url: url,
+	}
+
+}
+
 func (client *Client) FetchBook(isbn string) (*Book, error) {
-	url := fmt.Sprintf(client.Url+fetchBookPath, isbn)
+	url := fmt.Sprintf(client.url+fetchBookPath, isbn)
 
 	fmt.Println(url)
 

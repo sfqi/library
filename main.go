@@ -25,6 +25,7 @@ type BookModel struct {
 
 var client openlibrary.Client
 
+
 type db struct{
 	id int
 	books []BookModel
@@ -38,6 +39,7 @@ func(bm *db)FindBookById(id int)(book BookModel, location int, found bool){
 			break
 		}
 	}
+
 	return book,location,found
 }
 
@@ -73,13 +75,11 @@ var books = []BookModel{
 		Year:          "2019",
 	},
 }
-//shelf - polica
+
 var shelf = &db{
 	id: len(books), // it should be 0, but we added 3 initial books with id 1,2,3 .. so next book we add will have id=4
 	books: books,
 }
-
-
 
 func GetBooks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -87,7 +87,7 @@ func GetBooks(w http.ResponseWriter, r *http.Request) {
 	err := json.NewEncoder(w).Encode(shelf.books)
 	if err != nil {
 		fmt.Println("error while getting books: ", err)
-		http.Error(w,"Bad request",http.StatusBadRequest)
+		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
 }
@@ -101,14 +101,14 @@ func CreateBook(w http.ResponseWriter, r *http.Request) {
 
 	var createBook createBookRequest
 	if err := json.NewDecoder(r.Body).Decode(&createBook); err != nil {
-		errorDecodingBook(w,err)
+		errorDecodingBook(w, err)
 		return
 	}
 	fmt.Println(createBook.ISBN)
 	book, err := client.FetchBook(createBook.ISBN)
 	if err != nil {
 		fmt.Println("error while fetching book: ", err)
-		http.Error(w,"Error while fetching book: " + err.Error(),http.StatusInternalServerError)
+		http.Error(w, "Error while fetching book: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -118,7 +118,7 @@ func CreateBook(w http.ResponseWriter, r *http.Request) {
 	shelf.books = append(shelf.books,bookToAdd)
 
 	if err := json.NewEncoder(w).Encode(book); err != nil {
-		errorEncoding(w,err)
+		errorEncoding(w, err)
 		return
 	}
 }
@@ -166,28 +166,27 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 	var book BookModel
 	err := json.NewDecoder(r.Body).Decode(&book)
 	if err != nil {
-		errorDecodingBook(w,err)
+		errorDecodingBook(w, err)
 		return
 	}
 
 	params := mux.Vars(r)
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
-		errorConvertingId(w,err)
+		errorConvertingId(w, err)
 		return
 	}
 	bookWithId,location, found := shelf.FindBookById(id)
 	fmt.Println(bookWithId.Id ,bookWithId.Title,bookWithId.Author)
 	if !found {
-		errorFindingBook(w,err)
+		errorFindingBook(w, err)
 		return
 	}
 
 	shelf.books[location]=book
-
 	err = json.NewEncoder(w).Encode(book)
 	if err != nil {
-		errorEncoding(w,err)
+		errorEncoding(w, err)
 		return
 	}
 }
@@ -208,16 +207,15 @@ func GetBook(w http.ResponseWriter, r *http.Request) {
 	}
 	err = json.NewEncoder(w).Encode(book)
 	if err != nil {
-		errorEncoding(w,err)
+		errorEncoding(w, err)
 		return
 	}
 }
 
 func main() {
 	// Setting env var
-	client = openlibrary.Client{}
-	fmt.Println(os.Getenv("LIBRARY"))
-	client.Url = os.Getenv("LIBRARY")
+	openLibraryURL := os.Getenv("LIBRARY")
+	client = *openlibrary.NewClient(openLibraryURL)
 
 	r := mux.NewRouter()
 
@@ -229,22 +227,22 @@ func main() {
 }
 
 // Handling errors ***************
-func errorDecodingBook(w http.ResponseWriter,err error) {
+func errorDecodingBook(w http.ResponseWriter, err error) {
 	fmt.Println("error while decoding book from response body: ", err)
 	http.Error(w, "Error while decoding from request body", http.StatusBadRequest)
 }
 
-func errorEncoding(w http.ResponseWriter,err error){
+func errorEncoding(w http.ResponseWriter, err error) {
 	fmt.Println("error while encoding book: ", err)
-	http.Error(w,"Internal server error:"+err.Error(),http.StatusInternalServerError)
+	http.Error(w, "Internal server error:"+err.Error(), http.StatusInternalServerError)
 }
 
-func errorConvertingId(w http.ResponseWriter,err error){
-	fmt.Println("Error while converting Id to integer ",err)
-	http.Error(w,"Error while converting url parameter into integer",http.StatusBadRequest)
+func errorConvertingId(w http.ResponseWriter, err error) {
+	fmt.Println("Error while converting Id to integer ", err)
+	http.Error(w, "Error while converting url parameter into integer", http.StatusBadRequest)
 }
 
-func errorFindingBook(w http.ResponseWriter,err error) {
+func errorFindingBook(w http.ResponseWriter, err error) {
 	fmt.Println("Cannot find book with given Id ")
 	http.Error(w, "Book with given Id can not be found", http.StatusBadRequest)
 }
