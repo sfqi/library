@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/library/handler/dto"
 )
 
 const bookPath = "/books"
@@ -17,27 +19,6 @@ type Client struct {
 	url string
 }
 
-type Book struct {
-	Title      string     `json:"title"`
-	Identifier identifier `json:"identifiers"`
-	Author     []author   `json:"authors"`
-	Cover      cover      `json:"cover"`
-	Year       string     `json:"publish_date"`
-}
-
-type identifier struct {
-	ISBN10      []string `json:"isbn_10"`
-	ISBN13      []string `json:"isbn_13"`
-	Openlibrary []string `json:"openlibrary"`
-}
-type author struct {
-	Name string `json:"name"`
-}
-
-type cover struct {
-	Url string `json:"small"`
-}
-
 func NewClient(url string) *Client {
 	url = strings.TrimSuffix(url, "/")
 	return &Client{
@@ -46,10 +27,8 @@ func NewClient(url string) *Client {
 
 }
 
-func (client *Client) FetchBook(isbn string) (*Book, error) {
+func (client *Client) FetchBook(isbn string) (*dto.Book, error) {
 	url := fmt.Sprintf(client.url+fetchBookPath, isbn)
-
-	fmt.Println(url)
 
 	response, err := http.Get(url)
 	if err != nil {
@@ -73,7 +52,7 @@ func (client *Client) FetchBook(isbn string) (*Book, error) {
 		return nil, errorKey
 	}
 
-	var book Book
+	var book dto.Book
 
 	err = json.Unmarshal(*rawBook, &book)
 	if err != nil {
