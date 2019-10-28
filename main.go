@@ -2,9 +2,9 @@ package main
 
 import (
 	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/library/handler"
-
 )
 
 func main() {
@@ -16,4 +16,3 @@ func main() {
 	r.HandleFunc("/book/{id}", handler.GetBook).Methods("GET")
 	http.ListenAndServe(":8080", r)
 }
-

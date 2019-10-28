@@ -30,7 +30,7 @@ func TestFetchBook(t *testing.T) {
 		}
 	})
 
-	t.Run("error decoding from fetchBook",func(t *testing.T){
+	t.Run("error decoding from fetchBook", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(`aa{"ISBN:0140447938": {"title": "War and Peace (Penguin Classics)"}}`))
@@ -43,44 +43,40 @@ func TestFetchBook(t *testing.T) {
 
 		responseBook, err := client.FetchBook("0140447938")
 
-		checkError(t,err,"error while decoding from FetchBook:")
+		checkError(t, err, "error while decoding from FetchBook:")
 
-		checkIfBookIsNil(responseBook,t)
+		checkIfBookIsNil(responseBook, t)
 
 	})
 
-	t.Run("server response doesn't contain the expected ISBN key", func(t *testing.T){
+	t.Run("server response doesn't contain the expected ISBN key", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(`{"ISBN:014044723123938": {"title": "War and Peace (Penguin Classics)"}}`))
 		}))
-		//0140447938
 		defer server.Close()
 		client := &Client{
 			server.URL,
 		}
-		//whatever we pass here as invalid isbn, we will get the error we want
-		responseBook , err := client.FetchBook("0140447932111xxxx")
+		responseBook, err := client.FetchBook("0140447932111xxxx")
 
+		checkError(t, err, "value for given key cannot be found:")
 
-		checkError(t,err,"value for given key cannot be found:")
-
-		checkIfBookIsNil(responseBook,t)
+		checkIfBookIsNil(responseBook, t)
 	})
 }
 
-func checkError(t *testing.T,err error,expected string){
+func checkError(t *testing.T, err error, expected string) {
 	if err == nil {
 		t.Error("Expected error ,  got nil")
 	}
-	if !strings.Contains(err.Error(),expected){
+	if !strings.Contains(err.Error(), expected) {
 		t.Errorf("Got error: %s", err)
 	}
 }
 
-func checkIfBookIsNil(b *Book,t *testing.T){
-	if b != nil{
-		t.Errorf("Expected Book to be nil, got : %v",b)
+func checkIfBookIsNil(b *Book, t *testing.T) {
+	if b != nil {
+		t.Errorf("Expected Book to be nil, got : %v", b)
 	}
 }
-
