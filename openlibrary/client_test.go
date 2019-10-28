@@ -5,6 +5,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/library/handler/dto"
 )
 
 func TestFetchBook(t *testing.T) {
@@ -75,7 +77,7 @@ func checkError(t *testing.T, err error, expected string) {
 	}
 }
 
-func checkIfBookIsNil(b *Book, t *testing.T) {
+func checkIfBookIsNil(b *dto.Book, t *testing.T) {
 	if b != nil {
 		t.Errorf("Expected Book to be nil, got : %v", b)
 	}
