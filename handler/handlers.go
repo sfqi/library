@@ -11,30 +11,20 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/library/domain/model"
 	"github.com/library/handler/dto"
 	"github.com/library/openlibrary"
 )
-
-type BookModel struct {
-	Id            int    `json:"id"`
-	Title         string `json:"title"`
-	Author        string `json:"author"`
-	Isbn          string `json:"isbn_10"`
-	Isbn13        string `json:"isbn_13"`
-	OpenLibraryId string `json:"olid"`
-	CoverId       string `json:"cover"`
-	Year          string `json:"publish_date"`
-}
 
 var openLibraryURL = os.Getenv("LIBRARY")
 var client = *openlibrary.NewClient(openLibraryURL)
 
 type db struct {
 	id    int
-	books []BookModel
+	books []model.Book
 }
 
-func (bm *db) FindBookById(id int) (book BookModel, location int, found bool) {
+func (bm db) FindBookById(id int) (book model.Book, location int, found bool) {
 	for i, b := range bm.books {
 		if b.Id == id {
 			book = b
@@ -47,7 +37,7 @@ func (bm *db) FindBookById(id int) (book BookModel, location int, found bool) {
 	return book, location, found
 }
 
-var books = []BookModel{
+var books = []model.Book{
 	{
 		Id:            1,
 		Title:         "some title",
@@ -125,7 +115,7 @@ func CreateBook(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func CreateBookModelFromBook(b dto.Book) (bm BookModel) {
+func CreateBookModelFromBook(b dto.Book) (bm model.Book) {
 
 	shelf.id = shelf.id + 1
 
@@ -149,7 +139,7 @@ func CreateBookModelFromBook(b dto.Book) (bm BookModel) {
 		libraryId = b.Identifier.Openlibrary[0]
 	}
 
-	bookToAdd := BookModel{
+	bookToAdd := model.Book{
 		Id:            shelf.id,
 		Title:         b.Title,
 		Author:        b.Author[0].Name,
@@ -164,7 +154,7 @@ func CreateBookModelFromBook(b dto.Book) (bm BookModel) {
 
 func UpdateBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var book BookModel
+	var book model.Book
 	err := json.NewDecoder(r.Body).Decode(&book)
 	if err != nil {
 		errorDecodingBook(w, err)
