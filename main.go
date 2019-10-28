@@ -8,11 +8,12 @@ import (
 )
 
 func main() {
+	bookHandler := handler.Book{}
 	r := mux.NewRouter()
 
-	r.HandleFunc("/books", handler.GetBooks).Methods("GET")
-	r.HandleFunc("/books", handler.CreateBook).Methods("POST")
-	r.HandleFunc("/books/{id}", handler.UpdateBook).Methods("PUT")
-	r.HandleFunc("/book/{id}", handler.GetBook).Methods("GET")
+	r.HandleFunc("/books", bookHandler.GetBooks).Methods("GET")
+	r.HandleFunc("/books", bookHandler.CreateBook).Methods("POST")
+	r.HandleFunc("/books/{id}", bookHandler.UpdateBook).Methods("PUT")
+	r.HandleFunc("/book/{id}", bookHandler.GetBook).Methods("GET")
 	http.ListenAndServe(":8080", r)
 }
