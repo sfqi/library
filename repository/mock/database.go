@@ -29,24 +29,19 @@ var Books = []model.Book{
 		Author:        "another author",
 		Isbn:          "another isbn",
 		Isbn13:        "another isbon13",
-		OpenLibraryId: "another some id",
+		OpenLibraryId: "another signupsome id",
 		CoverId:       "another cover ID",
 		Year:          "2019",
 	},
 }
 
-type Db struct {
+type DB struct {
 	Id    int
 	Books []model.Book
 }
 
-var Shelf = &Db{
-	Id:    len(Books),
-	Books: Books,
-}
-
-func (bm Db) FindBookById(id int) (book model.Book, location int, found bool) {
-	for i, b := range bm.Books {
+func (db *DB) FindBookById(id int) (book model.Book, location int, found bool) {
+	for i, b := range db.Books {
 		if b.Id == id {
 			book = b
 			location = i
@@ -55,5 +50,9 @@ func (bm Db) FindBookById(id int) (book model.Book, location int, found bool) {
 		}
 	}
 
-	return book, location, found
+	return
+}
+
+func (db *DB) GetAllBooks() []model.Book {
+	return db.Books
 }

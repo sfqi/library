@@ -20,10 +20,16 @@ import (
 var openLibraryURL = os.Getenv("LIBRARY")
 var client = *openlibrary.NewClient(openLibraryURL)
 
+var DB = &mock.DB{
+	Id:    len(mock.Books),
+	Books: mock.Books,
+}
+
 func GetBooks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	allBooks := DB.GetAllBooks()
 
-	err := json.NewEncoder(w).Encode(mock.Shelf.Books)
+	err := json.NewEncoder(w).Encode(allBooks)
 	if err != nil {
 		fmt.Println("error while getting books: ", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
@@ -52,7 +58,7 @@ func CreateBook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	bookToAdd := CreateBookModelFromBook(*book)
-	mock.Shelf.Books = append(mock.Shelf.Books, bookToAdd)
+	DB.Books = append(DB.Books, bookToAdd)
 
 	if err := json.NewEncoder(w).Encode(book); err != nil {
 		errorEncoding(w, err)
@@ -62,7 +68,7 @@ func CreateBook(w http.ResponseWriter, r *http.Request) {
 
 func CreateBookModelFromBook(b dto.Book) (bm model.Book) {
 
-	mock.Shelf.Id = mock.Shelf.Id + 1
+	DB.Id = DB.Id + 1
 
 	isbn10 := ""
 	if b.Identifier.ISBN10 != nil {
@@ -72,7 +78,7 @@ func CreateBookModelFromBook(b dto.Book) (bm model.Book) {
 	if b.Identifier.ISBN13 != nil {
 		isbn13 = b.Identifier.ISBN13[0]
 	}
-	fmt.Println(mock.Shelf.Id, isbn10, isbn13)
+	fmt.Println(DB.Id, isbn10, isbn13)
 	CoverId := ""
 	if b.Cover.Url != "" {
 		part1 := strings.Split(b.Cover.Url, "/")[5]
@@ -85,7 +91,7 @@ func CreateBookModelFromBook(b dto.Book) (bm model.Book) {
 	}
 
 	bookToAdd := model.Book{
-		Id:            mock.Shelf.Id,
+		Id:            DB.Id,
 		Title:         b.Title,
 		Author:        b.Author[0].Name,
 		Isbn:          isbn10,
@@ -112,14 +118,14 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 		errorConvertingId(w, err)
 		return
 	}
-	bookWithId, location, found := mock.Shelf.FindBookById(id)
+	bookWithId, location, found := DB.FindBookById(id)
 	fmt.Println(bookWithId.Id, bookWithId.Title, bookWithId.Author)
 	if !found {
 		errorFindingBook(w, err)
 		return
 	}
 
-	mock.Shelf.Books[location] = book
+	DB.Books[location] = book
 	err = json.NewEncoder(w).Encode(book)
 	if err != nil {
 		errorEncoding(w, err)
@@ -136,7 +142,7 @@ func GetBook(w http.ResponseWriter, r *http.Request) {
 		errorConvertingId(w, err)
 		return
 	}
-	book, _, found := mock.Shelf.FindBookById(id)
+	book, _, found := DB.FindBookById(id)
 	if !found {
 		errorFindingBook(w, err)
 		return
