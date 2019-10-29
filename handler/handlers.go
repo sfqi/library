@@ -50,7 +50,7 @@ func (h *Book)Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bookToAdd := mock.CreateBookModelFromBook(*book)
+	bookToAdd := dto.CreateBookModelFromBook(*book)
 	mock.Shelf.Books = append(mock.Shelf.Books, bookToAdd)
 
 	if err := json.NewEncoder(w).Encode(book); err != nil {
