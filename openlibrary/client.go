@@ -19,10 +19,6 @@ type Client struct {
 	url string
 }
 
-type CreateBookRequest struct {
-	ISBN string `json:"ISBN"`
-}
-
 func NewClient(url string) *Client {
 	url = strings.TrimSuffix(url, "/")
 	return &Client{

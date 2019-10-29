@@ -10,18 +10,17 @@ import (
 	"strconv"
 	"github.com/library/domain/model"
 	"github.com/library/handler/dto"
-	"github.com/library/openlibrary"
 	"github.com/library/repository/mock"
 
 )
 
 
 //var client = *openlibrary.NewClient(OpenLibraryURL)
-type OpenLibraryClient interface {
+type openLibraryClient interface {
 	FetchBook(isbn string)(*dto.Book, error)
 }
 type Book struct{
-	 Olc OpenLibraryClient
+	 Olc openLibraryClient
 }
 
 func(h *Book) Get(w http.ResponseWriter, r *http.Request) {
@@ -38,7 +37,7 @@ func(h *Book) Get(w http.ResponseWriter, r *http.Request) {
 func (h *Book)Create(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var createBook openlibrary.CreateBookRequest
+	var createBook  dto.CreateBookRequest
 	if err := json.NewDecoder(r.Body).Decode(&createBook); err != nil {
 		errorDecodingBook(w, err)
 		return
@@ -51,7 +50,7 @@ func (h *Book)Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bookToAdd := dto.CreateBookModelFromBook(*book)
+	bookToAdd := mock.CreateBookModelFromBook(*book)
 	mock.Shelf.Books = append(mock.Shelf.Books, bookToAdd)
 
 	if err := json.NewEncoder(w).Encode(book); err != nil {

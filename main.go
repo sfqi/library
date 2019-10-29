@@ -10,8 +10,8 @@ import (
 )
 
 func main() {
-	OpenLibraryUrl := os.Getenv("LIBRARY")
-	olc := openlibrary.NewClient(OpenLibraryUrl)
+	openLibraryUrl := os.Getenv("LIBRARY")
+	olc := openlibrary.NewClient(openLibraryUrl)
 	bookHandler := handler.Book{
 		olc,
 	}
