@@ -27,6 +27,7 @@ func NewClient(url string) *Client {
 
 }
 
+
 func (client *Client) FetchBook(isbn string) (*dto.Book, error) {
 	url := fmt.Sprintf(client.url+fetchBookPath, isbn)
 

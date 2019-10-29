@@ -6,8 +6,6 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-
-	"github.com/library/handler/dto"
 )
 
 func TestFetchBook(t *testing.T) {

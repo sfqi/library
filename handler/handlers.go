@@ -7,21 +7,20 @@ import (
 	"github.com/gorilla/mux"
 
 	"net/http"
-	"os"
 	"strconv"
-	"strings"
-
 	"github.com/library/domain/model"
 	"github.com/library/handler/dto"
-	"github.com/library/openlibrary"
 	"github.com/library/repository/mock"
+
 )
 
-var openLibraryURL = os.Getenv("LIBRARY")
-var client = *openlibrary.NewClient(openLibraryURL)
 
+//var client = *openlibrary.NewClient(OpenLibraryURL)
+type openLibraryClient interface {
+	FetchBook(isbn string)(*dto.Book, error)
+}
 type Book struct{
-
+	 Olc openLibraryClient
 }
 
 func(h *Book) Get(w http.ResponseWriter, r *http.Request) {
@@ -35,70 +34,29 @@ func(h *Book) Get(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type createBookRequest struct {
-	ISBN string `json:"ISBN"`
-}
-
 func (h *Book)Create(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var createBook createBookRequest
+	var createBook  dto.CreateBookRequest
 	if err := json.NewDecoder(r.Body).Decode(&createBook); err != nil {
 		errorDecodingBook(w, err)
 		return
 	}
 	fmt.Println(createBook.ISBN)
-	book, err := client.FetchBook(createBook.ISBN)
+	book, err := h.Olc.FetchBook(createBook.ISBN)
 	if err != nil {
 		fmt.Println("error while fetching book: ", err)
 		http.Error(w, "Error while fetching book: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	bookToAdd := CreateBookModelFromBook(*book)
+	bookToAdd := dto.CreateBookModelFromBook(*book)
 	mock.Shelf.Books = append(mock.Shelf.Books, bookToAdd)
 
 	if err := json.NewEncoder(w).Encode(book); err != nil {
 		errorEncoding(w, err)
 		return
 	}
-}
-
-func CreateBookModelFromBook(b dto.Book) (bm model.Book) {
-
-	mock.Shelf.Id = mock.Shelf.Id + 1
-
-	isbn10 := ""
-	if b.Identifier.ISBN10 != nil {
-		isbn10 = b.Identifier.ISBN10[0]
-	}
-	isbn13 := ""
-	if b.Identifier.ISBN13 != nil {
-		isbn13 = b.Identifier.ISBN13[0]
-	}
-	fmt.Println(mock.Shelf.Id, isbn10, isbn13)
-	CoverId := ""
-	if b.Cover.Url != "" {
-		part1 := strings.Split(b.Cover.Url, "/")[5]
-		part2 := strings.Split(part1, ".")[0]
-		CoverId = strings.Split(part2, "-")[0]
-	}
-	libraryId := ""
-	if b.Identifier.Openlibrary != nil {
-		libraryId = b.Identifier.Openlibrary[0]
-	}
-
-	bookToAdd := model.Book{
-		Id:            mock.Shelf.Id,
-		Title:         b.Title,
-		Author:        b.Author[0].Name,
-		Isbn:          isbn10,
-		Isbn13:        isbn13,
-		OpenLibraryId: libraryId,
-		CoverId:       CoverId,
-		Year:          b.Year,
-	}
-	return bookToAdd
 }
 
 func (h *Book)Update(w http.ResponseWriter, r *http.Request) {

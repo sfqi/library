@@ -3,8 +3,10 @@ package handler
 import (
 	"bytes"
 	"fmt"
+	"github.com/library/openlibrary"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -110,7 +112,9 @@ func TestUpdateBook(t *testing.T) {
 }
 
 func TestCreateBook(t *testing.T) {
-	book := Book{}
+	book := Book{
+		Olc:openlibrary.NewClient(os.Getenv("LIBRARY")),
+	}
 	t.Run("Error decoding Book attributes", func(t *testing.T) {
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":0140447938}`)))
 
@@ -119,6 +123,7 @@ func TestCreateBook(t *testing.T) {
 		}
 
 		rr := httptest.NewRecorder()
+
 		handler := http.HandlerFunc(book.Create)
 		handler.ServeHTTP(rr, req)
 		expectedError := "Error while decoding from request body"
