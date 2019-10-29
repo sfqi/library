@@ -1,6 +1,7 @@
 package openlibrary
 
 import (
+	"github.com/library/handler/dto"
 	"net/http"
 	"net/http/httptest"
 	"strings"
