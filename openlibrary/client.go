@@ -19,6 +19,10 @@ type Client struct {
 	url string
 }
 
+type CreateBookRequest struct {
+	ISBN string `json:"ISBN"`
+}
+
 func NewClient(url string) *Client {
 	url = strings.TrimSuffix(url, "/")
 	return &Client{
@@ -26,6 +30,7 @@ func NewClient(url string) *Client {
 	}
 
 }
+
 
 func (client *Client) FetchBook(isbn string) (*dto.Book, error) {
 	url := fmt.Sprintf(client.url+fetchBookPath, isbn)
