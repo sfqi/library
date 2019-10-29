@@ -14,66 +14,11 @@ import (
 	"github.com/library/domain/model"
 	"github.com/library/handler/dto"
 	"github.com/library/openlibrary"
+	"github.com/library/repository/mock"
 )
 
 var openLibraryURL = os.Getenv("LIBRARY")
 var client = *openlibrary.NewClient(openLibraryURL)
-
-type db struct {
-	id    int
-	books []model.Book
-}
-
-func (bm db) FindBookById(id int) (book model.Book, location int, found bool) {
-	for i, b := range bm.books {
-		if b.Id == id {
-			book = b
-			location = i
-			found = true
-			break
-		}
-	}
-
-	return book, location, found
-}
-
-var books = []model.Book{
-	{
-		Id:            1,
-		Title:         "some title",
-		Author:        "some author",
-		Isbn:          "some isbn",
-		Isbn13:        "some isbon13",
-		OpenLibraryId: "again some id",
-		CoverId:       "some cover ID",
-		Year:          "2019",
-	},
-	{
-		Id:            2,
-		Title:         "other title",
-		Author:        "other author",
-		Isbn:          "other isbn",
-		Isbn13:        "other isbon13",
-		OpenLibraryId: "other some id",
-		CoverId:       "other cover ID",
-		Year:          "2019",
-	},
-	{
-		Id:            3,
-		Title:         "another title",
-		Author:        "another author",
-		Isbn:          "another isbn",
-		Isbn13:        "another isbon13",
-		OpenLibraryId: "another some id",
-		CoverId:       "another cover ID",
-		Year:          "2019",
-	},
-}
-
-var shelf = &db{
-	id:    len(books),
-	books: books,
-}
 
 type Book struct{
 
@@ -82,7 +27,7 @@ type Book struct{
 func(h *Book) Get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	err := json.NewEncoder(w).Encode(shelf.books)
+	err := json.NewEncoder(w).Encode(mock.Shelf.Books)
 	if err != nil {
 		fmt.Println("error while getting books: ", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
@@ -111,7 +56,7 @@ func (h *Book)Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	bookToAdd := CreateBookModelFromBook(*book)
-	shelf.books = append(shelf.books, bookToAdd)
+	mock.Shelf.Books = append(mock.Shelf.Books, bookToAdd)
 
 	if err := json.NewEncoder(w).Encode(book); err != nil {
 		errorEncoding(w, err)
@@ -121,7 +66,7 @@ func (h *Book)Create(w http.ResponseWriter, r *http.Request) {
 
 func CreateBookModelFromBook(b dto.Book) (bm model.Book) {
 
-	shelf.id = shelf.id + 1
+	mock.Shelf.Id = mock.Shelf.Id + 1
 
 	isbn10 := ""
 	if b.Identifier.ISBN10 != nil {
@@ -131,7 +76,7 @@ func CreateBookModelFromBook(b dto.Book) (bm model.Book) {
 	if b.Identifier.ISBN13 != nil {
 		isbn13 = b.Identifier.ISBN13[0]
 	}
-	fmt.Println(shelf.id, isbn10, isbn13)
+	fmt.Println(mock.Shelf.Id, isbn10, isbn13)
 	CoverId := ""
 	if b.Cover.Url != "" {
 		part1 := strings.Split(b.Cover.Url, "/")[5]
@@ -144,7 +89,7 @@ func CreateBookModelFromBook(b dto.Book) (bm model.Book) {
 	}
 
 	bookToAdd := model.Book{
-		Id:            shelf.id,
+		Id:            mock.Shelf.Id,
 		Title:         b.Title,
 		Author:        b.Author[0].Name,
 		Isbn:          isbn10,
@@ -171,14 +116,14 @@ func (h *Book)Update(w http.ResponseWriter, r *http.Request) {
 		errorConvertingId(w, err)
 		return
 	}
-	bookWithId, location, found := shelf.FindBookById(id)
+	bookWithId, location, found := mock.Shelf.FindBookById(id)
 	fmt.Println(bookWithId.Id, bookWithId.Title, bookWithId.Author)
 	if !found {
 		errorFindingBook(w, err)
 		return
 	}
 
-	shelf.books[location] = book
+	mock.Shelf.Books[location] = book
 	err = json.NewEncoder(w).Encode(book)
 	if err != nil {
 		errorEncoding(w, err)
@@ -195,7 +140,7 @@ func (h *Book)Index(w http.ResponseWriter, r *http.Request) {
 		errorConvertingId(w, err)
 		return
 	}
-	book, _, found := shelf.FindBookById(id)
+	book, _, found := mock.Shelf.FindBookById(id)
 	if !found {
 		errorFindingBook(w, err)
 		return
