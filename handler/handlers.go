@@ -86,10 +86,10 @@ var shelf = &db{
 }
 
 type Book struct{
-	// later we will add database as a field of this struct, for now its empty
+
 }
 
-func(h *Book) GetBooks(w http.ResponseWriter, r *http.Request) {
+func(h *Book) Get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	err := json.NewEncoder(w).Encode(shelf.books)
@@ -104,7 +104,7 @@ type createBookRequest struct {
 	ISBN string `json:"ISBN"`
 }
 
-func (h *Book)CreateBook(w http.ResponseWriter, r *http.Request) {
+func (h *Book)Create(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var createBook createBookRequest
@@ -166,7 +166,7 @@ func CreateBookModelFromBook(b dto.Book) (bm BookModel) {
 	return bookToAdd
 }
 
-func (h *Book)UpdateBook(w http.ResponseWriter, r *http.Request) {
+func (h *Book)Update(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var book BookModel
 	err := json.NewDecoder(r.Body).Decode(&book)
@@ -196,7 +196,7 @@ func (h *Book)UpdateBook(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Book)GetBook(w http.ResponseWriter, r *http.Request) {
+func (h *Book)Index(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	params := mux.Vars(r)

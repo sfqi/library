@@ -11,9 +11,9 @@ func main() {
 	bookHandler := handler.Book{}
 	r := mux.NewRouter()
 
-	r.HandleFunc("/books", bookHandler.GetBooks).Methods("GET")
-	r.HandleFunc("/books", bookHandler.CreateBook).Methods("POST")
-	r.HandleFunc("/books/{id}", bookHandler.UpdateBook).Methods("PUT")
-	r.HandleFunc("/book/{id}", bookHandler.GetBook).Methods("GET")
+	r.HandleFunc("/books", bookHandler.Get).Methods("GET")
+	r.HandleFunc("/books", bookHandler.Create).Methods("POST")
+	r.HandleFunc("/books/{id}", bookHandler.Update).Methods("PUT")
+	r.HandleFunc("/book/{id}", bookHandler.Index).Methods("GET")
 	http.ListenAndServe(":8080", r)
 }
