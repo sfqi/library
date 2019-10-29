@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/gorilla/mux"
 
@@ -50,7 +51,7 @@ func (h *Book)Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bookToAdd := dto.CreateBookModelFromBook(*book)
+	bookToAdd := CreateBookModelFromBook(*book)
 	mock.Shelf.Books = append(mock.Shelf.Books, bookToAdd)
 
 	if err := json.NewEncoder(w).Encode(book); err != nil {
@@ -128,4 +129,41 @@ func errorConvertingId(w http.ResponseWriter, err error) {
 func errorFindingBook(w http.ResponseWriter, err error) {
 	fmt.Println("Cannot find book with given Id ")
 	http.Error(w, "Book with given Id can not be found", http.StatusBadRequest)
+}
+
+func CreateBookModelFromBook(b dto.Book) (bm model.Book) {
+
+	mock.Shelf.Id = mock.Shelf.Id + 1
+
+	isbn10 := ""
+	if b.Identifier.ISBN10 != nil {
+		isbn10 = b.Identifier.ISBN10[0]
+	}
+	isbn13 := ""
+	if b.Identifier.ISBN13 != nil {
+		isbn13 = b.Identifier.ISBN13[0]
+	}
+	fmt.Println(mock.Shelf.Id, isbn10, isbn13)
+	CoverId := ""
+	if b.Cover.Url != "" {
+		part1 := strings.Split(b.Cover.Url, "/")[5]
+		part2 := strings.Split(part1, ".")[0]
+		CoverId = strings.Split(part2, "-")[0]
+	}
+	libraryId := ""
+	if b.Identifier.Openlibrary != nil {
+		libraryId = b.Identifier.Openlibrary[0]
+	}
+
+	bookToAdd := model.Book{
+		Id:            mock.Shelf.Id,
+		Title:         b.Title,
+		Author:        b.Author[0].Name,
+		Isbn:          isbn10,
+		Isbn13:        isbn13,
+		OpenLibraryId: libraryId,
+		CoverId:       CoverId,
+		Year:          b.Year,
+	}
+	return bookToAdd
 }

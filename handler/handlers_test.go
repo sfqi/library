@@ -2,11 +2,12 @@ package handler
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
-	"github.com/library/openlibrary"
+	"github.com/library/handler/dto"
+	"github.com/library/openlibrary/mock"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 
@@ -111,9 +112,16 @@ func TestUpdateBook(t *testing.T) {
 
 }
 
+var clmock = mock.ClientMock{dto.Book{
+	Title:      "Title",
+	Year:       "1992",
+},
+ errors.New("Some error"),
+}
+
 func TestCreateBook(t *testing.T) {
 	book := Book{
-		Olc:openlibrary.NewClient(os.Getenv("LIBRARY")),
+		Olc: &clmock,
 	}
 	t.Run("Error decoding Book attributes", func(t *testing.T) {
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":0140447938}`)))
