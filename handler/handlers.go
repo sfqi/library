@@ -75,7 +75,11 @@ var shelf = &db{
 	books: books,
 }
 
-func GetBooks(w http.ResponseWriter, r *http.Request) {
+type Book struct{
+
+}
+
+func(h *Book) Get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	err := json.NewEncoder(w).Encode(shelf.books)
@@ -90,7 +94,7 @@ type createBookRequest struct {
 	ISBN string `json:"ISBN"`
 }
 
-func CreateBook(w http.ResponseWriter, r *http.Request) {
+func (h *Book)Create(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var createBook createBookRequest
@@ -152,7 +156,7 @@ func CreateBookModelFromBook(b dto.Book) (bm model.Book) {
 	return bookToAdd
 }
 
-func UpdateBook(w http.ResponseWriter, r *http.Request) {
+func (h *Book)Update(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var book model.Book
 	err := json.NewDecoder(r.Body).Decode(&book)
@@ -182,7 +186,7 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetBook(w http.ResponseWriter, r *http.Request) {
+func (h *Book)Index(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	params := mux.Vars(r)
