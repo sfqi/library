@@ -34,3 +34,26 @@ var Books = []model.Book{
 		Year:          "2019",
 	},
 }
+
+type Db struct {
+	Id    int
+	Books []model.Book
+}
+
+var Shelf = &Db{
+	Id:    len(Books),
+	Books: Books,
+}
+
+func (bm Db) FindBookById(id int) (book model.Book, location int, found bool) {
+	for i, b := range bm.Books {
+		if b.Id == id {
+			book = b
+			location = i
+			found = true
+			break
+		}
+	}
+
+	return book, location, found
+}
