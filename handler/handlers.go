@@ -14,6 +14,7 @@ import (
 	"github.com/library/domain/model"
 	"github.com/library/handler/dto"
 	"github.com/library/openlibrary"
+	"github.com/library/repository/mock"
 )
 
 var openLibraryURL = os.Getenv("LIBRARY")
@@ -37,42 +38,9 @@ func (bm db) FindBookById(id int) (book model.Book, location int, found bool) {
 	return book, location, found
 }
 
-var books = []model.Book{
-	{
-		Id:            1,
-		Title:         "some title",
-		Author:        "some author",
-		Isbn:          "some isbn",
-		Isbn13:        "some isbon13",
-		OpenLibraryId: "again some id",
-		CoverId:       "some cover ID",
-		Year:          "2019",
-	},
-	{
-		Id:            2,
-		Title:         "other title",
-		Author:        "other author",
-		Isbn:          "other isbn",
-		Isbn13:        "other isbon13",
-		OpenLibraryId: "other some id",
-		CoverId:       "other cover ID",
-		Year:          "2019",
-	},
-	{
-		Id:            3,
-		Title:         "another title",
-		Author:        "another author",
-		Isbn:          "another isbn",
-		Isbn13:        "another isbon13",
-		OpenLibraryId: "another some id",
-		CoverId:       "another cover ID",
-		Year:          "2019",
-	},
-}
-
 var shelf = &db{
-	id:    len(books),
-	books: books,
+	id:    len(mock.Books),
+	books: mock.Books,
 }
 
 func GetBooks(w http.ResponseWriter, r *http.Request) {
