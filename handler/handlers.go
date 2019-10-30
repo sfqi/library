@@ -20,14 +20,19 @@ import (
 var openLibraryURL = os.Getenv("LIBRARY")
 var client = *openlibrary.NewClient(openLibraryURL)
 
-var DB = &mock.DB{
-	Id:    len(mock.Books),
-	Books: mock.Books,
+type BookHandler struct {
+	db *mock.DB
 }
 
-func GetBooks(w http.ResponseWriter, r *http.Request) {
+func NewBookHandler(db *mock.DB) BookHandler {
+	return BookHandler{
+		db: db,
+	}
+}
+
+func (b BookHandler) GetBooks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	allBooks := DB.GetAllBooks()
+	allBooks := b.db.GetAllBooks()
 
 	err := json.NewEncoder(w).Encode(allBooks)
 	if err != nil {
@@ -41,7 +46,7 @@ type createBookRequest struct {
 	ISBN string `json:"ISBN"`
 }
 
-func CreateBook(w http.ResponseWriter, r *http.Request) {
+func (b BookHandler) CreateBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var createBook createBookRequest
@@ -49,7 +54,6 @@ func CreateBook(w http.ResponseWriter, r *http.Request) {
 		errorDecodingBook(w, err)
 		return
 	}
-	fmt.Println(createBook.ISBN)
 	book, err := client.FetchBook(createBook.ISBN)
 	if err != nil {
 		fmt.Println("error while fetching book: ", err)
@@ -57,8 +61,12 @@ func CreateBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bookToAdd := CreateBookModelFromBook(*book)
-	DB.Books = append(DB.Books, bookToAdd)
+	bookToAdd := b.createBookModelFromBook(*book)
+
+	if err := b.db.Create(bookToAdd); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	if err := json.NewEncoder(w).Encode(book); err != nil {
 		errorEncoding(w, err)
@@ -66,44 +74,44 @@ func CreateBook(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func CreateBookModelFromBook(b dto.Book) (bm model.Book) {
+func (b BookHandler) createBookModelFromBook(book dto.Book) (bm model.Book) {
 
-	DB.Id = DB.Id + 1
+	b.db.Id = b.db.Id + 1
 
 	isbn10 := ""
-	if b.Identifier.ISBN10 != nil {
-		isbn10 = b.Identifier.ISBN10[0]
+	if book.Identifier.ISBN10 != nil {
+		isbn10 = book.Identifier.ISBN10[0]
 	}
 	isbn13 := ""
-	if b.Identifier.ISBN13 != nil {
-		isbn13 = b.Identifier.ISBN13[0]
+	if book.Identifier.ISBN13 != nil {
+		isbn13 = book.Identifier.ISBN13[0]
 	}
-	fmt.Println(DB.Id, isbn10, isbn13)
+
 	CoverId := ""
-	if b.Cover.Url != "" {
-		part1 := strings.Split(b.Cover.Url, "/")[5]
+	if book.Cover.Url != "" {
+		part1 := strings.Split(book.Cover.Url, "/")[5]
 		part2 := strings.Split(part1, ".")[0]
 		CoverId = strings.Split(part2, "-")[0]
 	}
 	libraryId := ""
-	if b.Identifier.Openlibrary != nil {
-		libraryId = b.Identifier.Openlibrary[0]
+	if book.Identifier.Openlibrary != nil {
+		libraryId = book.Identifier.Openlibrary[0]
 	}
 
 	bookToAdd := model.Book{
-		Id:            DB.Id,
-		Title:         b.Title,
-		Author:        b.Author[0].Name,
+		Id:            b.db.Id,
+		Title:         book.Title,
+		Author:        book.Author[0].Name,
 		Isbn:          isbn10,
 		Isbn13:        isbn13,
 		OpenLibraryId: libraryId,
 		CoverId:       CoverId,
-		Year:          b.Year,
+		Year:          book.Year,
 	}
 	return bookToAdd
 }
 
-func UpdateBook(w http.ResponseWriter, r *http.Request) {
+func (b BookHandler) UpdateBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var book model.Book
 	err := json.NewDecoder(r.Body).Decode(&book)
@@ -118,14 +126,14 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 		errorConvertingId(w, err)
 		return
 	}
-	bookWithId, location, found := DB.FindBookById(id)
+	bookWithId, location := b.db.FindBookById(id)
 	fmt.Println(bookWithId.Id, bookWithId.Title, bookWithId.Author)
-	if !found {
+	if location < 0 {
 		errorFindingBook(w, err)
 		return
 	}
 
-	DB.Books[location] = book
+	b.db.Update(location, book)
 	err = json.NewEncoder(w).Encode(book)
 	if err != nil {
 		errorEncoding(w, err)
@@ -133,7 +141,7 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetBook(w http.ResponseWriter, r *http.Request) {
+func (b BookHandler) GetBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	params := mux.Vars(r)
@@ -142,8 +150,8 @@ func GetBook(w http.ResponseWriter, r *http.Request) {
 		errorConvertingId(w, err)
 		return
 	}
-	book, _, found := DB.FindBookById(id)
-	if !found {
+	book, location := b.db.FindBookById(id)
+	if location < 0 {
 		errorFindingBook(w, err)
 		return
 	}
