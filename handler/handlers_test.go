@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/library/handler/dto"
@@ -112,22 +113,24 @@ func TestUpdateBook(t *testing.T) {
 
 }
 
-var clmock = mock.ClientMock{dto.Book{
-	Title:      "Title",
-	Year:       "1992",
-},
- errors.New("Some error"),
-}
+
 
 func TestCreateBook(t *testing.T) {
-	book := Book{
-		Olc: &clmock,
-	}
 	t.Run("Error decoding Book attributes", func(t *testing.T) {
+		var clmock = mock.ClientMock{&dto.Book{
+			Title:      "Title",
+			Year:       "1992",
+		},
+			errors.New("Error while decoding from request body"),
+		}
+		book := Book{
+			Olc: &clmock,
+		}
+
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":0140447938}`)))
 
 		if err != nil {
-			t.Errorf("Error occured, %s", err)
+			t.Errorf("Error occured while sending request, %s", err)
 		}
 
 		rr := httptest.NewRecorder()
@@ -140,6 +143,13 @@ func TestCreateBook(t *testing.T) {
 		}
 	})
 	t.Run("Fetching book error", func(t *testing.T) {
+		clmock := mock.ClientMock{nil,
+			errors.New("Error while fetching book"),
+		}
+		book := Book{
+			Olc: &clmock,
+		}
+
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0140447938222"}`))) //kada posaljemo nepostojeci ISBN recimo
 
 		if err != nil {
@@ -150,11 +160,39 @@ func TestCreateBook(t *testing.T) {
 
 		handler := http.HandlerFunc(book.Create)
 		handler.ServeHTTP(rr, req)
-		expectedError := "Error while fetching book"
-		contains := strings.Contains(rr.Body.String(), expectedError)
-		if status := rr.Code; status != http.StatusInternalServerError && !contains {
-			t.Errorf("Expected status code: %d and error: %s,  got: %d and %s", http.StatusBadRequest, expectedError, status, rr.Body.String())
+		contains := strings.Contains(rr.Body.String(),clmock.Err.Error())
+		if !contains && rr.Code != http.StatusBadRequest{
+			t.Errorf("Expected error to be %s, got error: %s",clmock.Err.Error(),rr.Body.String())
 		}
+	})
+	t.Run("Book informations didnt match expected",func(t *testing.T){
+		clmock := mock.ClientMock{&dto.Book{
+			Title:      "Concrete mathematics",
+			Year:       "1994",
+		},
+			nil,
+		}
+		book := Book{
+			Olc: &clmock,
+		}
+
+		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0201558025"}`)))
+
+		if err != nil {
+			t.Errorf("Error occured, %s", err)
+		}
+
+		rr := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(book.Create)
+		handler.ServeHTTP(rr, req)
+		//fmt.Println("(((((((((((((",rr.Body.String())
+		book1 := dto.Book{}
+		err = json.Unmarshal(rr.Body.Bytes(),&book1)
+		if book1.Title != clmock.Book.Title{
+			t.Errorf("We expected book ttitle to be: %s, got %s",clmock.Book.Title,book1.Title)
+		}
+
 	})
 
 }

@@ -155,10 +155,15 @@ func CreateBookModelFromBook(b dto.Book) (bm model.Book) {
 		libraryId = b.Identifier.Openlibrary[0]
 	}
 
+	author := ""
+	if b.Author != nil {
+		author = b.Author[0].Name
+	}
+
 	bookToAdd := model.Book{
 		Id:            mock.Shelf.Id,
 		Title:         b.Title,
-		Author:        b.Author[0].Name,
+		Author:        author,
 		Isbn:          isbn10,
 		Isbn13:        isbn13,
 		OpenLibraryId: libraryId,
