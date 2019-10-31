@@ -37,7 +37,7 @@ func TestGetBooks(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
 
-	expected := `[{"id":1,"title":"some title","author":"some author","isbn_10":"some isbn","isbn_13":"some isbon13","olid":"again some id","cover":"some cover ID","publish_date":"2019"},{"id":2,"title":"other title","author":"other author","isbn_10":"other isbn","isbn_13":"other isbon13","olid":"other some id","cover":"other cover ID","publish_date":"2019"},{"id":3,"title":"another title","author":"another author","isbn_10":"another isbn","isbn_13":"another isbon13","olid":"another signupsome id","cover":"another cover ID","publish_date":"2019"}]` + "\n"
+	expected := `[{"id":1,"title":"some title","author":"some author","isbn_10":"some isbn","isbn_13":"some isbon13","olid":"again some id","cover":"some cover ID","publish_date":"2019"},{"id":2,"title":"other title","author":"other author","isbn_10":"other isbn","isbn_13":"other isbon13","olid":"other some id","cover":"other cover ID","publish_date":"2019"},{"id":3,"title":"another title","author":"another author","isbn_10":"another isbn","isbn_13":"another isbon13","olid":"another some id","cover":"another cover ID","publish_date":"2019"}]` + "\n"
 	fmt.Println(rr.Body.String())
 	fmt.Println(expected)
 	if rr.Body.String() != expected {

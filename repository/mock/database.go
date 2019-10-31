@@ -1,8 +1,12 @@
 package mock
 
-import "github.com/library/domain/model"
+import (
+	"fmt"
 
-var Books = []model.Book{
+	"github.com/library/domain/model"
+)
+
+var books = []model.Book{
 	{
 		Id:            1,
 		Title:         "some title",
@@ -29,7 +33,7 @@ var Books = []model.Book{
 		Author:        "another author",
 		Isbn:          "another isbn",
 		Isbn13:        "another isbon13",
-		OpenLibraryId: "another signupsome id",
+		OpenLibraryId: "another some id",
 		CoverId:       "another cover ID",
 		Year:          "2019",
 	},
@@ -37,22 +41,49 @@ var Books = []model.Book{
 
 type DB struct {
 	Id    int
-	Books []model.Book
+	books []model.Book
 }
 
-func (db *DB) FindBookById(id int) (book model.Book, location int, found bool) {
-	for i, b := range db.Books {
+func NewDB() *DB {
+	return &DB{
+		Id:    len(books),
+		books: books,
+	}
+}
+
+func (db *DB) FindBookByID(id int) (*model.Book, int, error) {
+	book, loc, err := db.findBookByID(id)
+	return book, loc, err
+}
+
+func (db *DB) findBookByID(id int) (*model.Book, int, error) {
+	for i, b := range db.books {
 		if b.Id == id {
-			book = b
-			location = i
-			found = true
-			break
+			return &b, i, nil
 		}
 	}
-
-	return
+	return nil, -1, fmt.Errorf("error while findBookByID")
 }
 
 func (db *DB) GetAllBooks() []model.Book {
-	return db.Books
+	return db.books
+}
+
+func (db *DB) Create(book model.Book) error {
+	_, index, _ := db.findBookByID(book.Id)
+	if index >= 0 {
+		return fmt.Errorf("book already exists: %s", book.Title)
+	}
+
+	db.books = append(db.books, book)
+	return nil
+}
+
+func (db *DB) Update(book *model.Book) error {
+	book, index, err := db.findBookByID(book.Id)
+	if err != nil {
+		return err
+	}
+	db.books[index] = *book
+	return nil
 }

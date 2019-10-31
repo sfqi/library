@@ -24,8 +24,8 @@ type BookHandler struct {
 	db *mock.DB
 }
 
-func NewBookHandler(db *mock.DB) BookHandler {
-	return BookHandler{
+func NewBookHandler(db *mock.DB) *BookHandler {
+	return &BookHandler{
 		db: db,
 	}
 }
@@ -42,14 +42,10 @@ func (b BookHandler) GetBooks(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type createBookRequest struct {
-	ISBN string `json:"ISBN"`
-}
-
 func (b BookHandler) CreateBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var createBook createBookRequest
+	var createBook dto.CreateBookRequest
 	if err := json.NewDecoder(r.Body).Decode(&createBook); err != nil {
 		errorDecodingBook(w, err)
 		return
@@ -113,8 +109,8 @@ func (b BookHandler) createBookModelFromBook(book dto.Book) (bm model.Book) {
 
 func (b BookHandler) UpdateBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var book model.Book
-	err := json.NewDecoder(r.Body).Decode(&book)
+	updateBookRequest := dto.UpdateBookRequest{}
+	err := json.NewDecoder(r.Body).Decode(&updateBookRequest)
 	if err != nil {
 		errorDecodingBook(w, err)
 		return
@@ -126,14 +122,15 @@ func (b BookHandler) UpdateBook(w http.ResponseWriter, r *http.Request) {
 		errorConvertingId(w, err)
 		return
 	}
-	bookWithId, location := b.db.FindBookById(id)
-	fmt.Println(bookWithId.Id, bookWithId.Title, bookWithId.Author)
-	if location < 0 {
-		errorFindingBook(w, err)
+	book := &model.Book{}
+	book.Id = id
+	book.Title = updateBookRequest.Title
+	book.Year = updateBookRequest.Year
+
+	if err := b.db.Update(book); err != nil {
 		return
 	}
 
-	b.db.Update(location, book)
 	err = json.NewEncoder(w).Encode(book)
 	if err != nil {
 		errorEncoding(w, err)
@@ -150,7 +147,7 @@ func (b BookHandler) GetBook(w http.ResponseWriter, r *http.Request) {
 		errorConvertingId(w, err)
 		return
 	}
-	book, location := b.db.FindBookById(id)
+	book, location, err := b.db.FindBookByID(id)
 	if location < 0 {
 		errorFindingBook(w, err)
 		return
