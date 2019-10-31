@@ -69,13 +69,11 @@ func (db *DB) GetAllBooks() []model.Book {
 	return db.books
 }
 
-func (db *DB) Create(book model.Book) error {
-	_, index, _ := db.findBookByID(book.Id)
-	if index >= 0 {
-		return fmt.Errorf("book already exists: %s", book.Title)
-	}
+func (db *DB) Create(book *model.Book) error {
+	db.Id++
 
-	db.books = append(db.books, book)
+	book.Id = db.Id
+	db.books = append(db.books, *book)
 	return nil
 }
 

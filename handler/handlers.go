@@ -59,7 +59,7 @@ func (b BookHandler) CreateBook(w http.ResponseWriter, r *http.Request) {
 
 	bookToAdd := b.createBookModelFromBook(*book)
 
-	if err := b.db.Create(bookToAdd); err != nil {
+	if err := b.db.Create(&bookToAdd); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -71,8 +71,6 @@ func (b BookHandler) CreateBook(w http.ResponseWriter, r *http.Request) {
 }
 
 func (b BookHandler) createBookModelFromBook(book dto.Book) (bm model.Book) {
-
-	b.db.Id = b.db.Id + 1
 
 	isbn10 := ""
 	if book.Identifier.ISBN10 != nil {
