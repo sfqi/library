@@ -177,13 +177,11 @@ func TestCreateBook(t *testing.T) {
 		}
 
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0201558025"}`)))
-
 		if err != nil {
 			t.Errorf("Error occured, %s", err)
 		}
 
 		rr := httptest.NewRecorder()
-
 		handler := http.HandlerFunc(book.Create)
 		handler.ServeHTTP(rr, req)
 		//fmt.Println("(((((((((((((",rr.Body.String())
