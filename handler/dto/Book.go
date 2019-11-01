@@ -5,7 +5,7 @@ type Book struct {
 	Identifier identifier `json:"identifiers"`
 	Author     []author   `json:"authors"`
 	Cover      cover      `json:"cover"`
-	Year       string     `json:"publish_date"`
+	Year       string     `json:"year"`
 }
 
 type CreateBookRequest struct {
@@ -14,7 +14,7 @@ type CreateBookRequest struct {
 
 type UpdateBookRequest struct {
 	Title string `json:"title"`
-	Year  string `json:"publish_date"`
+	Year  string `json:"year"`
 }
 
 type BookResponse struct {
@@ -22,7 +22,7 @@ type BookResponse struct {
 	Identifier identifier `json:"identifiers"`
 	Author     []author   `json:"authors"`
 	Cover      cover      `json:"cover"`
-	Year       string     `json:"publish_date"`
+	Year       string     `json:"year"`
 }
 
 type identifier struct {

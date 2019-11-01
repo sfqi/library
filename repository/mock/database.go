@@ -51,9 +51,9 @@ func NewDB() *DB {
 	}
 }
 
-func (db *DB) FindBookByID(id int) (*model.Book, int, error) {
-	book, loc, err := db.findBookByID(id)
-	return book, loc, err
+func (db *DB) FindBookByID(id int) (*model.Book, error) {
+	book, _, err := db.findBookByID(id)
+	return book, err
 }
 
 func (db *DB) findBookByID(id int) (*model.Book, int, error) {

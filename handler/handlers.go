@@ -50,27 +50,27 @@ func (b BookHandler) CreateBook(w http.ResponseWriter, r *http.Request) {
 		errorDecodingBook(w, err)
 		return
 	}
-	book, err := client.FetchBook(createBook.ISBN)
+	openlibraryBook, err := client.FetchBook(createBook.ISBN)
 	if err != nil {
 		fmt.Println("error while fetching book: ", err)
 		http.Error(w, "Error while fetching book: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	bookToAdd := b.createBookModelFromBook(*book)
+	book := b.toBook(openlibraryBook)
 
-	if err := b.db.Create(&bookToAdd); err != nil {
+	if err := b.db.Create(book); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(book); err != nil {
+	if err := json.NewEncoder(w).Encode(openlibraryBook); err != nil {
 		errorEncoding(w, err)
 		return
 	}
 }
 
-func (b BookHandler) createBookModelFromBook(book dto.Book) (bm model.Book) {
+func (b BookHandler) toBook(book *dto.Book) (bm *model.Book) {
 
 	isbn10 := ""
 	if book.Identifier.ISBN10 != nil {
@@ -102,7 +102,7 @@ func (b BookHandler) createBookModelFromBook(book dto.Book) (bm model.Book) {
 		CoverId:       CoverId,
 		Year:          book.Year,
 	}
-	return bookToAdd
+	return &bookToAdd
 }
 
 func (b BookHandler) UpdateBook(w http.ResponseWriter, r *http.Request) {
@@ -145,8 +145,8 @@ func (b BookHandler) GetBook(w http.ResponseWriter, r *http.Request) {
 		errorConvertingId(w, err)
 		return
 	}
-	book, location, err := b.db.FindBookByID(id)
-	if location < 0 {
+	book, err := b.db.FindBookByID(id)
+	if err != nil {
 		errorFindingBook(w, err)
 		return
 	}
