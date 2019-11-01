@@ -30,7 +30,7 @@ func NewBookHandler(db *mock.DB) *BookHandler {
 	}
 }
 
-func (b BookHandler) GetBooks(w http.ResponseWriter, r *http.Request) {
+func (b *BookHandler) GetBooks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	allBooks := b.db.GetAllBooks()
 
@@ -42,7 +42,7 @@ func (b BookHandler) GetBooks(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (b BookHandler) CreateBook(w http.ResponseWriter, r *http.Request) {
+func (b *BookHandler) CreateBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var createBook dto.CreateBookRequest
@@ -70,7 +70,7 @@ func (b BookHandler) CreateBook(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (b BookHandler) toBook(book *dto.Book) (bm *model.Book) {
+func (b *BookHandler) toBook(book *dto.Book) (bm *model.Book) {
 
 	isbn10 := ""
 	if book.Identifier.ISBN10 != nil {
@@ -105,7 +105,7 @@ func (b BookHandler) toBook(book *dto.Book) (bm *model.Book) {
 	return &bookToAdd
 }
 
-func (b BookHandler) UpdateBook(w http.ResponseWriter, r *http.Request) {
+func (b *BookHandler) UpdateBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	updateBookRequest := dto.UpdateBookRequest{}
 	err := json.NewDecoder(r.Body).Decode(&updateBookRequest)
@@ -126,6 +126,7 @@ func (b BookHandler) UpdateBook(w http.ResponseWriter, r *http.Request) {
 	book.Year = updateBookRequest.Year
 
 	if err := b.db.Update(book); err != nil {
+		errorFindingBook(w, err)
 		return
 	}
 
@@ -136,7 +137,7 @@ func (b BookHandler) UpdateBook(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (b BookHandler) GetBook(w http.ResponseWriter, r *http.Request) {
+func (b *BookHandler) GetBook(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	params := mux.Vars(r)
