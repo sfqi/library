@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
+
+	"github.com/library/openlibrary"
 
 	"github.com/gorilla/mux"
 	"github.com/library/repository/mock"
@@ -18,18 +21,20 @@ var bookHandler BookHandler
 func init() {
 	db := mock.NewDB()
 
-	bookHandler = NewBookHandler(db)
+	bookHandler = BookHandler{
+		Db:  db,
+		Olc: openlibrary.NewClient(os.Getenv("LIBRARY")),
+	}
 }
 
 func TestGetBooks(t *testing.T) {
-
 	req, err := http.NewRequest("GET", "/books", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(bookHandler.GetBooks)
+	handler := http.HandlerFunc(bookHandler.Index)
 
 	handler.ServeHTTP(rr, req)
 
@@ -48,7 +53,7 @@ func TestGetBooks(t *testing.T) {
 
 func TestUpdateBook(t *testing.T) {
 	t.Run("assertion of expected response, and actual response", func(t *testing.T) {
-		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"Title":"another title","Author":"another author","Isbn":"another isbn","Isbn13":"another isbon13","olid": "another some id","CoverId":"another cover ID","Year":"2019"}`)))
+		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"title":"test title", "year":"2019"}`)))
 		params := map[string]string{"id": "2"}
 		req = mux.SetURLVars(req, params)
 		if err != nil {
@@ -56,13 +61,15 @@ func TestUpdateBook(t *testing.T) {
 		}
 
 		rr := httptest.NewRecorder()
-		handler := http.HandlerFunc(bookHandler.UpdateBook)
+
+		handler := http.HandlerFunc(bookHandler.Update)
+
 		handler.ServeHTTP(rr, req)
 
 		if status := rr.Code; status != http.StatusOK {
 			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusOK, status)
 		}
-		expected := `{"id":0,"title":"another title","author":"another author","isbn_10":"","isbn_13":"","olid":"another some id","cover":"","publish_date":""}` + "\n"
+		expected := `{"id":2,"title":"test title","author":"","isbn_10":"","isbn_13":"","olid":"","cover":"","publish_date":"2019"}` + "\n"
 		assert.Equal(t, expected, rr.Body.String(), "Response body differs")
 	})
 	t.Run("Error decoding Book attributes", func(t *testing.T) {
@@ -74,7 +81,8 @@ func TestUpdateBook(t *testing.T) {
 		}
 
 		rr := httptest.NewRecorder()
-		handler := http.HandlerFunc(bookHandler.UpdateBook)
+		handler := http.HandlerFunc(bookHandler.Update)
+
 		handler.ServeHTTP(rr, req)
 		expectedError := "Error while decoding from request body"
 		if status := rr.Code; status != http.StatusBadRequest && rr.Body.String() != expectedError {
@@ -91,7 +99,9 @@ func TestUpdateBook(t *testing.T) {
 		}
 
 		rr := httptest.NewRecorder()
-		handler := http.HandlerFunc(bookHandler.UpdateBook)
+
+		handler := http.HandlerFunc(bookHandler.Update)
+
 		handler.ServeHTTP(rr, req)
 		expectedError := "Error while converting url parameter into integer"
 		if status := rr.Code; status != http.StatusBadRequest && rr.Body.String() != expectedError {
@@ -107,7 +117,9 @@ func TestUpdateBook(t *testing.T) {
 		}
 
 		rr := httptest.NewRecorder()
-		handler := http.HandlerFunc(bookHandler.UpdateBook)
+
+		handler := http.HandlerFunc(bookHandler.Update)
+
 		handler.ServeHTTP(rr, req)
 		expectedError := "Book with given Id can not be found"
 		if status := rr.Code; status != http.StatusBadRequest && rr.Body.String() != expectedError {
@@ -126,7 +138,9 @@ func TestCreateBook(t *testing.T) {
 		}
 
 		rr := httptest.NewRecorder()
-		handler := http.HandlerFunc(bookHandler.CreateBook)
+
+		handler := http.HandlerFunc(bookHandler.Create)
+
 		handler.ServeHTTP(rr, req)
 		expectedError := "Error while decoding from request body"
 		if status := rr.Code; status != http.StatusBadRequest && rr.Body.String() != expectedError {
@@ -142,7 +156,8 @@ func TestCreateBook(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 
-		handler := http.HandlerFunc(bookHandler.CreateBook)
+		handler := http.HandlerFunc(bookHandler.Create)
+
 		handler.ServeHTTP(rr, req)
 		expectedError := "Error while fetching book"
 		contains := strings.Contains(rr.Body.String(), expectedError)
@@ -163,7 +178,8 @@ func TestGetBook(t *testing.T) {
 		}
 
 		rr := httptest.NewRecorder()
-		handler := http.HandlerFunc(bookHandler.GetBook)
+
+		handler := http.HandlerFunc(bookHandler.Get)
 		handler.ServeHTTP(rr, req)
 
 		expectedError := "Error while converting url parameter into integer"
@@ -180,7 +196,9 @@ func TestGetBook(t *testing.T) {
 		}
 
 		rr := httptest.NewRecorder()
-		handler := http.HandlerFunc(bookHandler.GetBook)
+
+		handler := http.HandlerFunc(bookHandler.Get)
+
 		handler.ServeHTTP(rr, req)
 
 		expectedError := "Book with given Id can not be found"

@@ -3,36 +3,37 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/gorilla/mux"
 
 	"net/http"
-	"os"
 	"strconv"
-	"strings"
 
 	"github.com/library/domain/model"
 	"github.com/library/handler/dto"
-	"github.com/library/openlibrary"
 	"github.com/library/repository/mock"
 )
 
-var openLibraryURL = os.Getenv("LIBRARY")
-var client = *openlibrary.NewClient(openLibraryURL)
-
 type BookHandler struct {
-	db *mock.DB
+	Db  *mock.DB
+	Olc openLibraryClient
+}
+
+type openLibraryClient interface {
+	FetchBook(isbn string) (*dto.Book, error)
 }
 
 func NewBookHandler(db *mock.DB) *BookHandler {
 	return &BookHandler{
-		db: db,
+		Db: db,
 	}
 }
 
-func (b *BookHandler) GetBooks(w http.ResponseWriter, r *http.Request) {
+func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) {
+
 	w.Header().Set("Content-Type", "application/json")
-	allBooks := b.db.GetAllBooks()
+	allBooks := b.Db.GetAllBooks()
 
 	err := json.NewEncoder(w).Encode(allBooks)
 	if err != nil {
@@ -42,15 +43,19 @@ func (b *BookHandler) GetBooks(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (b *BookHandler) CreateBook(w http.ResponseWriter, r *http.Request) {
+func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var createBook dto.CreateBookRequest
+
 	if err := json.NewDecoder(r.Body).Decode(&createBook); err != nil {
 		errorDecodingBook(w, err)
 		return
 	}
-	openlibraryBook, err := client.FetchBook(createBook.ISBN)
+
+	fmt.Println(createBook.ISBN)
+	openlibraryBook, err := b.Olc.FetchBook(createBook.ISBN)
+
 	if err != nil {
 		fmt.Println("error while fetching book: ", err)
 		http.Error(w, "Error while fetching book: "+err.Error(), http.StatusInternalServerError)
@@ -59,12 +64,12 @@ func (b *BookHandler) CreateBook(w http.ResponseWriter, r *http.Request) {
 
 	book := b.toBook(openlibraryBook)
 
-	if err := b.db.Create(book); err != nil {
+	if err := b.Db.Create(book); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(openlibraryBook); err != nil {
+	if err := json.NewEncoder(w).Encode(book); err != nil {
 		errorEncoding(w, err)
 		return
 	}
@@ -93,7 +98,7 @@ func (b *BookHandler) toBook(book *dto.Book) (bm *model.Book) {
 	}
 
 	bookToAdd := model.Book{
-		Id:            b.db.Id,
+		Id:            b.Db.Id,
 		Title:         book.Title,
 		Author:        book.Author[0].Name,
 		Isbn:          isbn10,
@@ -105,7 +110,8 @@ func (b *BookHandler) toBook(book *dto.Book) (bm *model.Book) {
 	return &bookToAdd
 }
 
-func (b *BookHandler) UpdateBook(w http.ResponseWriter, r *http.Request) {
+func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
+
 	w.Header().Set("Content-Type", "application/json")
 	updateBookRequest := dto.UpdateBookRequest{}
 	err := json.NewDecoder(r.Body).Decode(&updateBookRequest)
@@ -125,7 +131,7 @@ func (b *BookHandler) UpdateBook(w http.ResponseWriter, r *http.Request) {
 	book.Title = updateBookRequest.Title
 	book.Year = updateBookRequest.Year
 
-	if err := b.db.Update(book); err != nil {
+	if err := b.Db.Update(book); err != nil {
 		errorFindingBook(w, err)
 		return
 	}
@@ -137,7 +143,8 @@ func (b *BookHandler) UpdateBook(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (b *BookHandler) GetBook(w http.ResponseWriter, r *http.Request) {
+func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
+
 	w.Header().Set("Content-Type", "application/json")
 
 	params := mux.Vars(r)
@@ -146,7 +153,7 @@ func (b *BookHandler) GetBook(w http.ResponseWriter, r *http.Request) {
 		errorConvertingId(w, err)
 		return
 	}
-	book, err := b.db.FindBookByID(id)
+	book, err := b.Db.FindBookByID(id)
 	if err != nil {
 		errorFindingBook(w, err)
 		return
