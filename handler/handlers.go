@@ -12,6 +12,8 @@ import (
 
 	"github.com/library/domain/model"
 	"github.com/library/handler/dto"
+	openlibrary "github.com/library/openlibrary/dto"
+
 	"github.com/library/repository/mock"
 )
 
@@ -21,7 +23,7 @@ type BookHandler struct {
 }
 
 type openLibraryClient interface {
-	FetchBook(isbn string) (*dto.Book, error)
+	FetchBook(isbn string) (*openlibrary.Book, error)
 }
 
 func NewBookHandler(db *mock.DB) *BookHandler {
@@ -75,7 +77,7 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (b *BookHandler) toBook(book *dto.Book) (bm *model.Book) {
+func (b *BookHandler) toBook(book *openlibrary.Book) (bm *model.Book) {
 
 	isbn10 := ""
 	if book.Identifier.ISBN10 != nil {

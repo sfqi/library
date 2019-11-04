@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/library/handler/dto"
+	openlibrary "github.com/library/openlibrary/dto"
 )
 
 const bookPath = "/books"
@@ -27,8 +27,7 @@ func NewClient(url string) *Client {
 
 }
 
-
-func (client *Client) FetchBook(isbn string) (*dto.Book, error) {
+func (client *Client) FetchBook(isbn string) (*openlibrary.Book, error) {
 	url := fmt.Sprintf(client.url+fetchBookPath, isbn)
 
 	response, err := http.Get(url)
@@ -53,7 +52,7 @@ func (client *Client) FetchBook(isbn string) (*dto.Book, error) {
 		return nil, errorKey
 	}
 
-	var book dto.Book
+	var book openlibrary.Book
 
 	err = json.Unmarshal(*rawBook, &book)
 	if err != nil {
