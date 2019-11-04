@@ -8,10 +8,6 @@ type Book struct {
 	Year       string     `json:"year"`
 }
 
-type CreateBookRequest struct {
-	ISBN string `json:"ISBN"`
-}
-
 type UpdateBookRequest struct {
 	Title string `json:"title"`
 	Year  string `json:"year"`
@@ -37,3 +33,8 @@ type author struct {
 type cover struct {
 	Url string `json:"small"`
 }
+
+type CreateBookRequest struct {
+	ISBN string `json:"ISBN"`
+}
+

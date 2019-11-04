@@ -30,7 +30,7 @@ func NewBookHandler(db *mock.DB) *BookHandler {
 	}
 }
 
-func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) {
+func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	allBooks := b.Db.GetAllBooks()
@@ -69,6 +69,7 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+
 	if err := json.NewEncoder(w).Encode(book); err != nil {
 		errorEncoding(w, err)
 		return
@@ -96,11 +97,15 @@ func (b *BookHandler) toBook(book *dto.Book) (bm *model.Book) {
 	if book.Identifier.Openlibrary != nil {
 		libraryId = book.Identifier.Openlibrary[0]
 	}
+	author := ""
+	if book.Author != nil {
+		author = book.Author[0].Name
+	}
 
 	bookToAdd := model.Book{
 		Id:            b.Db.Id,
 		Title:         book.Title,
-		Author:        book.Author[0].Name,
+		Author:        author,
 		Isbn:          isbn10,
 		Isbn13:        isbn13,
 		OpenLibraryId: libraryId,
@@ -143,7 +148,7 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
+func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 

@@ -2,39 +2,37 @@ package handler
 
 import (
 	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
+	mockClient "github.com/library/openlibrary/mockClient"
+	"github.com/library/repository/mock"
+
+	"github.com/library/handler/dto"
+
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 
-	"github.com/library/openlibrary"
-
 	"github.com/gorilla/mux"
-	"github.com/library/repository/mock"
+
 	"github.com/stretchr/testify/assert"
 )
 
-var bookHandler BookHandler
-
-func init() {
-	db := mock.NewDB()
-
-	bookHandler = BookHandler{
-		Db:  db,
-		Olc: openlibrary.NewClient(os.Getenv("LIBRARY")),
-	}
+var bookHandler BookHandler = BookHandler{
+	Db:  mock.NewDB(),
+	Olc: nil,
 }
 
-func TestGetBooks(t *testing.T) {
+func TestGet(t *testing.T) {
 	req, err := http.NewRequest("GET", "/books", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(bookHandler.Index)
+	handler := http.HandlerFunc(bookHandler.Get)
 
 	handler.ServeHTTP(rr, req)
 
@@ -51,7 +49,7 @@ func TestGetBooks(t *testing.T) {
 	}
 }
 
-func TestUpdateBook(t *testing.T) {
+func TestUpdate(t *testing.T) {
 	t.Run("assertion of expected response, and actual response", func(t *testing.T) {
 		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"title":"test title", "year":"2019"}`)))
 		params := map[string]string{"id": "2"}
@@ -129,12 +127,25 @@ func TestUpdateBook(t *testing.T) {
 
 }
 
-func TestCreateBook(t *testing.T) {
+
+
+func TestCreate(t *testing.T) {
+	//db := mock.NewDB()
 	t.Run("Error decoding Book attributes", func(t *testing.T) {
+
+		clmock := mockClient.ClientMock{&dto.Book{
+			Title:      "Title",
+			Year:       "1992",
+		},
+			errors.New("Error while decoding from request body"),
+		}
+		bookHandler.Olc = &clmock
+
+
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":0140447938}`)))
 
 		if err != nil {
-			t.Errorf("Error occured, %s", err)
+			t.Errorf("Error occured while sending request, %s", err)
 		}
 
 		rr := httptest.NewRecorder()
@@ -148,6 +159,11 @@ func TestCreateBook(t *testing.T) {
 		}
 	})
 	t.Run("Fetching book error", func(t *testing.T) {
+		clmock := mockClient.ClientMock{nil,
+			errors.New("Error while fetching book"),
+		}
+		bookHandler.Olc=&clmock
+
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0140447938222"}`))) //kada posaljemo nepostojeci ISBN recimo
 
 		if err != nil {
@@ -159,16 +175,40 @@ func TestCreateBook(t *testing.T) {
 		handler := http.HandlerFunc(bookHandler.Create)
 
 		handler.ServeHTTP(rr, req)
-		expectedError := "Error while fetching book"
-		contains := strings.Contains(rr.Body.String(), expectedError)
-		if status := rr.Code; status != http.StatusInternalServerError && !contains {
-			t.Errorf("Expected status code: %d and error: %s,  got: %d and %s", http.StatusBadRequest, expectedError, status, rr.Body.String())
+		contains := strings.Contains(rr.Body.String(),clmock.Err.Error())
+		if !contains && rr.Code != http.StatusBadRequest{
+			t.Errorf("Expected error to be %s, got error: %s",clmock.Err.Error(),rr.Body.String())
 		}
+	})
+	t.Run("Book informations didnt match expected",func(t *testing.T){
+		clmock := mockClient.ClientMock{&dto.Book{
+			Title:      "Concrete mathematics",
+			Year:       "1994",
+		},
+			nil,
+		}
+		bookHandler.Olc=&clmock
+
+		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0201558025"}`)))
+		if err != nil {
+			t.Errorf("Error occured, %s", err)
+		}
+
+		rr := httptest.NewRecorder()
+		handler := http.HandlerFunc(bookHandler.Create)
+		handler.ServeHTTP(rr, req)
+		//fmt.Println("(((((((((((((",rr.Body.String())
+		book1 := dto.Book{}
+		err = json.Unmarshal(rr.Body.Bytes(),&book1)
+		if book1.Title != clmock.Book.Title{
+			t.Errorf("We expected book ttitle to be: %s, got %s",clmock.Book.Title,book1.Title)
+		}
+
 	})
 
 }
 
-func TestGetBook(t *testing.T) {
+func TestIndex(t *testing.T) {
 	t.Run("Given Id can not be converted", func(t *testing.T) {
 		req, err := http.NewRequest("GET", "/book/{id}", nil)
 		params := map[string]string{"id": "ee"}
@@ -179,7 +219,7 @@ func TestGetBook(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 
-		handler := http.HandlerFunc(bookHandler.Get)
+		handler := http.HandlerFunc(bookHandler.Index)
 		handler.ServeHTTP(rr, req)
 
 		expectedError := "Error while converting url parameter into integer"
@@ -197,7 +237,7 @@ func TestGetBook(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 
-		handler := http.HandlerFunc(bookHandler.Get)
+		handler := http.HandlerFunc(bookHandler.Index)
 
 		handler.ServeHTTP(rr, req)
 

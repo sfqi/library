@@ -66,6 +66,12 @@ func (db *DB) findBookByID(id int) (*model.Book, int, error) {
 }
 
 func (db *DB) GetAllBooks() []model.Book {
+	if db == nil {
+		fmt.Println("DB je nil")
+	}
+	if db.books == nil {
+		fmt.Println("books are nil")
+	}
 	return db.books
 }
 
