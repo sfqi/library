@@ -1,14 +1,12 @@
 package mock
 
 import (
+	"fmt"
 
 	"github.com/library/domain/model"
-
-
-
 )
 
-var Books = []model.Book{
+var books = []model.Book{
 	{
 		Id:            1,
 		Title:         "some title",
@@ -41,25 +39,55 @@ var Books = []model.Book{
 	},
 }
 
-type Db struct {
+type DB struct {
 	Id    int
-	Books []model.Book
+	books []model.Book
 }
 
-var Shelf = &Db{
-	Id:    len(Books),
-	Books: Books,
+func NewDB() *DB {
+	return &DB{
+		Id:    len(books),
+		books: books,
+	}
 }
 
-func (bm Db) FindBookById(id int) (book model.Book, location int, found bool) {
-	for i, b := range bm.Books {
+func (db *DB) FindBookByID(id int) (*model.Book, error) {
+	book, _, err := db.findBookByID(id)
+	return book, err
+}
+
+func (db *DB) findBookByID(id int) (*model.Book, int, error) {
+	for i, b := range db.books {
 		if b.Id == id {
-			book = b
-			location = i
-			found = true
-			break
+			return &b, i, nil
 		}
 	}
+	return nil, -1, fmt.Errorf("error while findBookByID")
+}
 
-	return book, location, found
+func (db *DB) GetAllBooks() []model.Book {
+	if db == nil {
+		fmt.Println("DB je nil")
+	}
+	if db.books == nil {
+		fmt.Println("books are nil")
+	}
+	return db.books
+}
+
+func (db *DB) Create(book *model.Book) error {
+	db.Id++
+
+	book.Id = db.Id
+	db.books = append(db.books, *book)
+	return nil
+}
+
+func (db *DB) Update(book *model.Book) error {
+	book, index, err := db.findBookByID(book.Id)
+	if err != nil {
+		return err
+	}
+	db.books[index] = *book
+	return nil
 }

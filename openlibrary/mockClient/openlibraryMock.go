@@ -1,4 +1,4 @@
-package mock
+package mockClient
 
 import (
 	"github.com/library/handler/dto"
