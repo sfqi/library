@@ -18,11 +18,9 @@ type UpdateBookRequest struct {
 }
 
 type BookResponse struct {
-	Title      string     `json:"title"`
-	Identifier identifier `json:"identifiers"`
-	Author     []author   `json:"authors"`
-	Cover      cover      `json:"cover"`
-	Year       string     `json:"year"`
+	ID    int    `json:id`
+	Title string `json:"title"`
+	Year  string `json:"year"`
 }
 
 type identifier struct {

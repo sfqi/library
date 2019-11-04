@@ -30,7 +30,7 @@ func NewBookHandler(db *mock.DB) *BookHandler {
 	}
 }
 
-func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) {
+func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	allBooks := b.Db.GetAllBooks()
@@ -126,8 +126,8 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 		errorConvertingId(w, err)
 		return
 	}
-	book := &model.Book{}
-	book.Id = id
+	book := &dto.BookResponse{}
+	book.ID = id
 	book.Title = updateBookRequest.Title
 	book.Year = updateBookRequest.Year
 
@@ -143,7 +143,7 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
+func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
