@@ -16,16 +16,14 @@ import (
 func main() {
 	openLibraryUrl := os.Getenv("LIBRARY")
 	olc := openlibrary.NewClient(openLibraryUrl)
-
-	dbStore,err := postgres.Open()
+	config,err := postgres.LoadConfig("config.yml")
+	//for now we dont need DbStore, just checking if we configured all fine
+	_,err = postgres.Open(*config)
 	if err != nil{
 		panic(err)
 	}
 	fmt.Println("Successfully connected to dataabse")
 
-	//just checking if this method is working fine
-	u,err:=dbStore.FindById(1)
-	fmt.Println(u)
 
 	db := mock.NewDB()
 	bookHandler := handler.BookHandler{

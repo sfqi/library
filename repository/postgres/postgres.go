@@ -5,39 +5,55 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/library/domain/model"
+	"gopkg.in/yaml.v2"
 	"os"
 )
-const(
-	host ="localhost"
-	port =5432
-	dbname="library"
-)
 
-var username = os.Getenv("PSQLUSERNAME")
-var password = os.Getenv("PSQLPASSWORD")
 
 type dbStore struct {
 	DB *gorm.DB
 }
 
-func Open()(*dbStore, error){
+type Config struct{
+	Server struct{
+		Port int `yaml:"port"`
+		Host string `yaml:"host"`
+	} `yaml:"server"`
+	Database struct{
+		Username string `yaml:"user"`
+		Password string `yaml:"pass"`
+		Dbname string 	`yaml:"dbname"`
+	}`yaml:"database"`
+}
+func LoadConfig(name string)(*Config,error){
+	f,err := os.Open(name)
+	if err != nil{
+		panic(err)
+	}
+	var cfg Config
+	err = yaml.NewDecoder(f).Decode(&cfg)
+	if err != nil {
+		return nil,err
+	}
+	return &cfg,nil
+}
+
+
+func Open(config Config)(*dbStore, error){
 	store := dbStore{}
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		host,port,username,password,dbname)
+		config.Server.Host,config.Server.Port,config.Database.Username,config.Database.Password,config.Database.Dbname)
 	db, err := gorm.Open("postgres",psqlInfo)
 	if err != nil {
 		panic(err)
 		return nil,err
 	}
-	b := model.Book{}
-	db.AutoMigrate(&b)
 	store.DB = db
 	return &store,nil
-
 }
 func(db *dbStore)FindById(id int)(*model.Book, error){
 	b := model.Book{}
-	if err := db.DB.Where("id=?",id).First(&b).Error;err!=nil{
+	if err := db.DB.First(&b,id).Error;err!=nil{
 		return nil,err
 	}
 	return &b,nil
