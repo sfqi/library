@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/library/openlibrary/olmock"
+	olmock "github.com/library/openlibrary/mock"
 	"github.com/library/repository/mock"
 
 	"net/http"

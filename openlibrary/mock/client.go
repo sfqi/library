@@ -1,4 +1,4 @@
-package olmock
+package mock
 
 import (
 	"github.com/library/handler/dto"
