@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -66,7 +65,7 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
 	book := b.toBook(openlibraryBook)
 
 	if err := b.Db.Create(book); err != nil {
-		http.Error(w, errors.New("Error creating book in database").Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 

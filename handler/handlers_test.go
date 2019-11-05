@@ -127,7 +127,7 @@ func TestUpdate(t *testing.T) {
 func TestCreate(t *testing.T) {
 	t.Run("Error decoding Book attributes", func(t *testing.T) {
 
-		clmock := olmock.ClientMock{nil,
+		clmock := olmock.Client{nil,
 			errors.New("Error while decoding from request body"),
 		}
 		bookHandler.Olc = &clmock
@@ -150,7 +150,7 @@ func TestCreate(t *testing.T) {
 		}
 	})
 	t.Run("Fetching book error", func(t *testing.T) {
-		clmock := olmock.ClientMock{nil,
+		clmock := olmock.Client{nil,
 			errors.New("Error while fetching book"),
 		}
 		bookHandler.Olc=&clmock
@@ -173,7 +173,7 @@ func TestCreate(t *testing.T) {
 	})
 	/*
 	t.Run("Error creating book in database",func(t *testing.T){
-		clmock := olmock.ClientMock{ nil,
+		clmock := olmock.Client{ nil,
 			errors.New("Error creating book in database"),
 		}
 		bookHandler.Olc=&clmock

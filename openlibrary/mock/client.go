@@ -4,11 +4,11 @@ import (
 	"github.com/library/handler/dto"
 )
 
-type ClientMock struct{
+type Client struct{
 	Book *dto.Book
 	Err error
 }
 
-func(cm *ClientMock)FetchBook(isbn string)(*dto.Book, error){
+func(cm *Client)FetchBook(isbn string)(*dto.Book, error){
 	return cm.Book, cm.Err
 }
