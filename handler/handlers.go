@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -30,7 +31,7 @@ func NewBookHandler(db *mock.DB) *BookHandler {
 	}
 }
 
-func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
+func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	allBooks := b.Db.GetAllBooks()
@@ -65,7 +66,7 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
 	book := b.toBook(openlibraryBook)
 
 	if err := b.Db.Create(book); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, errors.New("Error creating book in database").Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -148,7 +149,7 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) {
+func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
