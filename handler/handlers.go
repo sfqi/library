@@ -47,16 +47,16 @@ func toBookResponse(b model.Book) *dto.BookResponse {
 	return &bookResponse
 }
 
-func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
+func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	allBooks := b.Db.GetAllBooks()
 
-	var bookResponses []dto.BookResponse
+	var bookResponses []*dto.BookResponse
 
 	for _, book := range allBooks {
 
-		bookResponses = append(bookResponses, *toBookResponse(book))
+		bookResponses = append(bookResponses, toBookResponse(book))
 	}
 
 	err := json.NewEncoder(w).Encode(bookResponses)
@@ -175,7 +175,7 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) {
+func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
