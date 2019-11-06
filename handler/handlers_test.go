@@ -2,8 +2,10 @@ package handler
 
 import (
 	"bytes"
+
 	"errors"
 	"fmt"
+
 	olmock "github.com/library/openlibrary/mock"
 	"github.com/library/repository/mock"
 
@@ -37,7 +39,7 @@ func TestIndex(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
 
-	expected := `[{"id":1,"title":"some title","author":"some author","isbn_10":"some isbn","isbn_13":"some isbon13","olid":"again some id","cover":"some cover ID","publish_date":"2019"},{"id":2,"title":"other title","author":"other author","isbn_10":"other isbn","isbn_13":"other isbon13","olid":"other some id","cover":"other cover ID","publish_date":"2019"},{"id":3,"title":"another title","author":"another author","isbn_10":"another isbn","isbn_13":"another isbon13","olid":"another some id","cover":"another cover ID","publish_date":"2019"}]` + "\n"
+	expected := `[{"ID":1,"title":"some title","author":"some author","isbn_10":"some isbn","isbn_13":"some isbon13","olid":"again some id","cover":"some cover ID","year":"2019"},{"ID":2,"title":"other title","author":"other author","isbn_10":"other isbn","isbn_13":"other isbon13","olid":"other some id","cover":"other cover ID","year":"2019"},{"ID":3,"title":"another title","author":"another author","isbn_10":"another isbn","isbn_13":"another isbon13","olid":"another some id","cover":"another cover ID","year":"2019"}]` + "\n"
 	fmt.Println(rr.Body.String())
 	fmt.Println(expected)
 	if rr.Body.String() != expected {
@@ -64,7 +66,7 @@ func TestUpdate(t *testing.T) {
 		if status := rr.Code; status != http.StatusOK {
 			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusOK, status)
 		}
-		expected := `{"id":2,"title":"test title","author":"","isbn_10":"","isbn_13":"","olid":"","cover":"","publish_date":"2019"}` + "\n"
+		expected := `{"ID":2,"title":"test title","author":"other author","isbn_10":"other isbn","isbn_13":"other isbon13","olid":"other some id","cover":"other cover ID","year":"2019"}` + "\n"
 		assert.Equal(t, expected, rr.Body.String(), "Response body differs")
 	})
 	t.Run("Error decoding Book attributes", func(t *testing.T) {
@@ -132,7 +134,6 @@ func TestCreate(t *testing.T) {
 		}
 		bookHandler.Olc = &clmock
 
-
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":0140447938}`)))
 
 		if err != nil {
@@ -153,32 +154,9 @@ func TestCreate(t *testing.T) {
 		clmock := olmock.Client{nil,
 			errors.New("Error while fetching book"),
 		}
-		bookHandler.Olc=&clmock
+		bookHandler.Olc = &clmock
 
-		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0140447938222"}`))) //kada posaljemo nepostojeci ISBN recimo
-
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
-
-		rr := httptest.NewRecorder()
-
-		handler := http.HandlerFunc(bookHandler.Create)
-
-		handler.ServeHTTP(rr, req)
-		contains := strings.Contains(rr.Body.String(),clmock.Err.Error())
-		if !contains && rr.Code != http.StatusBadRequest{
-			t.Errorf("Expected error to be %s, got error: %s",clmock.Err.Error(),rr.Body.String())
-		}
-	})
-	/*
-	t.Run("Error creating book in database",func(t *testing.T){
-		clmock := olmock.Client{ nil,
-			errors.New("Error creating book in database"),
-		}
-		bookHandler.Olc=&clmock
-
-		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"01404479382"}`)))
+		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0140447938222"}`)))
 
 		if err != nil {
 			t.Errorf("Error occured, %s", err)
@@ -189,12 +167,12 @@ func TestCreate(t *testing.T) {
 		handler := http.HandlerFunc(bookHandler.Create)
 
 		handler.ServeHTTP(rr, req)
-		if rr.Body.String() != clmock.Err.Error() && rr.Code !=http.StatusBadRequest{
-			t.Errorf("Expected error to be %s, got error: %s and expected StatusCode to be %d, got %d",clmock.Err.Error(),rr.Body.String(),http.StatusBadRequest,rr.Code)
+		contains := strings.Contains(rr.Body.String(), clmock.Err.Error())
+		if !contains && rr.Code != http.StatusBadRequest {
+			t.Errorf("Expected error to be %s, got error: %s", clmock.Err.Error(), rr.Body.String())
 		}
-
 	})
-	 */
+
 }
 
 func TestGet(t *testing.T) {

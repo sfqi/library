@@ -12,6 +12,8 @@ import (
 
 	"github.com/library/domain/model"
 	"github.com/library/handler/dto"
+	openlibrarydto "github.com/library/openlibrary/dto"
+
 	"github.com/library/repository/mock"
 )
 
@@ -21,7 +23,7 @@ type BookHandler struct {
 }
 
 type openLibraryClient interface {
-	FetchBook(isbn string) (*dto.Book, error)
+	FetchBook(isbn string) (*openlibrarydto.Book, error)
 }
 
 func NewBookHandler(db *mock.DB) *BookHandler {
@@ -30,12 +32,34 @@ func NewBookHandler(db *mock.DB) *BookHandler {
 	}
 }
 
+func toBookResponse(b model.Book) *dto.BookResponse {
+	bookResponse := dto.BookResponse{}
+
+	bookResponse.ID = b.Id
+	bookResponse.Title = b.Title
+	bookResponse.Author = b.Author
+	bookResponse.Isbn = b.Isbn
+	bookResponse.Isbn13 = b.Isbn13
+	bookResponse.OpenLibraryId = b.OpenLibraryId
+	bookResponse.CoverId = b.CoverId
+	bookResponse.Year = b.Year
+
+	return &bookResponse
+}
+
 func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	allBooks := b.Db.GetAllBooks()
 
-	err := json.NewEncoder(w).Encode(allBooks)
+	var bookResponses []*dto.BookResponse
+
+	for _, book := range allBooks {
+
+		bookResponses = append(bookResponses, toBookResponse(book))
+	}
+
+	err := json.NewEncoder(w).Encode(bookResponses)
 	if err != nil {
 		fmt.Println("error while getting books: ", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
@@ -68,15 +92,16 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	bookResponse := *toBookResponse(*book)
 
+	if err := json.NewEncoder(w).Encode(bookResponse); err != nil {
 
-	if err := json.NewEncoder(w).Encode(book); err != nil {
 		errorEncoding(w, err)
 		return
 	}
 }
 
-func (b *BookHandler) toBook(book *dto.Book) (bm *model.Book) {
+func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
 
 	isbn10 := ""
 	if book.Identifier.ISBN10 != nil {
@@ -131,7 +156,13 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 		errorConvertingId(w, err)
 		return
 	}
-	book := &model.Book{}
+
+	book, err := b.Db.FindBookByID(id)
+	if err != nil {
+		errorFindingBook(w, err)
+		return
+	}
+
 	book.Id = id
 	book.Title = updateBookRequest.Title
 	book.Year = updateBookRequest.Year
@@ -140,8 +171,9 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 		errorFindingBook(w, err)
 		return
 	}
+	bookResponse := *toBookResponse(*book)
 
-	err = json.NewEncoder(w).Encode(book)
+	err = json.NewEncoder(w).Encode(bookResponse)
 	if err != nil {
 		errorEncoding(w, err)
 		return
@@ -163,7 +195,9 @@ func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
 		errorFindingBook(w, err)
 		return
 	}
-	err = json.NewEncoder(w).Encode(book)
+	bookResponse := *toBookResponse(*book)
+
+	err = json.NewEncoder(w).Encode(bookResponse)
 	if err != nil {
 		errorEncoding(w, err)
 		return

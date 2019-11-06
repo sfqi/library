@@ -77,8 +77,12 @@ func (db *DB) Create(book *model.Book) error {
 	return nil
 }
 
-func (db *DB) Update(book *model.Book) error {
-	book, index, err := db.findBookByID(book.Id)
+func (db *DB) Update(toUpdate *model.Book) error {
+	book, index, err := db.findBookByID(toUpdate.Id)
+
+	book.Title = toUpdate.Title
+	book.Year = toUpdate.Year
+	toUpdate = book
 	if err != nil {
 		return err
 	}

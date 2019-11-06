@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/library/handler/dto"
+	"github.com/library/openlibrary/dto"
 )
 
 const bookPath = "/books"
@@ -26,7 +26,6 @@ func NewClient(url string) *Client {
 	}
 
 }
-
 
 func (client *Client) FetchBook(isbn string) (*dto.Book, error) {
 	url := fmt.Sprintf(client.url+fetchBookPath, isbn)

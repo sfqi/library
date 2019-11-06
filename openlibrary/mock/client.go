@@ -1,14 +1,14 @@
 package mock
 
 import (
-	"github.com/library/handler/dto"
+	"github.com/library/openlibrary/dto"
 )
 
-type Client struct{
+type Client struct {
 	Book *dto.Book
-	Err error
+	Err  error
 }
 
-func(cm *Client)FetchBook(isbn string)(*dto.Book, error){
+func (cm *Client) FetchBook(isbn string) (*dto.Book, error) {
 	return cm.Book, cm.Err
 }
