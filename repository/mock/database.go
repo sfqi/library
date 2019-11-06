@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/library/domain/model"
-	"github.com/library/handler/dto"
 )
 
 var books = []model.Book{
@@ -78,11 +77,15 @@ func (db *DB) Create(book *model.Book) error {
 	return nil
 }
 
-func (db *DB) Update(book *dto.BookResponse) error {
-	bookResponse, index, err := db.findBookByID(book.ID)
+func (db *DB) Update(toUpdate *model.Book) error {
+	book, index, err := db.findBookByID(toUpdate.Id)
+
+	book.Title = toUpdate.Title
+	book.Year = toUpdate.Year
+	toUpdate = book
 	if err != nil {
 		return err
 	}
-	db.books[index] = *bookResponse
+	db.books[index] = *book
 	return nil
 }
