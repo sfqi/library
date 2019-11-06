@@ -15,14 +15,13 @@ func main() {
 	openLibraryUrl := os.Getenv("LIBRARY")
 	olc := openlibrary.NewClient(openLibraryUrl)
 
-	r := mux.NewRouter()
-
 	db := mock.NewDB()
 	bookHandler := handler.BookHandler{
 		Db:  db,
 		Olc: olc,
 	}
 
+	r := mux.NewRouter()
 	r.HandleFunc("/books", bookHandler.Get).Methods("GET")
 	r.HandleFunc("/books", bookHandler.Create).Methods("POST")
 	r.HandleFunc("/books/{id}", bookHandler.Update).Methods("PUT")
