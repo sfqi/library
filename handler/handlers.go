@@ -55,18 +55,8 @@ func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
 	var bookResponses []dto.BookResponse
 
 	for _, book := range allBooks {
-		response := dto.BookResponse{
-			ID:            book.Id,
-			Title:         book.Title,
-			Author:        book.Author,
-			Isbn:          book.Isbn,
-			Isbn13:        book.Isbn13,
-			OpenLibraryId: book.OpenLibraryId,
-			CoverId:       book.CoverId,
-			Year:          book.Year,
-		}
 
-		bookResponses = append(bookResponses, response)
+		bookResponses = append(bookResponses, *toBookResponse(book))
 	}
 
 	err := json.NewEncoder(w).Encode(bookResponses)
@@ -102,7 +92,7 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	bookResponse := toBookResponse(*book)
+	bookResponse := *toBookResponse(*book)
 
 	if err := json.NewEncoder(w).Encode(bookResponse); err != nil {
 		errorEncoding(w, err)
@@ -176,7 +166,7 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 		errorFindingBook(w, err)
 		return
 	}
-	bookResponse := toBookResponse(*book)
+	bookResponse := *toBookResponse(*book)
 
 	err = json.NewEncoder(w).Encode(bookResponse)
 	if err != nil {
@@ -200,7 +190,7 @@ func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) {
 		errorFindingBook(w, err)
 		return
 	}
-	bookResponse := toBookResponse(*book)
+	bookResponse := *toBookResponse(*book)
 
 	err = json.NewEncoder(w).Encode(bookResponse)
 	if err != nil {
