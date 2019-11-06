@@ -8,7 +8,3 @@ export LIBRARY='https://openlibrary.org/api/'
 Logout, and login again 
 
 We need to remove '/' at the end from https://openlibrary.org/api/ , and add it in bookPath
-
-For connecting to database, we must set our username and password as env var:
-export PSQLUSERNAME=*****
-export PSQLPASSWORD=*****
