@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"github.com/library/repository/postgres"
 	"net/http"
 	"os"
 
@@ -16,14 +14,6 @@ import (
 func main() {
 	openLibraryUrl := os.Getenv("LIBRARY")
 	olc := openlibrary.NewClient(openLibraryUrl)
-	config,err := postgres.LoadConfig("config.yml")
-	//for now we dont need DbStore, just checking if we configured all fine
-	_,err = postgres.Open(*config)
-	if err != nil{
-		panic(err)
-	}
-	fmt.Println("Successfully connected to dataabse")
-
 
 	db := mock.NewDB()
 	bookHandler := handler.BookHandler{

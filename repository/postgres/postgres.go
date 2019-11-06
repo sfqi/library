@@ -5,44 +5,25 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/library/domain/model"
-	"gopkg.in/yaml.v2"
-	"os"
 )
+
+type PostgresConfig struct{
+	Host 		string
+	Port 		int
+	User 		string
+	Password 	string
+	Name 		string
+}
 
 
 type dbStore struct {
 	DB *gorm.DB
 }
 
-type Config struct{
-	Server struct{
-		Port int `yaml:"port"`
-		Host string `yaml:"host"`
-	} `yaml:"server"`
-	Database struct{
-		Username string `yaml:"user"`
-		Password string `yaml:"pass"`
-		Dbname string 	`yaml:"dbname"`
-	}`yaml:"database"`
-}
-func LoadConfig(name string)(*Config,error){
-	f,err := os.Open(name)
-	if err != nil{
-		panic(err)
-	}
-	var cfg Config
-	err = yaml.NewDecoder(f).Decode(&cfg)
-	if err != nil {
-		return nil,err
-	}
-	return &cfg,nil
-}
-
-
-func Open(config Config)(*dbStore, error){
+func Open(config PostgresConfig)(*dbStore, error){
 	store := dbStore{}
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		config.Server.Host,config.Server.Port,config.Database.Username,config.Database.Password,config.Database.Dbname)
+		config.Host,config.Port,config.User,config.Password,config.Name)
 	db, err := gorm.Open("postgres",psqlInfo)
 	if err != nil {
 		panic(err)
