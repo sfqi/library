@@ -2,13 +2,10 @@ package handler
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
-	mockClient "github.com/library/openlibrary/mockClient"
+	olmock "github.com/library/openlibrary/mock"
 	"github.com/library/repository/mock"
-
-	"github.com/library/handler/dto"
 
 	"net/http"
 	"net/http/httptest"
@@ -25,14 +22,14 @@ var bookHandler BookHandler = BookHandler{
 	Olc: nil,
 }
 
-func TestGet(t *testing.T) {
+func TestIndex(t *testing.T) {
 	req, err := http.NewRequest("GET", "/books", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(bookHandler.Get)
+	handler := http.HandlerFunc(bookHandler.Index)
 
 	handler.ServeHTTP(rr, req)
 
@@ -127,16 +124,10 @@ func TestUpdate(t *testing.T) {
 
 }
 
-
-
 func TestCreate(t *testing.T) {
-	//db := mock.NewDB()
 	t.Run("Error decoding Book attributes", func(t *testing.T) {
 
-		clmock := mockClient.ClientMock{&dto.Book{
-			Title:      "Title",
-			Year:       "1992",
-		},
+		clmock := olmock.Client{nil,
 			errors.New("Error while decoding from request body"),
 		}
 		bookHandler.Olc = &clmock
@@ -159,7 +150,7 @@ func TestCreate(t *testing.T) {
 		}
 	})
 	t.Run("Fetching book error", func(t *testing.T) {
-		clmock := mockClient.ClientMock{nil,
+		clmock := olmock.Client{nil,
 			errors.New("Error while fetching book"),
 		}
 		bookHandler.Olc=&clmock
@@ -180,35 +171,33 @@ func TestCreate(t *testing.T) {
 			t.Errorf("Expected error to be %s, got error: %s",clmock.Err.Error(),rr.Body.String())
 		}
 	})
-	t.Run("Book informations didnt match expected",func(t *testing.T){
-		clmock := mockClient.ClientMock{&dto.Book{
-			Title:      "Concrete mathematics",
-			Year:       "1994",
-		},
-			nil,
+	/*
+	t.Run("Error creating book in database",func(t *testing.T){
+		clmock := olmock.Client{ nil,
+			errors.New("Error creating book in database"),
 		}
 		bookHandler.Olc=&clmock
 
-		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0201558025"}`)))
+		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"01404479382"}`)))
+
 		if err != nil {
 			t.Errorf("Error occured, %s", err)
 		}
 
 		rr := httptest.NewRecorder()
+
 		handler := http.HandlerFunc(bookHandler.Create)
+
 		handler.ServeHTTP(rr, req)
-		//fmt.Println("(((((((((((((",rr.Body.String())
-		book1 := dto.Book{}
-		err = json.Unmarshal(rr.Body.Bytes(),&book1)
-		if book1.Title != clmock.Book.Title{
-			t.Errorf("We expected book ttitle to be: %s, got %s",clmock.Book.Title,book1.Title)
+		if rr.Body.String() != clmock.Err.Error() && rr.Code !=http.StatusBadRequest{
+			t.Errorf("Expected error to be %s, got error: %s and expected StatusCode to be %d, got %d",clmock.Err.Error(),rr.Body.String(),http.StatusBadRequest,rr.Code)
 		}
 
 	})
-
+	 */
 }
 
-func TestIndex(t *testing.T) {
+func TestGet(t *testing.T) {
 	t.Run("Given Id can not be converted", func(t *testing.T) {
 		req, err := http.NewRequest("GET", "/book/{id}", nil)
 		params := map[string]string{"id": "ee"}
@@ -219,7 +208,7 @@ func TestIndex(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 
-		handler := http.HandlerFunc(bookHandler.Index)
+		handler := http.HandlerFunc(bookHandler.Get)
 		handler.ServeHTTP(rr, req)
 
 		expectedError := "Error while converting url parameter into integer"
@@ -237,7 +226,7 @@ func TestIndex(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 
-		handler := http.HandlerFunc(bookHandler.Index)
+		handler := http.HandlerFunc(bookHandler.Get)
 
 		handler.ServeHTTP(rr, req)
 
