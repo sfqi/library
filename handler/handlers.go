@@ -95,6 +95,7 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
 	bookResponse := *toBookResponse(*book)
 
 	if err := json.NewEncoder(w).Encode(bookResponse); err != nil {
+
 		errorEncoding(w, err)
 		return
 	}
@@ -121,11 +122,15 @@ func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
 	if book.Identifier.Openlibrary != nil {
 		libraryId = book.Identifier.Openlibrary[0]
 	}
+	author := ""
+	if book.Author != nil {
+		author = book.Author[0].Name
+	}
 
 	bookToAdd := model.Book{
 		Id:            b.Db.Id,
 		Title:         book.Title,
-		Author:        book.Author[0].Name,
+		Author:        author,
 		Isbn:          isbn10,
 		Isbn13:        isbn13,
 		OpenLibraryId: libraryId,
