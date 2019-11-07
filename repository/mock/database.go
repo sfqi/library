@@ -3,7 +3,7 @@ package mock
 import (
 	"fmt"
 
-	"github.com/library/domain/model"
+	"github.com/sfqi/library/domain/model"
 )
 
 var books = []model.Book{

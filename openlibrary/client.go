@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/library/openlibrary/dto"
+	"github.com/sfqi/library/openlibrary/dto"
 )
 
 const bookPath = "/books"
