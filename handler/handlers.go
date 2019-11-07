@@ -10,11 +10,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/library/domain/model"
-	"github.com/library/handler/dto"
-	openlibrarydto "github.com/library/openlibrary/dto"
+	"github.com/sfqi/library/domain/model"
+	"github.com/sfqi/library/handler/dto"
+	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
 
-	"github.com/library/repository/mock"
+	"github.com/sfqi/library/repository/mock"
 )
 
 type BookHandler struct {

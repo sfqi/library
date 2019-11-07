@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/library/openlibrary"
+	"github.com/sfqi/library/openlibrary"
 
 	"github.com/gorilla/mux"
-	"github.com/library/handler"
-	"github.com/library/repository/mock"
+	"github.com/sfqi/library/handler"
+	"github.com/sfqi/library/repository/mock"
 )
 
 func main() {

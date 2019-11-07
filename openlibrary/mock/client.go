@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"github.com/library/openlibrary/dto"
+	"github.com/sfqi/library/openlibrary/dto"
 )
 
 type Client struct {
