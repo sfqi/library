@@ -2,6 +2,8 @@ package handler
 
 import (
 	"bytes"
+	"encoding/json"
+	"github.com/library/openlibrary/dto"
 
 	"errors"
 	"fmt"
@@ -127,14 +129,13 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
-	t.Run("Error decoding Book attributes", func(t *testing.T) {
-
+	t.Run("Invalid request body", func(t *testing.T) {
 		clmock := olmock.Client{nil,
 			errors.New("Error while decoding from request body"),
 		}
 		bookHandler.Olc = &clmock
 
-		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":0140447938}`)))
+		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{ISBN:"0140447938"}`)))
 
 		if err != nil {
 			t.Errorf("Error occured while sending request, %s", err)
@@ -170,6 +171,34 @@ func TestCreate(t *testing.T) {
 		contains := strings.Contains(rr.Body.String(), clmock.Err.Error())
 		if !contains && rr.Code != http.StatusBadRequest {
 			t.Errorf("Expected error to be %s, got error: %s", clmock.Err.Error(), rr.Body.String())
+		}
+	})
+	t.Run("Testing book creation", func(t *testing.T) {
+		clmock := olmock.Client{&dto.Book{},
+			nil,
+		}
+		bookHandler.Olc = &clmock
+
+		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"01404479382"}`)))
+
+		if err != nil {
+			t.Errorf("Error occured, %s", err)
+		}
+
+		rr := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(bookHandler.Create)
+
+		handler.ServeHTTP(rr, req)
+		//Since we dont know what will be returned as response, I put interface
+		//We expect to be returned map[string]interface{}, in other scenario error is returned and test will fail
+		var response interface{}
+		err = json.NewDecoder(rr.Body).Decode(&response)
+		switch r:=response.(type) {
+		default:
+			t.Errorf("unexpected type %T", r)
+		case map[string]interface{}:
+			fmt.Println("we got book, not error")
 		}
 	})
 
