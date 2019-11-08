@@ -131,7 +131,7 @@ func TestUpdate(t *testing.T) {
 func TestCreate(t *testing.T) {
 	t.Run("Invalid request body", func(t *testing.T) {
 		clmock := olmock.Client{nil,
-			errors.New("Error while decoding from request body"),
+			nil,
 		}
 		bookHandler.Olc = &clmock
 
@@ -190,14 +190,13 @@ func TestCreate(t *testing.T) {
 		handler := http.HandlerFunc(bookHandler.Create)
 
 		handler.ServeHTTP(rr, req)
-		//Since we dont know what will be returned as response, I put interface
-		//We expect to be returned map[string]interface{}, in other scenario error is returned and test will fail
+
 		var response interface{}
 		err = json.NewDecoder(rr.Body).Decode(&response)
 		switch r:=response.(type) {
+		case error:
+			t.Errorf("We got error:%s", r)
 		default:
-			t.Errorf("unexpected type %T", r)
-		case map[string]interface{}:
 			fmt.Println("we got book, not error")
 		}
 	})
