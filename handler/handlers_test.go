@@ -3,6 +3,7 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
+	dto2 "github.com/library/handler/dto"
 	"github.com/library/openlibrary/dto"
 
 	"errors"
@@ -191,13 +192,12 @@ func TestCreate(t *testing.T) {
 
 		handler.ServeHTTP(rr, req)
 
-		var response interface{}
+		var response *dto2.BookResponse
 		err = json.NewDecoder(rr.Body).Decode(&response)
-		switch r:=response.(type) {
-		case error:
-			t.Errorf("We got error:%s", r)
-		default:
-			fmt.Println("we got book, not error")
+		if response == nil {
+			t.Errorf("Response is nil, test is failing : %s",err)
+		}else{
+			fmt.Println("Book is successfuly created")
 		}
 	})
 
