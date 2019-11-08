@@ -2,10 +2,12 @@ package handler
 
 import (
 	"bytes"
+	"encoding/json"
 
 	"errors"
 	"fmt"
 
+	"github.com/sfqi/library/handler/dto"
 	olmock "github.com/sfqi/library/openlibrary/mock"
 	"github.com/sfqi/library/repository/mock"
 
@@ -25,6 +27,8 @@ var bookHandler BookHandler = BookHandler{
 }
 
 func TestIndex(t *testing.T) {
+	const booksExpected = `[{"ID":1,"title":"some title","author":"some author","isbn_10":"some isbn","isbn_13":"some isbon13","olid":"again some id","cover":"some cover ID","year":"2019"},{"ID":2,"title":"other title","author":"other author","isbn_10":"other isbn","isbn_13":"other isbon13","olid":"other some id","cover":"other cover ID","year":"2019"},{"ID":3,"title":"another title","author":"another author","isbn_10":"another isbn","isbn_13":"another isbon13","olid":"another some id","cover":"another cover ID","year":"2019"}]` + "\n"
+
 	req, err := http.NewRequest("GET", "/books", nil)
 	if err != nil {
 		t.Fatal(err)
@@ -39,12 +43,16 @@ func TestIndex(t *testing.T) {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
 
-	expected := `[{"ID":1,"title":"some title","author":"some author","isbn_10":"some isbn","isbn_13":"some isbon13","olid":"again some id","cover":"some cover ID","year":"2019"},{"ID":2,"title":"other title","author":"other author","isbn_10":"other isbn","isbn_13":"other isbon13","olid":"other some id","cover":"other cover ID","year":"2019"},{"ID":3,"title":"another title","author":"another author","isbn_10":"another isbn","isbn_13":"another isbon13","olid":"another some id","cover":"another cover ID","year":"2019"}]` + "\n"
-	fmt.Println(rr.Body.String())
-	fmt.Println(expected)
-	if rr.Body.String() != expected {
-		t.Errorf("handler returned unexpected body: got%v want %v",
-			rr.Body.String(), expected)
+	var response []dto.BookResponse
+	json.NewDecoder(rr.Body).Decode(&response)
+	fmt.Println(response)
+	var expected []dto.BookResponse
+	err = json.Unmarshal([]byte(booksExpected), &expected)
+
+	for i, _ := range response {
+		if expected[i] != response[i] {
+			t.Errorf("We did not get the same response")
+		}
 	}
 }
 
