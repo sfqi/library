@@ -20,12 +20,11 @@ type Store struct {
 	db *gorm.DB
 }
 
-func NewStore()*Store{
-	return &Store{}
+func NewStore(db *gorm.DB)*Store{
+	return &Store{db}
 }
 
 func Open(config PostgresConfig)(*Store, error){
-	Store := NewStore()
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		config.Host,config.Port,config.User,config.Password,config.Name)
 
@@ -34,8 +33,8 @@ func Open(config PostgresConfig)(*Store, error){
 		return nil,err
 	}
 
-	Store.db = db
-	return Store,nil
+	store := NewStore(db)
+	return store,nil
 }
 func(store *Store)FindById(id int)(*model.Book, error){
 	b := model.Book{}
