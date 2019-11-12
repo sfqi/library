@@ -2,6 +2,7 @@ package mock
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/sfqi/library/domain/model"
 )
@@ -16,6 +17,8 @@ var books = []model.Book{
 		OpenLibraryId: "again some id",
 		CoverId:       "some cover ID",
 		Year:          "2019",
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
 	},
 	{
 		Id:            2,
@@ -26,8 +29,11 @@ var books = []model.Book{
 		OpenLibraryId: "other some id",
 		CoverId:       "other cover ID",
 		Year:          "2019",
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
 	},
 	{
+
 		Id:            3,
 		Title:         "another title",
 		Author:        "another author",
@@ -36,6 +42,8 @@ var books = []model.Book{
 		OpenLibraryId: "another some id",
 		CoverId:       "another cover ID",
 		Year:          "2019",
+		CreatedAt:     time.Now(),
+		UpdatedAt:     time.Now(),
 	},
 }
 
@@ -72,6 +80,7 @@ func (db *DB) GetAllBooks() []model.Book {
 func (db *DB) Create(book *model.Book) error {
 	db.Id++
 
+	book.CreatedAt = time.Now()
 	book.Id = db.Id
 	db.books = append(db.books, *book)
 	return nil
@@ -80,6 +89,7 @@ func (db *DB) Create(book *model.Book) error {
 func (db *DB) Update(toUpdate *model.Book) error {
 	book, index, err := db.findBookByID(toUpdate.Id)
 
+	book.UpdatedAt = time.Now()
 	book.Title = toUpdate.Title
 	book.Year = toUpdate.Year
 	toUpdate = book

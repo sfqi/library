@@ -1,5 +1,7 @@
 package dto
 
+import "time"
+
 type CreateBookRequest struct {
 	ISBN string `json:"ISBN"`
 }
@@ -9,12 +11,14 @@ type UpdateBookRequest struct {
 }
 
 type BookResponse struct {
-	ID            int    `json:id`
-	Title         string `json:"title"`
-	Author        string `json:"author"`
-	Isbn          string `json:"isbn_10"`
-	Isbn13        string `json:"isbn_13"`
-	OpenLibraryId string `json:"olid"`
-	CoverId       string `json:"cover"`
-	Year          string `json:"year"`
+	ID            int       `json:id`
+	Title         string    `json:"title"`
+	Author        string    `json:"author"`
+	Isbn          string    `json:"isbn_10"`
+	Isbn13        string    `json:"isbn_13"`
+	OpenLibraryId string    `json:"olid"`
+	CoverId       string    `json:"cover"`
+	Year          string    `json:"year"`
+	CreatedAt     time.Time `json:created_at`
+	UpdatedAt     time.Time `json:updated_at`
 }
