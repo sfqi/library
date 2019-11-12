@@ -8,7 +8,7 @@ import (
 
 	"github.com/sfqi/library/handler/dto"
 	olmock "github.com/sfqi/library/openlibrary/mock"
-	"github.com/sfqi/library/repository/mock"
+	"github.com/sfqi/library/repository/inmemory"
 
 	"net/http"
 	"net/http/httptest"
@@ -21,7 +21,7 @@ import (
 )
 
 var bookHandler BookHandler = BookHandler{
-	Db:  mock.NewDB(),
+	Db:  inmemory.NewDB(),
 	Olc: nil,
 }
 
