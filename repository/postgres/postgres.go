@@ -16,25 +16,35 @@ type PostgresConfig struct{
 }
 
 
-type dbStore struct {
+type Store struct {
+	Db db
+}
+type db struct{
 	DB *gorm.DB
 }
 
-func Open(config PostgresConfig)(*dbStore, error){
-	store := dbStore{}
+func NewStore()*Store{
+	return &Store{
+		Db:db{
+			DB:&gorm.DB{},
+		},
+	}
+}
+
+func Open(config PostgresConfig)(*Store, error){
+	Store := NewStore()
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		config.Host,config.Port,config.User,config.Password,config.Name)
 	db, err := gorm.Open("postgres",psqlInfo)
 	if err != nil {
-		panic(err)
 		return nil,err
 	}
-	store.DB = db
-	return &store,nil
+	Store.Db.DB = db
+	return Store,nil
 }
-func(db *dbStore)FindById(id int)(*model.Book, error){
+func(store *Store)FindById(id int)(*model.Book, error){
 	b := model.Book{}
-	if err := db.DB.First(&b,id).Error;err!=nil{
+	if err := store.Db.DB.First(&b,id).Error;err!=nil{
 		return nil,err
 	}
 	return &b,nil
