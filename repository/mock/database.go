@@ -90,13 +90,13 @@ func (db *DB) Update(toUpdate *model.Book) error {
 	return nil
 }
 
-func (db *DB)Delete(toDelete *model.Book)error{
+func (db *DB)Delete(book *model.Book)error{
 	temp := db.books
-	db.books=[]model.Book{}
-	for _, book := range temp{
-		if book.Id != toDelete.Id{
-			db.books=append(db.books,book)
-		}
+	_,loc,err:=db.findBookByID(book.Id)
+	if err != nil{
+		return err
 	}
+	db.books=[]model.Book{}
+	db.books= append(temp[:loc], temp[loc+1:]...)
 	return nil
 }
