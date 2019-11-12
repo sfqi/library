@@ -204,6 +204,27 @@ func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (b *BookHandler)Delete(w http.ResponseWriter,r *http.Request){
+	w.Header().Set("Content-Type", "application/json")
+
+	params := mux.Vars(r)
+	id, err := strconv.Atoi(params["id"])
+	if err != nil {
+		errorConvertingId(w, err)
+		return
+	}
+	book, err := b.Db.FindBookByID(id)
+	if err != nil {
+		errorFindingBook(w, err)
+		return
+	}
+	if err := b.Db.Delete(book); err != nil {
+		return
+	}
+	fmt.Fprintln(w,"Book successfuly deleted")
+}
+
+
 func errorDecodingBook(w http.ResponseWriter, err error) {
 	fmt.Println("error while decoding book from response body: ", err)
 	http.Error(w, "Error while decoding from request body", http.StatusBadRequest)

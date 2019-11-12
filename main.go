@@ -26,6 +26,7 @@ func main() {
 	r.HandleFunc("/books", bookHandler.Create).Methods("POST")
 	r.HandleFunc("/books/{id}", bookHandler.Update).Methods("PUT")
 	r.HandleFunc("/book/{id}", bookHandler.Get).Methods("GET")
+	r.HandleFunc("/book/{id}",bookHandler.Delete).Methods("DELETE")
 
 	http.ListenAndServe(":8080", r)
 }
