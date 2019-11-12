@@ -214,3 +214,66 @@ func TestGet(t *testing.T) {
 		}
 	})
 }
+
+func TestDelete(t *testing.T) {
+	t.Run("Error converting Id to integer", func(t *testing.T) {
+		req, err := http.NewRequest("DELETE", "/books/{id}", nil)
+		params := map[string]string{"id": "e"}
+		req = mux.SetURLVars(req, params)
+		if err != nil {
+			t.Errorf("Error occured, %s", err)
+		}
+
+		rr := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(bookHandler.Delete)
+
+		handler.ServeHTTP(rr, req)
+
+		expectedError :="Error while converting url parameter into integer"+"\n"
+		if status := rr.Code; status != http.StatusBadRequest {
+			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusBadRequest, status)
+		}
+		assert.Equal(t, expectedError, rr.Body.String(), "Response body differs")
+	})
+	t.Run("Error finding book with given Id",func(t *testing.T){
+		req, err := http.NewRequest("DELETE", "/books/{id}", nil)
+		params := map[string]string{"id": "7"}
+		req = mux.SetURLVars(req, params)
+		if err != nil {
+			t.Errorf("Error occured, %s", err)
+		}
+
+		rr := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(bookHandler.Delete)
+
+		handler.ServeHTTP(rr, req)
+
+		if status := rr.Code; status != http.StatusBadRequest {
+			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusBadRequest, status)
+		}
+		expectedError :="Book with given Id can not be found"+"\n"
+		assert.Equal(t, expectedError, rr.Body.String(), "Response body differs")
+	})
+	t.Run("Book succesfully deleted",func(t *testing.T){
+		req, err := http.NewRequest("DELETE", "/books/{id}", nil)
+		params := map[string]string{"id": "2"}
+		req = mux.SetURLVars(req, params)
+		if err != nil {
+			t.Errorf("Error occured, %s", err)
+		}
+
+		rr := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(bookHandler.Delete)
+
+		handler.ServeHTTP(rr, req)
+
+		if status := rr.Code; status != http.StatusOK {
+			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusOK, status)
+		}
+		expectedResponse :="Book successfuly deleted"+"\n"
+		assert.Equal(t, expectedResponse, rr.Body.String(), "Response body differs")
+	})
+}
