@@ -3,8 +3,8 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
-	dto2 "github.com/library/handler/dto"
-	"github.com/library/openlibrary/dto"
+	dto "github.com/library/handler/dto"
+	openlibrarydto "github.com/library/openlibrary/dto"
 
 	"errors"
 	"fmt"
@@ -131,9 +131,7 @@ func TestUpdate(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	t.Run("Invalid request body", func(t *testing.T) {
-		clmock := olmock.Client{nil,
-			nil,
-		}
+		clmock := olmock.Client{}
 		bookHandler.Olc = &clmock
 
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{ISBN:"0140447938"}`)))
@@ -175,7 +173,10 @@ func TestCreate(t *testing.T) {
 		}
 	})
 	t.Run("Testing book creation", func(t *testing.T) {
-		clmock := olmock.Client{&dto.Book{},
+		clmock := olmock.Client{&openlibrarydto.Book{
+			Title:      "Test title",
+			Year:       "Test year",
+		},
 			nil,
 		}
 		bookHandler.Olc = &clmock
@@ -192,13 +193,20 @@ func TestCreate(t *testing.T) {
 
 		handler.ServeHTTP(rr, req)
 
-		var response *dto2.BookResponse
+		var response *dto.BookResponse
 		err = json.NewDecoder(rr.Body).Decode(&response)
+		if err != nil{
+			t.Errorf("Error decoding %s",err.Error())
+		}
 		if response == nil {
 			t.Errorf("Response is nil, test is failing : %s",err)
-		}else{
-			fmt.Println("Book is successfuly created")
 		}
+		if response.Title!=clmock.Book.Title || response.Year !=clmock.Book.Year{
+			t.Errorf("Book attribute did not match, wanted %v , got %v",clmock.Book,response)
+		}
+
+		fmt.Println("Book is successfuly created")
+
 	})
 
 }
