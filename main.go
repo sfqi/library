@@ -8,14 +8,14 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sfqi/library/handler"
-	"github.com/sfqi/library/repository/inMemory"
+	"github.com/sfqi/library/repository/inmemory"
 )
 
 func main() {
 	openLibraryUrl := os.Getenv("LIBRARY")
 	olc := openlibrary.NewClient(openLibraryUrl)
 
-	db := inMemory.NewDB()
+	db := inmemory.NewDB()
 	bookHandler := handler.BookHandler{
 		Db:  db,
 		Olc: olc,

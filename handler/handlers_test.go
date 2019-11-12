@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	olmock "github.com/sfqi/library/openlibrary/mock"
-	"github.com/sfqi/library/repository/inMemory"
+	"github.com/sfqi/library/repository/inmemory"
 
 	"net/http"
 	"net/http/httptest"
@@ -20,7 +20,7 @@ import (
 )
 
 var bookHandler BookHandler = BookHandler{
-	Db:  inMemory.NewDB(),
+	Db:  inmemory.NewDB(),
 	Olc: nil,
 }
 
