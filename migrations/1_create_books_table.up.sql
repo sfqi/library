@@ -7,7 +7,5 @@ CREATE TABLE books (
     open_library_id         varchar(50),
     cover_id varchar(50),
     year    int ,
-    publisher varchar(255),
-    created_at time (0) not null,
-    updated_at time (0) not null
+    publisher varchar(255)
 );

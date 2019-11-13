@@ -43,8 +43,6 @@ func toBookResponse(b model.Book) *dto.BookResponse {
 	bookResponse.OpenLibraryId = b.OpenLibraryId
 	bookResponse.CoverId = b.CoverId
 	bookResponse.Year = b.Year
-	bookResponse.UpdatedAt = b.UpdatedAt
-	bookResponse.CreatedAt = b.CreatedAt
 
 	return &bookResponse
 }

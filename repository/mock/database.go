@@ -81,6 +81,7 @@ func (db *DB) Create(book *model.Book) error {
 	db.Id++
 
 	book.CreatedAt = time.Now()
+	book.UpdatedAt = time.Now()
 	book.Id = db.Id
 	db.books = append(db.books, *book)
 	return nil
