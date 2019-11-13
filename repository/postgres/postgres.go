@@ -2,18 +2,20 @@ package postgres
 
 import (
 	"fmt"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
-	"github.com/library/domain/model"
+	"github.com/sfqi/library/domain/model"
 )
 
-type PostgresConfig struct{
-	Host 		string
-	Port 		int
-	User 		string
-	Password 	string
-	Name 		string
+type PostgresConfig struct {
+	Host     string
+	Port     int
+	User     string
+	Password string
+	Name     string
 }
+
 
 
 type Store struct {
@@ -43,3 +45,4 @@ func(store *Store)FindById(id int)(*model.Book, error){
 	}
 	return &b,nil
 }
+
