@@ -174,8 +174,8 @@ func TestCreate(t *testing.T) {
 	})
 	t.Run("Testing book creation", func(t *testing.T) {
 		clmock := olmock.Client{&openlibrarydto.Book{
-			Title:      "Test title",
-			Year:       "Test year",
+			Title:      "test title",
+			Year:       "2019",
 		},
 			nil,
 		}
@@ -192,21 +192,18 @@ func TestCreate(t *testing.T) {
 		handler := http.HandlerFunc(bookHandler.Create)
 
 		handler.ServeHTTP(rr, req)
-
-		var response *dto.BookResponse
+		
+		bookExpected := dto.BookResponse{
+			ID:  		   4,
+			Title : 	   "test title",
+			Year:          "2019",
+		}
+		var response dto.BookResponse
 		err = json.NewDecoder(rr.Body).Decode(&response)
 		if err != nil{
 			t.Errorf("Error decoding %s",err.Error())
 		}
-		if response == nil {
-			t.Errorf("Response is nil, test is failing : %s",err)
-		}
-		if response.Title!=clmock.Book.Title || response.Year !=clmock.Book.Year{
-			t.Errorf("Book attribute did not match, wanted %v , got %v",clmock.Book,response)
-		}
-
-		fmt.Println("Book is successfuly created")
-
+		assert.Equal(t,bookExpected,response,"Response body differs")
 	})
 
 }
