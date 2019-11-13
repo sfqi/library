@@ -270,10 +270,8 @@ func TestDelete(t *testing.T) {
 
 		handler.ServeHTTP(rr, req)
 
-		if status := rr.Code; status != http.StatusOK {
-			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusOK, status)
+		if status := rr.Code; status != http.StatusNoContent {
+			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusNoContent, status)
 		}
-		expectedResponse :="Book successfuly deleted"+"\n"
-		assert.Equal(t, expectedResponse, rr.Body.String(), "Response body differs")
 	})
 }

@@ -221,7 +221,7 @@ func (b *BookHandler)Delete(w http.ResponseWriter,r *http.Request){
 	if err := b.Db.Delete(book); err != nil {
 		return
 	}
-	fmt.Fprintln(w,"Book successfuly deleted")
+	w.WriteHeader(http.StatusNoContent)
 }
 
 
