@@ -91,12 +91,14 @@ func (db *DB) Update(toUpdate *model.Book) error {
 }
 
 func (db *DB)Delete(book *model.Book)error{
-	temp := db.books
 	_,loc,err:=db.findBookByID(book.Id)
 	if err != nil{
 		return err
 	}
-	db.books=[]model.Book{}
-	db.books= append(temp[:loc], temp[loc+1:]...)
+	db.books=remove(db.books,loc)
 	return nil
+}
+func remove(slice []model.Book, i int) []model.Book {
+	copy(slice[i:], slice[i+1:])
+	return slice[:len(slice)-1]
 }
