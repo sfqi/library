@@ -46,3 +46,7 @@ func(store *Store)FindById(id int)(*model.Book, error){
 	return &b,nil
 }
 
+func (store *Store)CreateBook(book model.Book)(err error){
+	store.db.Save(&book) //Save will insert primary key if it doesn't exist
+	return nil
+}
