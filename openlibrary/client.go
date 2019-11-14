@@ -3,10 +3,12 @@ package openlibrary
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/sfqi/library/openlibrary/dto"
 	"net/http"
 	"strings"
 
-	"github.com/library/openlibrary/dto"
+
+
 )
 
 const bookPath = "/books"

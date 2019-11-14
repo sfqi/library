@@ -2,8 +2,8 @@ package mock
 
 import (
 	"fmt"
+	"github.com/sfqi/library/domain/model"
 
-	"github.com/library/domain/model"
 )
 
 var books = []model.Book{
@@ -95,10 +95,7 @@ func (db *DB)Delete(book *model.Book)error{
 	if err != nil{
 		return err
 	}
-	db.books=remove(db.books,loc)
+	db.books=append(db.books[:loc], db.books[loc+1:]...)
 	return nil
 }
-func remove(slice []model.Book, i int) []model.Book {
-	copy(slice[i:], slice[i+1:])
-	return slice[:len(slice)-1]
-}
+
