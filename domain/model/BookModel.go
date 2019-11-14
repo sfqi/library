@@ -5,7 +5,7 @@ type Book struct {
 	Title         string `json:"title"`
 	Author        string `json:"author"`
 	Isbn          string `json:"isbn_10"`
-	Isbn13        string `json:"isbn_13"`
+	Isbn13        string `json:"isbn_13" gorm:"column:isbn_13"`
 	OpenLibraryId string `json:"olid"`
 	CoverId       string `json:"cover"`
 	Year          string `json:"publish_date"`
