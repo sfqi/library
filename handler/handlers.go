@@ -3,18 +3,17 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/sfqi/library/domain/model"
+	"github.com/sfqi/library/handler/dto"
+	"github.com/sfqi/library/repository/mock"
 	"strings"
-
+	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
 	"github.com/gorilla/mux"
 
 	"net/http"
 	"strconv"
 
-	"github.com/library/domain/model"
-	"github.com/library/handler/dto"
-	openlibrarydto "github.com/library/openlibrary/dto"
 
-	"github.com/library/repository/mock"
 )
 
 type BookHandler struct {
@@ -219,6 +218,7 @@ func (b *BookHandler)Delete(w http.ResponseWriter,r *http.Request){
 		return
 	}
 	if err := b.Db.Delete(book); err != nil {
+		http.Error(w,"Error while deleting book",http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)

@@ -2,12 +2,12 @@ package handler
 
 import (
 	"bytes"
-
+	"github.com/sfqi/library/repository/mock"
+	olmock "github.com/sfqi/library/openlibrary/mock"
 	"errors"
 	"fmt"
 
-	olmock "github.com/library/openlibrary/mock"
-	"github.com/library/repository/mock"
+
 
 	"net/http"
 	"net/http/httptest"
