@@ -7,6 +7,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/sfqi/library/domain/model"
 )
+
 type PostgresConfig struct {
 	Host     string
 	Port     int

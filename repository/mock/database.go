@@ -7,6 +7,10 @@ import (
 	"github.com/sfqi/library/domain/model"
 )
 
+var timeNow = time.Now()
+var earlier10sec = timeNow.Add(-10 * time.Second)
+var earlier15sec = timeNow.Add(-15 * time.Second)
+
 var books = []model.Book{
 	{
 		Id:            1,
@@ -17,8 +21,8 @@ var books = []model.Book{
 		OpenLibraryId: "again some id",
 		CoverId:       "some cover ID",
 		Year:          "2019",
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
+		CreatedAt:     earlier10sec,
+		UpdatedAt:     earlier10sec,
 	},
 	{
 		Id:            2,
@@ -29,8 +33,8 @@ var books = []model.Book{
 		OpenLibraryId: "other some id",
 		CoverId:       "other cover ID",
 		Year:          "2019",
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
+		CreatedAt:     earlier15sec,
+		UpdatedAt:     earlier10sec,
 	},
 	{
 
@@ -42,8 +46,8 @@ var books = []model.Book{
 		OpenLibraryId: "another some id",
 		CoverId:       "another cover ID",
 		Year:          "2019",
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
+		CreatedAt:     timeNow,
+		UpdatedAt:     timeNow,
 	},
 }
 
