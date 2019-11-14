@@ -80,8 +80,10 @@ func (db *DB) GetAllBooks() []model.Book {
 func (db *DB) Create(book *model.Book) error {
 	db.Id++
 
-	book.CreatedAt = time.Now()
-	book.UpdatedAt = time.Now()
+	now := time.Now()
+	book.CreatedAt = now
+	book.UpdatedAt = now
+
 	book.Id = db.Id
 	db.books = append(db.books, *book)
 	return nil

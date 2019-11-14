@@ -17,6 +17,4 @@ type BookResponse struct {
 	OpenLibraryId string `json:"olid"`
 	CoverId       string `json:"cover"`
 	Year          string `json:"year"`
-	// CreatedAt     time.Time `json:created_at`
-	// UpdatedAt     time.Time `json:updated_at`
 }
