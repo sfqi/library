@@ -5,7 +5,7 @@ type CreateBookRequest struct {
 }
 type UpdateBookRequest struct {
 	Title string `json:"title"`
-	Year  string `json:"year"`
+	Year  string `json:"publish_date"`
 }
 
 type BookResponse struct {
@@ -16,5 +16,5 @@ type BookResponse struct {
 	Isbn13        string `json:"isbn_13"`
 	OpenLibraryId string `json:"olid"`
 	CoverId       string `json:"cover"`
-	Year          string `json:"year"`
+	Year          string `json:"publish_date"`
 }
