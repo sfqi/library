@@ -226,8 +226,8 @@ func TestCreate(t *testing.T) {
 			Author:     []openlibrarydto.Author{
 				{Name:"Tolstoy"},
 			},
-			Cover:      openlibrarydto.Cover{""},
-			Year:       "",
+			Cover:      openlibrarydto.Cover{"https://covers.openlibrary.org/b/id/5049015-S.jpg"},
+			Year:       "September 27, 2007",
 		},
 			nil,
 		}
@@ -251,8 +251,8 @@ func TestCreate(t *testing.T) {
 			"0140447938",
 			"9780140447934",
 			"OL7355422M",
-			"",
-			"",
+			"5049015",
+			"September 27, 2007",
 		}
 		var response dto.BookResponse
 		err = json.NewDecoder(rr.Body).Decode(&response)
