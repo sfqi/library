@@ -217,14 +217,23 @@ func TestCreate(t *testing.T) {
 	})
 	t.Run("Testing book creation", func(t *testing.T) {
 		clmock := olmock.Client{&openlibrarydto.Book{
-			Title:      "test title",
-			Year:       "2019",
+			Title:      "War and Peace (Penguin Classics)",
+			Identifier: openlibrarydto.Identifier{
+				ISBN10:      []string{"0140447938"},
+				ISBN13:      []string{"9780140447934"},
+				Openlibrary: []string{"OL7355422M"},
+			},
+			Author:     []openlibrarydto.Author{
+				{Name:"Tolstoy"},
+			},
+			Cover:      openlibrarydto.Cover{""},
+			Year:       "",
 		},
 			nil,
 		}
 		bookHandler.Olc = &clmock
 
-		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"01404479382"}`)))
+		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0140447938"}`)))
 
 		if err != nil {
 			t.Errorf("Error occured, %s", err)
@@ -237,9 +246,13 @@ func TestCreate(t *testing.T) {
 		handler.ServeHTTP(rr, req)
 		
 		bookExpected := dto.BookResponse{
-			ID:  		   4,
-			Title : 	   "test title",
-			Year:          "2019",
+			bookHandler.Db.Id, "War and Peace (Penguin Classics)",
+			"Tolstoy",
+			"0140447938",
+			"9780140447934",
+			"OL7355422M",
+			"",
+			"",
 		}
 		var response dto.BookResponse
 		err = json.NewDecoder(rr.Body).Decode(&response)
