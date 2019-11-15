@@ -45,11 +45,11 @@ func(store *Store)FindById(id int)(*model.Book, error){
 }
 
 func (store *Store)CreateBook(book *model.Book)(err error){
-	return store.db.Create(&book).Error //Save will insert primary key if it doesn't exis
+	return store.db.Create(&book).Error
 }
 
-func (store *Store)FindAllBooks()([]model.Book,error){
-	books := []model.Book{}
+func (store *Store)FindAllBooks()([]*model.Book,error){
+	books := []*model.Book{}
 	if err := store.db.Find(&books).Error;err!=nil{
 		return nil,err
 	}
