@@ -5,19 +5,21 @@ import (
 	"fmt"
 	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/handler/dto"
-	"github.com/sfqi/library/repository/mock"
 	"strings"
-	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
+
 	"github.com/gorilla/mux"
 
 	"net/http"
 	"strconv"
 
+	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
+
+	"github.com/sfqi/library/repository/inmemory"
 
 )
 
 type BookHandler struct {
-	Db  *mock.DB
+	Db  *inmemory.DB
 	Olc openLibraryClient
 }
 
@@ -25,7 +27,7 @@ type openLibraryClient interface {
 	FetchBook(isbn string) (*openlibrarydto.Book, error)
 }
 
-func NewBookHandler(db *mock.DB) *BookHandler {
+func NewBookHandler(db *inmemory.DB) *BookHandler {
 	return &BookHandler{
 		Db: db,
 	}

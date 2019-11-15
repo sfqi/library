@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/gorilla/mux"
-	"github.com/sfqi/library/handler"
 	"github.com/sfqi/library/openlibrary"
-	"github.com/sfqi/library/repository/mock"
 	"net/http"
 	"os"
+
+	"github.com/gorilla/mux"
+	"github.com/sfqi/library/handler"
+	"github.com/sfqi/library/repository/inmemory"
 
 )
 
@@ -14,7 +15,7 @@ func main() {
 	openLibraryUrl := os.Getenv("LIBRARY")
 	olc := openlibrary.NewClient(openLibraryUrl)
 
-	db := mock.NewDB()
+	db := inmemory.NewDB()
 	bookHandler := handler.BookHandler{
 		Db:  db,
 		Olc: olc,
