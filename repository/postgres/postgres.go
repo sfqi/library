@@ -16,26 +16,36 @@ type PostgresConfig struct {
 	Name     string
 }
 
-type dbStore struct {
-	DB *gorm.DB
+
+
+type Store struct {
+	db *gorm.DB
 }
 
-func Open(config PostgresConfig) (*dbStore, error) {
-	store := dbStore{}
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		config.Host, config.Port, config.User, config.Password, config.Name)
-	db, err := gorm.Open("postgres", psqlInfo)
-	if err != nil {
-		panic(err)
-		return nil, err
-	}
-	store.DB = db
-	return &store, nil
+func NewStore(db *gorm.DB)*Store{
+	return &Store{db}
 }
-func (db *dbStore) FindById(id int) (*model.Book, error) {
-	b := model.Book{}
-	if err := db.DB.First(&b, id).Error; err != nil {
-		return nil, err
+
+func Open(config PostgresConfig)(*Store, error){
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		config.Host,config.Port,config.User,config.Password,config.Name)
+
+	db, err := gorm.Open("postgres",psqlInfo)
+	if err != nil {
+		return nil,err
 	}
-	return &b, nil
+
+	store := NewStore(db)
+	return store,nil
+}
+func(store *Store)FindById(id int)(*model.Book, error){
+	b := model.Book{}
+	if err := store.db.First(&b,id).Error;err!=nil{
+		return nil,err
+	}
+	return &b,nil
+}
+
+func (store *Store)CreateBook(book *model.Book)(err error){
+	return store.db.Create(&book).Error //Save will insert primary key if it doesn't exis
 }
