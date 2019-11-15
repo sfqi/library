@@ -3,14 +3,14 @@ package model
 import "time"
 
 type Book struct {
-	Id            int       `json:"id"`
-	Title         string    `json:"title"`
-	Author        string    `json:"author"`
-	Isbn          string    `json:"isbn_10"`
-	Isbn13        string    `json:"isbn_13"`
-	OpenLibraryId string    `json:"olid"`
-	CoverId       string    `json:"cover"`
-	Year          string    `json:"publish_date"`
-	CreatedAt     time.Time `json:created_at`
-	UpdatedAt     time.Time `json:updated_at`
+	Id            int
+	Title         string
+	Author        string
+	Isbn          string    `gorm:"colum:isbn_10"`
+	Isbn13        string    `gorm:"column:isbn_13"`
+	OpenLibraryId string    `gorm:"column:open_library_id"`
+	CoverId       string    `gorm:"column:cover_id"`
+	Year          string    `gorm:"column:publish_date"`
+	CreatedAt     time.Time `gorm:"column:created_at"`
+	UpdatedAt     time.Time `gorm:"column:updated_at"`
 }
