@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/library/openlibrary/dto"
+	"github.com/sfqi/library/openlibrary/dto"
 )
 
 func TestFetchBook(t *testing.T) {

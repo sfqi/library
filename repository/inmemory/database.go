@@ -1,10 +1,18 @@
-package mock
+package inmemory
 
 import (
 	"fmt"
 
-	"github.com/library/domain/model"
+	"github.com/sfqi/library/domain/model"
+
+
+	"time"
+
 )
+
+var timeNow = time.Now()
+var earlier10sec = timeNow.Add(-10 * time.Second)
+var earlier15sec = timeNow.Add(-15 * time.Second)
 
 var books = []model.Book{
 	{
@@ -16,6 +24,8 @@ var books = []model.Book{
 		OpenLibraryId: "again some id",
 		CoverId:       "some cover ID",
 		Year:          "2019",
+		CreatedAt:     earlier10sec,
+		UpdatedAt:     earlier10sec,
 	},
 	{
 		Id:            2,
@@ -26,8 +36,11 @@ var books = []model.Book{
 		OpenLibraryId: "other some id",
 		CoverId:       "other cover ID",
 		Year:          "2019",
+		CreatedAt:     earlier15sec,
+		UpdatedAt:     earlier10sec,
 	},
 	{
+
 		Id:            3,
 		Title:         "another title",
 		Author:        "another author",
@@ -36,6 +49,8 @@ var books = []model.Book{
 		OpenLibraryId: "another some id",
 		CoverId:       "another cover ID",
 		Year:          "2019",
+		CreatedAt:     timeNow,
+		UpdatedAt:     timeNow,
 	},
 }
 
@@ -72,6 +87,10 @@ func (db *DB) GetAllBooks() []model.Book {
 func (db *DB) Create(book *model.Book) error {
 	db.Id++
 
+	now := time.Now()
+	book.CreatedAt = now
+	book.UpdatedAt = now
+
 	book.Id = db.Id
 	db.books = append(db.books, *book)
 	return nil
@@ -80,6 +99,7 @@ func (db *DB) Create(book *model.Book) error {
 func (db *DB) Update(toUpdate *model.Book) error {
 	book, index, err := db.findBookByID(toUpdate.Id)
 
+	book.UpdatedAt = time.Now()
 	book.Title = toUpdate.Title
 	book.Year = toUpdate.Year
 	toUpdate = book
@@ -89,3 +109,13 @@ func (db *DB) Update(toUpdate *model.Book) error {
 	db.books[index] = *book
 	return nil
 }
+
+func (db *DB)Delete(book *model.Book)error{
+	_,loc,err:=db.findBookByID(book.Id)
+	if err != nil{
+		return err
+	}
+	db.books=append(db.books[:loc], db.books[loc+1:]...)
+	return nil
+}
+
