@@ -2,9 +2,12 @@ package inmemory
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/sfqi/library/domain/model"
+
+
+	"time"
+
 )
 
 var timeNow = time.Now()
@@ -106,3 +109,13 @@ func (db *DB) Update(toUpdate *model.Book) error {
 	db.books[index] = *book
 	return nil
 }
+
+func (db *DB)Delete(book *model.Book)error{
+	_,loc,err:=db.findBookByID(book.Id)
+	if err != nil{
+		return err
+	}
+	db.books=append(db.books[:loc], db.books[loc+1:]...)
+	return nil
+}
+

@@ -3,20 +3,15 @@ package handler
 import (
 	"bytes"
 	"encoding/json"
-
 	"errors"
-
 	"github.com/sfqi/library/handler/dto"
 	olmock "github.com/sfqi/library/openlibrary/mock"
 	"github.com/sfqi/library/repository/inmemory"
-
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
-
 	"github.com/gorilla/mux"
-
 	"github.com/stretchr/testify/assert"
 )
 
@@ -289,5 +284,66 @@ func TestGet(t *testing.T) {
 		err = json.NewDecoder(rr.Body).Decode(&response)
 
 		assert.Equal(t, expectedBook, response, "Response body differs")
+	})
+}
+
+func TestDelete(t *testing.T) {
+	t.Run("Error converting Id to integer", func(t *testing.T) {
+		req, err := http.NewRequest("DELETE", "/books/{id}", nil)
+		params := map[string]string{"id": "e"}
+		req = mux.SetURLVars(req, params)
+		if err != nil {
+			t.Errorf("Error occured, %s", err)
+		}
+
+		rr := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(bookHandler.Delete)
+
+		handler.ServeHTTP(rr, req)
+
+		expectedError :="Error while converting url parameter into integer"+"\n"
+		if status := rr.Code; status != http.StatusBadRequest {
+			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusBadRequest, status)
+		}
+		assert.Equal(t, expectedError, rr.Body.String(), "Response body differs")
+	})
+	t.Run("Error finding book with given Id",func(t *testing.T){
+		req, err := http.NewRequest("DELETE", "/books/{id}", nil)
+		params := map[string]string{"id": "7"}
+		req = mux.SetURLVars(req, params)
+		if err != nil {
+			t.Errorf("Error occured, %s", err)
+		}
+
+		rr := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(bookHandler.Delete)
+
+		handler.ServeHTTP(rr, req)
+
+		if status := rr.Code; status != http.StatusBadRequest {
+			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusBadRequest, status)
+		}
+		expectedError :="Book with given Id can not be found"+"\n"
+		assert.Equal(t, expectedError, rr.Body.String(), "Response body differs")
+	})
+	t.Run("Book succesfully deleted",func(t *testing.T){
+		req, err := http.NewRequest("DELETE", "/books/{id}", nil)
+		params := map[string]string{"id": "2"}
+		req = mux.SetURLVars(req, params)
+		if err != nil {
+			t.Errorf("Error occured, %s", err)
+		}
+
+		rr := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(bookHandler.Delete)
+
+		handler.ServeHTTP(rr, req)
+
+		if status := rr.Code; status != http.StatusNoContent {
+			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusNoContent, status)
+		}
 	})
 }
