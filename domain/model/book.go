@@ -10,7 +10,7 @@ type Book struct {
 	Isbn13        string    `json:"isbn_13" gorm:"column:isbn_13"`
 	OpenLibraryId string    `json:"olid"`
 	CoverId       string    `json:"cover"`
-	Year          string    `json:"publish_date"`
+	Year          string    `json:"year"`
 	CreatedAt     time.Time `json:created_at`
 	UpdatedAt     time.Time `json:updated_at`
 }
