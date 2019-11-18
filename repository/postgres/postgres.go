@@ -52,3 +52,11 @@ func (store *Store) CreateBook(book *model.Book) error {
 func (store *Store) UpdateBook(book *model.Book) error {
 	return store.db.Save(&book).Error
 }
+
+func (store *Store) FindAllBooks() ([]*model.Book, error) {
+	books := []*model.Book{}
+	if err := store.db.Find(&books).Error; err != nil {
+		return nil, err
+	}
+	return books, nil
+}

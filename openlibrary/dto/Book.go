@@ -2,21 +2,21 @@ package dto
 
 type Book struct {
 	Title      string     `json:"title"`
-	Identifier identifier `json:"identifiers"`
-	Author     []author   `json:"authors"`
-	Cover      cover      `json:"cover"`
+	Identifier Identifier `json:"identifiers"`
+	Author     []Author   `json:"authors"`
+	Cover      Cover      `json:"cover"`
 	Year       string     `json:"publish_date"`
 }
 
-type identifier struct {
+type Identifier struct {
 	ISBN10      []string `json:"isbn_10"`
 	ISBN13      []string `json:"isbn_13"`
 	Openlibrary []string `json:"openlibrary"`
 }
-type author struct {
+type Author struct {
 	Name string `json:"name"`
 }
 
-type cover struct {
+type Cover struct {
 	Url string `json:"small"`
 }
