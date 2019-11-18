@@ -44,11 +44,11 @@ func (store *Store) FindById(id int) (*model.Book, error) {
 	return &b, nil
 }
 
-func (store *Store) CreateBook(book *model.Book) (err error) {
+func (store *Store) CreateBook(book *model.Book) error {
 	return store.db.Create(&book).Error
 
 }
 
-func (store *Store) UpdateBook(book model.Book) (err error) {
+func (store *Store) UpdateBook(book *model.Book) error {
 	return store.db.Save(&book).Error
 }
