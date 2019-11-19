@@ -10,7 +10,7 @@ type Book struct {
 	Isbn13        string
 	OpenLibraryId string
 	CoverId       string
-	Year          string    `gorm:"-"`
+	Year          string    `gorm:"year"`
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 }
