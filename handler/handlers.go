@@ -74,7 +74,7 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var createBook dto.CreateBookRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&createBook); err != nil {
-		errorDecodingBook(w, err)
+		errorDecodingBook(w,err)
 		return
 	}
 

@@ -4,14 +4,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/sfqi/library/handler/dto"
-	olmock "github.com/sfqi/library/openlibrary/mock"
-	"github.com/sfqi/library/repository/inmemory"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
 	"github.com/gorilla/mux"
+	"github.com/sfqi/library/handler/dto"
+	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
+	olmock "github.com/sfqi/library/openlibrary/mock"
+	"github.com/sfqi/library/repository/inmemory"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -172,14 +174,11 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
-	t.Run("Error decoding Book attributes", func(t *testing.T) {
-
-		clmock := olmock.Client{nil,
-			errors.New("Error while decoding from request body"),
-		}
+	t.Run("Invalid request body", func(t *testing.T) {
+		clmock := olmock.Client{}
 		bookHandler.Olc = &clmock
 
-		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":0140447938}`)))
+		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{ISBN:"0140447938"}`)))
 
 		if err != nil {
 			t.Errorf("Error occured while sending request, %s", err)
@@ -216,6 +215,52 @@ func TestCreate(t *testing.T) {
 		if !contains && rr.Code != http.StatusBadRequest {
 			t.Errorf("Expected error to be %s, got error: %s", clmock.Err.Error(), rr.Body.String())
 		}
+	})
+	t.Run("Testing book creation", func(t *testing.T) {
+		clmock := olmock.Client{&openlibrarydto.Book{
+			Title: "War and Peace (Penguin Classics)",
+			Identifier: openlibrarydto.Identifier{
+				ISBN10:      []string{"0140447938"},
+				ISBN13:      []string{"9780140447934"},
+				Openlibrary: []string{"OL7355422M"},
+			},
+			Author: []openlibrarydto.Author{
+				{Name: "Tolstoy"},
+			},
+			Cover: openlibrarydto.Cover{"https://covers.openlibrary.org/b/id/5049015-S.jpg"},
+			Year:  "2007",
+		},
+			nil,
+		}
+		bookHandler.Olc = &clmock
+
+		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0140447938"}`)))
+
+		if err != nil {
+			t.Errorf("Error occured, %s", err)
+		}
+
+		rr := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(bookHandler.Create)
+
+		handler.ServeHTTP(rr, req)
+
+		bookExpected := dto.BookResponse{
+			bookHandler.Db.Id, "War and Peace (Penguin Classics)",
+			"Tolstoy",
+			"0140447938",
+			"9780140447934",
+			"OL7355422M",
+			"5049015",
+			"2007",
+		}
+		var response dto.BookResponse
+		err = json.NewDecoder(rr.Body).Decode(&response)
+		if err != nil {
+			t.Errorf("Error decoding %s", err.Error())
+		}
+		assert.Equal(t, bookExpected, response, "Response body differs")
 	})
 
 }
@@ -302,13 +347,13 @@ func TestDelete(t *testing.T) {
 
 		handler.ServeHTTP(rr, req)
 
-		expectedError :="Error while converting url parameter into integer"+"\n"
+		expectedError := "Error while converting url parameter into integer" + "\n"
 		if status := rr.Code; status != http.StatusBadRequest {
 			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusBadRequest, status)
 		}
 		assert.Equal(t, expectedError, rr.Body.String(), "Response body differs")
 	})
-	t.Run("Error finding book with given Id",func(t *testing.T){
+	t.Run("Error finding book with given Id", func(t *testing.T) {
 		req, err := http.NewRequest("DELETE", "/books/{id}", nil)
 		params := map[string]string{"id": "7"}
 		req = mux.SetURLVars(req, params)
@@ -325,10 +370,10 @@ func TestDelete(t *testing.T) {
 		if status := rr.Code; status != http.StatusBadRequest {
 			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusBadRequest, status)
 		}
-		expectedError :="Book with given Id can not be found"+"\n"
+		expectedError := "Book with given Id can not be found" + "\n"
 		assert.Equal(t, expectedError, rr.Body.String(), "Response body differs")
 	})
-	t.Run("Book succesfully deleted",func(t *testing.T){
+	t.Run("Book succesfully deleted", func(t *testing.T) {
 		req, err := http.NewRequest("DELETE", "/books/{id}", nil)
 		params := map[string]string{"id": "2"}
 		req = mux.SetURLVars(req, params)
