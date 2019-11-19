@@ -29,6 +29,6 @@ func main() {
 	r.HandleFunc("/books/{id}", bookHandler.Update).Methods("PUT")
 	r.HandleFunc("/book/{id}", bookHandler.Get).Methods("GET")
 	r.HandleFunc("/book/{id}", bookHandler.Delete).Methods("DELETE")
-	r.Use(middleware.LoggingMiddleware)
+	r.Use(middleware.BodyDump)
 	http.ListenAndServe(":8080", r)
 }
