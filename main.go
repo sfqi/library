@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/sfqi/library/openlibrary"
+	"github.com/sirupsen/logrus"
 
 	"github.com/gorilla/mux"
 	"github.com/sfqi/library/handler"
@@ -22,6 +23,13 @@ func main() {
 		Olc: olc,
 	}
 
+	log := logrus.New()
+	log.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp: true,
+	})
+	bodyDump := middleware.BodyDump{
+		Logger: log,
+	}
 	r := mux.NewRouter()
 
 	r.HandleFunc("/books", bookHandler.Index).Methods("GET")
@@ -29,6 +37,6 @@ func main() {
 	r.HandleFunc("/books/{id}", bookHandler.Update).Methods("PUT")
 	r.HandleFunc("/book/{id}", bookHandler.Get).Methods("GET")
 	r.HandleFunc("/book/{id}", bookHandler.Delete).Methods("DELETE")
-	r.Use(middleware.BodyDump)
+	r.Use(bodyDump.Dump)
 	http.ListenAndServe(":8080", r)
 }
