@@ -4,8 +4,9 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/sfqi/library/log"
+
 	"github.com/sfqi/library/openlibrary"
-	"github.com/sirupsen/logrus"
 
 	"github.com/gorilla/mux"
 	"github.com/sfqi/library/handler"
@@ -23,12 +24,8 @@ func main() {
 		Olc: olc,
 	}
 
-	log := logrus.New()
-	log.SetFormatter(&logrus.TextFormatter{
-		FullTimestamp: true,
-	})
 	bodyDump := middleware.BodyDump{
-		Logger: log,
+		Logger: log.New(),
 	}
 	r := mux.NewRouter()
 
