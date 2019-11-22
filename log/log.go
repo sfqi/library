@@ -11,3 +11,7 @@ func New() *logrus.Logger {
 	})
 	return logger
 }
+
+type Logger interface {
+	New() *logrus.Logger
+}
