@@ -8,7 +8,7 @@ type Book struct {
 	Title         string
 	Author        string
 	Isbn          string
-	Isbn13        string
+	Isbn13        string	`gorm:"column:isbn_13"`
 	OpenLibraryId string
 	CoverId       string
 	Year          string    `gorm:"year"`
