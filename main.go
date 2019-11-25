@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/sfqi/library/repository/postgres"
 	"net/http"
 	"os"
@@ -29,13 +30,13 @@ func main() {
 
 	//db := inmemory.NewDB()
 
-	store,err:= postgres.Open(config)
+	store ,err:= postgres.Open(config)
 	if err != nil{
 		panic(err)
 	}
-
+	fmt.Println("Successfully connected")
 	bookHandler := &handler.BookHandler{
-		DataBase: store,
+		Db: store,
 		Olc: olc,
 	}
 

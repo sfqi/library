@@ -12,14 +12,7 @@ var timeNow = time.Now()
 var earlier10sec = timeNow.Add(-10 * time.Second)
 var earlier15sec = timeNow.Add(-15 * time.Second)
 
-type DataBase interface{
-	FindById(int) (*model.Book, error)
-	CreateBook(*model.Book) error
-	UpdateBook(*model.Book) error
-	FindAllBooks() ([]*model.Book, error)
-	GetLastId()int
-	DeleteBook(*model.Book)error
-}
+
 
 var books = []model.Book{
 	{
@@ -87,19 +80,24 @@ func (db *DB) findBookByID(id int) (*model.Book, int, error) {
 	return nil, -1, fmt.Errorf("error while findBookByID")
 }
 
-func (db *DB) FindAllBooks() ([]model.Book,error) {
-	return db.books,nil
+func (db *DB) FindAllBooks() ([]*model.Book,error) {
+	pointers := make([]*model.Book,len(db.books))
+	for i:=0;i<len(db.books);i++{
+		pointers[i] = &db.books[i]
+	}
+	fmt.Println(pointers)
+	return pointers,nil
 }
 
 func (db *DB) CreateBook(book *model.Book) error {
 	db.Id++
-
 	now := time.Now()
 	book.CreatedAt = now
 	book.UpdatedAt = now
 
 	book.Id = db.Id
 	db.books = append(db.books, *book)
+	fmt.Println(db.books)
 	return nil
 }
 
@@ -124,7 +122,4 @@ func (db *DB) DeleteBook(book *model.Book) error {
 	}
 	db.books = append(db.books[:loc], db.books[loc+1:]...)
 	return nil
-}
-func(db *DB)GetLastId()int{
-	return db.Id
 }

@@ -16,16 +16,6 @@ type PostgresConfig struct {
 	Name     string
 }
 
-type DataBase interface{
-	FindById(int) (*model.Book, error)
-	CreateBook(*model.Book) error
-	UpdateBook(*model.Book) error
-	FindAllBooks() ([]*model.Book, error)
-	GetLastId()int
-	DeleteBook(*model.Book)error
-}
-
-
 type Store struct {
 	db *gorm.DB
 }
@@ -69,12 +59,6 @@ func (store *Store) FindAllBooks() ([]*model.Book, error) {
 		return nil, err
 	}
 	return books, nil
-}
-
-func(store *Store)GetLastId()int{
-	var book model.Book
-	store.db.Last(&model.Book{}).Scan(&book)
-	return book.Id
 }
 
 func(store *Store)DeleteBook(book *model.Book)error{

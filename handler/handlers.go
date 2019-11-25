@@ -18,17 +18,16 @@ import (
 
 )
 
-type DataBase interface{
+type store interface{
 	FindById(int) (*model.Book, error)
 	CreateBook(*model.Book) error
 	UpdateBook(*model.Book) error
 	FindAllBooks() ([]*model.Book, error)
-	GetLastId()int
 	DeleteBook(*model.Book)error
 }
 
 type BookHandler struct {
-	DataBase
+	Db store
 	Olc openLibraryClient
 }
 
@@ -54,7 +53,7 @@ func toBookResponse(b model.Book) *dto.BookResponse {
 func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
-	allBooks,err := b.FindAllBooks()
+	allBooks,err := b.Db.FindAllBooks()
 	if err != nil {
 		http.Error(w,"Error finding books",http.StatusInternalServerError)
 	}
@@ -94,7 +93,7 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	book := b.toBook(openlibraryBook)
 
-	if err := b.CreateBook(book); err != nil {
+	if err := b.Db.CreateBook(book); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -134,7 +133,6 @@ func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
 	}
 
 	bookToAdd := model.Book{
-		Id:            b.GetLastId(),
 		Title:         book.Title,
 		Author:        author,
 		Isbn:          isbn10,
@@ -163,7 +161,7 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	book, err := b.FindById(id)
+	book, err := b.Db.FindById(id)
 	if err != nil {
 		errorFindingBook(w, err)
 		return
@@ -173,7 +171,7 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 	book.Title = updateBookRequest.Title
 	book.Year = updateBookRequest.Year
 
-	if err := b.UpdateBook(book); err != nil {
+	if err := b.Db.UpdateBook(book); err != nil {
 		errorFindingBook(w, err)
 		return
 	}
@@ -196,7 +194,7 @@ func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
 		errorConvertingId(w, err)
 		return
 	}
-	book, err := b.FindById(id)
+	book, err := b.Db.FindById(id)
 	if err != nil {
 		errorFindingBook(w, err)
 		return
@@ -219,12 +217,12 @@ func (b *BookHandler)Delete(w http.ResponseWriter,r *http.Request){
 		errorConvertingId(w, err)
 		return
 	}
-	book, err := b.FindById(id)
+	book, err := b.Db.FindById(id)
 	if err != nil {
 		errorFindingBook(w, err)
 		return
 	}
-	if err := b.DeleteBook(book); err != nil {
+	if err := b.Db.DeleteBook(book); err != nil {
 		http.Error(w,"Error while deleting book",http.StatusInternalServerError)
 		return
 	}
