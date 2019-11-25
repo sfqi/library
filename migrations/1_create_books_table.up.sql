@@ -6,6 +6,6 @@ CREATE TABLE books (
     isbn_13 varchar(13)     not null,
     open_library_id         varchar(50),
     cover_id varchar(50),
-    year    varchar(50),
+    year    int,
     publisher varchar(255)
 );

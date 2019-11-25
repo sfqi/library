@@ -139,7 +139,7 @@ func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
 		Isbn13:        isbn13,
 		OpenLibraryId: libraryId,
 		CoverId:       CoverId,
-		Year:          book.Year,
+		Year:          2019, //Todo Srediti godinu da bude int
 	}
 	return &bookToAdd
 }
