@@ -27,6 +27,10 @@ func main() {
 	bodyDump := middleware.BodyDump{
 		Logger: log.New(),
 	}
+
+	bookLoad := middleware.BookLoader{
+		Db: db,
+	}
 	r := mux.NewRouter()
 
 	r.HandleFunc("/books", bookHandler.Index).Methods("GET")
@@ -35,5 +39,6 @@ func main() {
 	r.HandleFunc("/book/{id}", bookHandler.Get).Methods("GET")
 	r.HandleFunc("/book/{id}", bookHandler.Delete).Methods("DELETE")
 	r.Use(bodyDump.Dump)
+	r.Use(bookLoad.GetBook)
 	http.ListenAndServe(":8080", r)
 }
