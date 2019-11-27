@@ -8,7 +8,6 @@ import (
 
 	"net/http"
 
-	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/repository/inmemory"
 )
 
@@ -16,27 +15,20 @@ type BookLoader struct {
 	Db *inmemory.DB
 }
 
-type ContextBody struct {
-	Id   int
-	Book model.Book
-}
-
 func (bl BookLoader) GetBook(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.Atoi(strings.Split(r.URL.Path, "/")[2])
 		if err != nil {
 			errorConvertingId(w, err)
+			return
 		}
 		book, err := bl.Db.FindBookByID(id)
 		if err != nil {
 			errorFindingBook(w, err)
-		}
-		contextBody := ContextBody{
-			Id:   id,
-			Book: *book,
+			return
 		}
 
-		ctx := context.WithValue(r.Context(), "context", contextBody)
+		ctx := context.WithValue(r.Context(), "book", book)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

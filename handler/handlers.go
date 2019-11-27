@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -10,7 +11,6 @@ import (
 
 	"net/http"
 
-	"github.com/sfqi/library/middleware"
 	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
 	"github.com/sfqi/library/repository/inmemory"
 )
@@ -141,8 +141,12 @@ func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
 func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
-	context := r.Context().Value("context").(middleware.ContextBody)
-	fmt.Println("Book from context: ", context.Book)
+	book, ok := r.Context().Value("book").(*model.Book)
+	if !ok {
+		errorContex(w, errors.New("error"))
+		return
+	}
+	fmt.Println("Book from context: ", book)
 	updateBookRequest := dto.UpdateBookRequest{}
 	err := json.NewDecoder(r.Body).Decode(&updateBookRequest)
 	if err != nil {
@@ -150,14 +154,13 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	context.Book.Id = context.Id
-	context.Book.Title = updateBookRequest.Title
-	context.Book.Year = updateBookRequest.Year
+	book.Title = updateBookRequest.Title
+	book.Year = updateBookRequest.Year
 
-	if err := b.Db.Update(&context.Book); err != nil {
+	if err := b.Db.Update(book); err != nil {
 		return
 	}
-	bookResponse := *toBookResponse(context.Book)
+	bookResponse := *toBookResponse(*book)
 
 	err = json.NewEncoder(w).Encode(bookResponse)
 	if err != nil {
@@ -170,10 +173,14 @@ func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	context := r.Context().Value("context").(middleware.ContextBody)
-	fmt.Println("Book from context: ", context)
+	book, ok := r.Context().Value("book").(*model.Book)
+	if !ok {
+		errorContex(w, errors.New("error"))
+		return
+	}
+	fmt.Println("Book from context: ", book)
 
-	bookResponse := *toBookResponse(context.Book)
+	bookResponse := *toBookResponse(*book)
 
 	err := json.NewEncoder(w).Encode(bookResponse)
 	if err != nil {
@@ -184,10 +191,14 @@ func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 func (b *BookHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	context := r.Context().Value("context").(middleware.ContextBody)
-	fmt.Println("Book from context: ", context)
+	book, ok := r.Context().Value("book").(*model.Book)
+	if !ok {
+		errorContex(w, errors.New("error"))
+		return
+	}
+	fmt.Println("Book from context: ", book)
 
-	if err := b.Db.Delete(&context.Book); err != nil {
+	if err := b.Db.Delete(book); err != nil {
 		http.Error(w, "Error while deleting book", http.StatusInternalServerError)
 		return
 	}
@@ -201,5 +212,10 @@ func errorDecodingBook(w http.ResponseWriter, err error) {
 
 func errorEncoding(w http.ResponseWriter, err error) {
 	fmt.Println("error while encoding book: ", err)
+	http.Error(w, "Internal server error:"+err.Error(), http.StatusInternalServerError)
+}
+
+func errorContex(w http.ResponseWriter, err error) {
+	fmt.Println("error from context: ", err)
 	http.Error(w, "Internal server error:"+err.Error(), http.StatusInternalServerError)
 }
