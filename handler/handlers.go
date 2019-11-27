@@ -8,13 +8,10 @@ import (
 	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/handler/dto"
 
-	"github.com/gorilla/mux"
-
 	"net/http"
-	"strconv"
 
+	"github.com/sfqi/library/middleware"
 	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
-
 	"github.com/sfqi/library/repository/inmemory"
 )
 
@@ -144,8 +141,8 @@ func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
 func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
-	bookContext := r.Context().Value("book")
-	fmt.Println("Book from context: ", bookContext)
+	context := r.Context().Value("context").(middleware.ContextBody)
+	fmt.Println("Book from context: ", context.Book)
 	updateBookRequest := dto.UpdateBookRequest{}
 	err := json.NewDecoder(r.Body).Decode(&updateBookRequest)
 	if err != nil {
@@ -153,28 +150,14 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	params := mux.Vars(r)
-	id, err := strconv.Atoi(params["id"])
-	if err != nil {
-		errorConvertingId(w, err)
+	context.Book.Id = context.Id
+	context.Book.Title = updateBookRequest.Title
+	context.Book.Year = updateBookRequest.Year
+
+	if err := b.Db.Update(&context.Book); err != nil {
 		return
 	}
-
-	book, err := b.Db.FindBookByID(id)
-	if err != nil {
-		errorFindingBook(w, err)
-		return
-	}
-
-	book.Id = id
-	book.Title = updateBookRequest.Title
-	book.Year = updateBookRequest.Year
-
-	if err := b.Db.Update(book); err != nil {
-		errorFindingBook(w, err)
-		return
-	}
-	bookResponse := *toBookResponse(*book)
+	bookResponse := *toBookResponse(context.Book)
 
 	err = json.NewEncoder(w).Encode(bookResponse)
 	if err != nil {
@@ -186,22 +169,13 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
-	bookContext := r.Context().Value("book")
-	fmt.Println("Book from context: ", bookContext)
-	params := mux.Vars(r)
-	id, err := strconv.Atoi(params["id"])
-	if err != nil {
-		errorConvertingId(w, err)
-		return
-	}
-	book, err := b.Db.FindBookByID(id)
-	if err != nil {
-		errorFindingBook(w, err)
-		return
-	}
-	bookResponse := *toBookResponse(*book)
 
-	err = json.NewEncoder(w).Encode(bookResponse)
+	context := r.Context().Value("context").(middleware.ContextBody)
+	fmt.Println("Book from context: ", context)
+
+	bookResponse := *toBookResponse(context.Book)
+
+	err := json.NewEncoder(w).Encode(bookResponse)
 	if err != nil {
 		errorEncoding(w, err)
 		return
@@ -210,20 +184,10 @@ func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 func (b *BookHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	bookContext := r.Context().Value("book")
-	fmt.Println("Book from context: ", bookContext)
-	params := mux.Vars(r)
-	id, err := strconv.Atoi(params["id"])
-	if err != nil {
-		errorConvertingId(w, err)
-		return
-	}
-	book, err := b.Db.FindBookByID(id)
-	if err != nil {
-		errorFindingBook(w, err)
-		return
-	}
-	if err := b.Db.Delete(book); err != nil {
+	context := r.Context().Value("context").(middleware.ContextBody)
+	fmt.Println("Book from context: ", context)
+
+	if err := b.Db.Delete(&context.Book); err != nil {
 		http.Error(w, "Error while deleting book", http.StatusInternalServerError)
 		return
 	}
@@ -238,14 +202,4 @@ func errorDecodingBook(w http.ResponseWriter, err error) {
 func errorEncoding(w http.ResponseWriter, err error) {
 	fmt.Println("error while encoding book: ", err)
 	http.Error(w, "Internal server error:"+err.Error(), http.StatusInternalServerError)
-}
-
-func errorConvertingId(w http.ResponseWriter, err error) {
-	fmt.Println("Error while converting Id to integer ", err)
-	http.Error(w, "Error while converting url parameter into integer", http.StatusBadRequest)
-}
-
-func errorFindingBook(w http.ResponseWriter, err error) {
-	fmt.Println("Cannot find book with given Id ")
-	http.Error(w, "Book with given Id can not be found", http.StatusBadRequest)
 }
