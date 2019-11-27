@@ -19,7 +19,7 @@ import (
 )
 
 type store interface{
-	FindById(int) (*model.Book, error)
+	FindBookById(int) (*model.Book, error)
 	CreateBook(*model.Book) error
 	UpdateBook(*model.Book) error
 	FindAllBooks() ([]*model.Book, error)
@@ -161,7 +161,7 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	book, err := b.Db.FindById(id)
+	book, err := b.Db.FindBookById(id)
 	if err != nil {
 		errorFindingBook(w, err)
 		return
@@ -194,7 +194,7 @@ func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
 		errorConvertingId(w, err)
 		return
 	}
-	book, err := b.Db.FindById(id)
+	book, err := b.Db.FindBookById(id)
 	if err != nil {
 		errorFindingBook(w, err)
 		return
@@ -217,7 +217,7 @@ func (b *BookHandler)Delete(w http.ResponseWriter,r *http.Request){
 		errorConvertingId(w, err)
 		return
 	}
-	book, err := b.Db.FindById(id)
+	book, err := b.Db.FindBookById(id)
 	if err != nil {
 		errorFindingBook(w, err)
 		return

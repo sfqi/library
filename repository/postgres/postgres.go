@@ -36,7 +36,7 @@ func Open(config PostgresConfig) (*Store, error) {
 	store := NewStore(db)
 	return store, nil
 }
-func (store *Store) FindById(id int) (*model.Book, error) {
+func (store *Store) FindBookById(id int) (*model.Book, error) {
 	b := model.Book{}
 	if err := store.db.First(&b, id).Error; err != nil {
 		return nil, err
@@ -62,9 +62,5 @@ func (store *Store) FindAllBooks() ([]*model.Book, error) {
 }
 
 func(store *Store)DeleteBook(book *model.Book)error{
-	err := store.db.Where("id = ?", book.Id).Delete(&model.Book{}).Error
-	if err != nil{
-		return err
-	}
-	return nil
+	return store.db.Where("id = ?", book.Id).Delete(&model.Book{}).Error
 }
