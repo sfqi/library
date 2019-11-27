@@ -14,23 +14,25 @@ import (
 
 	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
 
-	"github.com/sfqi/library/repository/inmemory"
+
 
 )
 
+type store interface{
+	FindBookById(int) (*model.Book, error)
+	CreateBook(*model.Book) error
+	UpdateBook(*model.Book) error
+	FindAllBooks() ([]*model.Book, error)
+	DeleteBook(*model.Book)error
+}
+
 type BookHandler struct {
-	Db  *inmemory.DB
+	Db store
 	Olc openLibraryClient
 }
 
 type openLibraryClient interface {
 	FetchBook(isbn string) (*openlibrarydto.Book, error)
-}
-
-func NewBookHandler(db *inmemory.DB) *BookHandler {
-	return &BookHandler{
-		Db: db,
-	}
 }
 
 func toBookResponse(b model.Book) *dto.BookResponse {
@@ -51,16 +53,18 @@ func toBookResponse(b model.Book) *dto.BookResponse {
 func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
-	allBooks := b.Db.GetAllBooks()
-
+	allBooks,err := b.Db.FindAllBooks()
+	if err != nil {
+		http.Error(w,"Error finding books",http.StatusInternalServerError)
+	}
 	var bookResponses []*dto.BookResponse
 
 	for _, book := range allBooks {
 
-		bookResponses = append(bookResponses, toBookResponse(book))
+		bookResponses = append(bookResponses, toBookResponse(*book))
 	}
 
-	err := json.NewEncoder(w).Encode(bookResponses)
+	err = json.NewEncoder(w).Encode(bookResponses)
 	if err != nil {
 		fmt.Println("error while getting books: ", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
@@ -89,7 +93,7 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	book := b.toBook(openlibraryBook)
 
-	if err := b.Db.Create(book); err != nil {
+	if err := b.Db.CreateBook(book); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -129,14 +133,13 @@ func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
 	}
 
 	bookToAdd := model.Book{
-		Id:            b.Db.Id,
 		Title:         book.Title,
 		Author:        author,
 		Isbn:          isbn10,
 		Isbn13:        isbn13,
 		OpenLibraryId: libraryId,
 		CoverId:       CoverId,
-		Year:          book.Year,
+		Year:          2019, //Todo Srediti godinu da bude int
 	}
 	return &bookToAdd
 }
@@ -158,7 +161,7 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	book, err := b.Db.FindBookByID(id)
+	book, err := b.Db.FindBookById(id)
 	if err != nil {
 		errorFindingBook(w, err)
 		return
@@ -168,7 +171,7 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 	book.Title = updateBookRequest.Title
 	book.Year = updateBookRequest.Year
 
-	if err := b.Db.Update(book); err != nil {
+	if err := b.Db.UpdateBook(book); err != nil {
 		errorFindingBook(w, err)
 		return
 	}
@@ -191,7 +194,7 @@ func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
 		errorConvertingId(w, err)
 		return
 	}
-	book, err := b.Db.FindBookByID(id)
+	book, err := b.Db.FindBookById(id)
 	if err != nil {
 		errorFindingBook(w, err)
 		return
@@ -214,12 +217,12 @@ func (b *BookHandler)Delete(w http.ResponseWriter,r *http.Request){
 		errorConvertingId(w, err)
 		return
 	}
-	book, err := b.Db.FindBookByID(id)
+	book, err := b.Db.FindBookById(id)
 	if err != nil {
 		errorFindingBook(w, err)
 		return
 	}
-	if err := b.Db.Delete(book); err != nil {
+	if err := b.Db.DeleteBook(book); err != nil {
 		http.Error(w,"Error while deleting book",http.StatusInternalServerError)
 		return
 	}

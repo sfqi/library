@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"github.com/sfqi/library/repository/postgres"
 	"net/http"
 	"os"
 
@@ -10,17 +12,31 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sfqi/library/handler"
-	middleware "github.com/sfqi/library/middleware"
-	"github.com/sfqi/library/repository/inmemory"
+	"github.com/sfqi/library/middleware"
 )
+
+
 
 func main() {
 	openLibraryUrl := os.Getenv("LIBRARY")
 	olc := openlibrary.NewClient(openLibraryUrl)
+	config := postgres.PostgresConfig{
+		Host:     "localhost",
+		Port:     5432,
+		User:     "bojan",
+		Password: "bojan",
+		Name:     "library",
+	}
 
-	db := inmemory.NewDB()
-	bookHandler := handler.BookHandler{
-		Db:  db,
+	//db := inmemory.NewDB()
+
+	store ,err:= postgres.Open(config)
+	if err != nil{
+		panic(err)
+	}
+	fmt.Println("Successfully connected")
+	bookHandler := &handler.BookHandler{
+		Db: store,
 		Olc: olc,
 	}
 

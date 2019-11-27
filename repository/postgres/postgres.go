@@ -21,7 +21,7 @@ type Store struct {
 }
 
 func NewStore(db *gorm.DB) *Store {
-	return &Store{db}
+	return &Store{db: db}
 }
 
 func Open(config PostgresConfig) (*Store, error) {
@@ -36,7 +36,7 @@ func Open(config PostgresConfig) (*Store, error) {
 	store := NewStore(db)
 	return store, nil
 }
-func (store *Store) FindById(id int) (*model.Book, error) {
+func (store *Store) FindBookById(id int) (*model.Book, error) {
 	b := model.Book{}
 	if err := store.db.First(&b, id).Error; err != nil {
 		return nil, err
@@ -59,4 +59,8 @@ func (store *Store) FindAllBooks() ([]*model.Book, error) {
 		return nil, err
 	}
 	return books, nil
+}
+
+func(store *Store)DeleteBook(book *model.Book)error{
+	return store.db.Where("id = ?", book.Id).Delete(&model.Book{}).Error
 }

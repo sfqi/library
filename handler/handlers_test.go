@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/sfqi/library/repository/inmemory"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -13,12 +14,12 @@ import (
 	"github.com/sfqi/library/handler/dto"
 	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
 	olmock "github.com/sfqi/library/openlibrary/mock"
-	"github.com/sfqi/library/repository/inmemory"
 	"github.com/stretchr/testify/assert"
 )
 
+var db = inmemory.NewDB()
 var bookHandler BookHandler = BookHandler{
-	Db:  inmemory.NewDB(),
+	Db:  db,
 	Olc: nil,
 }
 
@@ -32,7 +33,7 @@ func TestIndex(t *testing.T) {
 			Isbn13:        "some isbon13",
 			OpenLibraryId: "again some id",
 			CoverId:       "some cover ID",
-			Year:          "2019",
+			Year:          2019,
 		},
 		&dto.BookResponse{
 			ID:            2,
@@ -42,7 +43,7 @@ func TestIndex(t *testing.T) {
 			Isbn13:        "other isbon13",
 			OpenLibraryId: "other some id",
 			CoverId:       "other cover ID",
-			Year:          "2019",
+			Year:          2019,
 		},
 		&dto.BookResponse{
 			ID:            3,
@@ -52,7 +53,7 @@ func TestIndex(t *testing.T) {
 			Isbn13:        "another isbon13",
 			OpenLibraryId: "another some id",
 			CoverId:       "another cover ID",
-			Year:          "2019",
+			Year:          2019,
 		},
 	}
 	req, err := http.NewRequest("GET", "/books", nil)
@@ -82,7 +83,7 @@ func TestIndex(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	t.Run("assertion of expected response, and actual response", func(t *testing.T) {
-		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"title":"test title", "year":"2019"}`)))
+		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"title":"test title", "year":2019}`)))
 		params := map[string]string{"id": "2"}
 		req = mux.SetURLVars(req, params)
 		if err != nil {
@@ -108,7 +109,7 @@ func TestUpdate(t *testing.T) {
 			Isbn13:        "other isbon13",
 			OpenLibraryId: "other some id",
 			CoverId:       "other cover ID",
-			Year:          "2019",
+			Year:          2019,
 		}
 
 		var response dto.BookResponse
@@ -228,7 +229,7 @@ func TestCreate(t *testing.T) {
 				{Name: "Tolstoy"},
 			},
 			Cover: openlibrarydto.Cover{"https://covers.openlibrary.org/b/id/5049015-S.jpg"},
-			Year:  "2007",
+			Year:  2007,
 		},
 			nil,
 		}
@@ -247,13 +248,14 @@ func TestCreate(t *testing.T) {
 		handler.ServeHTTP(rr, req)
 
 		bookExpected := dto.BookResponse{
-			bookHandler.Db.Id, "War and Peace (Penguin Classics)",
+			4,
+			"War and Peace (Penguin Classics)",
 			"Tolstoy",
 			"0140447938",
 			"9780140447934",
 			"OL7355422M",
 			"5049015",
-			"2007",
+			2019,
 		}
 		var response dto.BookResponse
 		err = json.NewDecoder(rr.Body).Decode(&response)
@@ -323,7 +325,7 @@ func TestGet(t *testing.T) {
 			Isbn13:        "other isbon13",
 			OpenLibraryId: "other some id",
 			CoverId:       "other cover ID",
-			Year:          "2019",
+			Year:          2019,
 		}
 		var response dto.BookResponse
 		err = json.NewDecoder(rr.Body).Decode(&response)
