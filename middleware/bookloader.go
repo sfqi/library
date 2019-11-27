@@ -1,7 +1,8 @@
 package middleware
 
 import (
-	"fmt"
+	"context"
+
 	"net/http"
 
 	"github.com/sfqi/library/repository/inmemory"
@@ -18,8 +19,7 @@ func (bl BookLoader) GetBook(next http.Handler) http.Handler {
 		if err != nil {
 			return
 		}
-		fmt.Println(book)
-
-		next.ServeHTTP(w, r)
+		ctx := context.WithValue(r.Context(), "book", book)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

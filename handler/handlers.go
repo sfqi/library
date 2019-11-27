@@ -3,9 +3,10 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/handler/dto"
-	"strings"
 
 	"github.com/gorilla/mux"
 
@@ -15,7 +16,6 @@ import (
 	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
 
 	"github.com/sfqi/library/repository/inmemory"
-
 )
 
 type BookHandler struct {
@@ -74,7 +74,7 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var createBook dto.CreateBookRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&createBook); err != nil {
-		errorDecodingBook(w,err)
+		errorDecodingBook(w, err)
 		return
 	}
 
@@ -144,6 +144,8 @@ func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
 func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
+	bookContext := r.Context().Value("book")
+	fmt.Println("Book from context: ", bookContext)
 	updateBookRequest := dto.UpdateBookRequest{}
 	err := json.NewDecoder(r.Body).Decode(&updateBookRequest)
 	if err != nil {
@@ -184,7 +186,8 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
-
+	bookContext := r.Context().Value("book")
+	fmt.Println("Book from context: ", bookContext)
 	params := mux.Vars(r)
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -205,9 +208,10 @@ func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (b *BookHandler)Delete(w http.ResponseWriter,r *http.Request){
+func (b *BookHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
+	bookContext := r.Context().Value("book")
+	fmt.Println("Book from context: ", bookContext)
 	params := mux.Vars(r)
 	id, err := strconv.Atoi(params["id"])
 	if err != nil {
@@ -220,12 +224,11 @@ func (b *BookHandler)Delete(w http.ResponseWriter,r *http.Request){
 		return
 	}
 	if err := b.Db.Delete(book); err != nil {
-		http.Error(w,"Error while deleting book",http.StatusInternalServerError)
+		http.Error(w, "Error while deleting book", http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
-
 
 func errorDecodingBook(w http.ResponseWriter, err error) {
 	fmt.Println("error while decoding book from response body: ", err)
