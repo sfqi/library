@@ -32,13 +32,15 @@ func main() {
 		Db: db,
 	}
 	r := mux.NewRouter()
+	s := r.PathPrefix("/book").Subrouter()
 
 	r.HandleFunc("/books", bookHandler.Index).Methods("GET")
 	r.HandleFunc("/books", bookHandler.Create).Methods("POST")
-	r.HandleFunc("/books/{id}", bookHandler.Update).Methods("PUT")
-	r.HandleFunc("/book/{id}", bookHandler.Get).Methods("GET")
-	r.HandleFunc("/book/{id}", bookHandler.Delete).Methods("DELETE")
+	s.HandleFunc("/{id}", bookHandler.Update).Methods("PUT")
+	s.HandleFunc("/{id}", bookHandler.Get).Methods("GET")
+	s.HandleFunc("/{id}", bookHandler.Delete).Methods("DELETE")
 	r.Use(bodyDump.Dump)
-	r.Use(bookLoad.GetBook)
+	s.Use(bookLoad.GetBook)
+
 	http.ListenAndServe(":8080", r)
 }

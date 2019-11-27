@@ -14,8 +14,10 @@ type BookLoader struct {
 func (bl BookLoader) GetBook(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		book, _ := bl.Db.FindBookByID(1)
-
+		book, err := bl.Db.FindBookByID(1)
+		if err != nil {
+			return
+		}
 		fmt.Println(book)
 
 		next.ServeHTTP(w, r)
