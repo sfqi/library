@@ -8,7 +8,7 @@ type Store struct{
 	Err error
 }
 
-func (s *Store)FindBookByid(int)(*model.Book,error){
+func (s *Store)FindBookById(id int) (*model.Book, error){
 	return s.Book,s.Err
 }
 
@@ -16,14 +16,14 @@ func (s *Store)CreateBook(book *model.Book) error{
 	return s.Err
 }
 
-func (s *Store)UpdateBook(book *model.Book)error{
+func (s *Store)UpdateBook(book *model.Book) error{
 	return s.Err
 }
 
-func (s *Store)FindAllBooks()([]*model.Book,error){
+func (s *Store)FindAllBooks() ([]*model.Book, error){
 	return s.Books, s.Err
 }
 
-func(s *Store)DeleteBooks(b *model.Book)error{
+func(s *Store)DeleteBook(book *model.Book)error{
 	return s.Err
 }

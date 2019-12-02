@@ -97,17 +97,15 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	bookResponse := *toBookResponse(*book)
-
 	if err := json.NewEncoder(w).Encode(bookResponse); err != nil {
-
 		errorEncoding(w, err)
 		return
 	}
 }
 
 func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
-
 	isbn10 := ""
 	if book.Identifier.ISBN10 != nil {
 		isbn10 = book.Identifier.ISBN10[0]
