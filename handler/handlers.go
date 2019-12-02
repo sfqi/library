@@ -244,6 +244,6 @@ func errorConvertingId(w http.ResponseWriter, err error) {
 }
 
 func errorFindingBook(w http.ResponseWriter, err error) {
-	fmt.Println("Cannot find book with given Id ")
+	fmt.Println("Cannot find book with given Id: ", err)
 	http.Error(w, "Book with given Id can not be found", http.StatusBadRequest)
 }
