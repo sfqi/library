@@ -22,8 +22,8 @@ import (
 	"time"
 )
 
-var db = &mock.Store{
-	Book:  &model.Book{
+func initializeAttributes()(*model.Book,[]*model.Book){
+	book1 := &model.Book{
 		Id:            1,
 		Title:         "some title",
 		Author:        "some author",
@@ -34,20 +34,9 @@ var db = &mock.Store{
 		Year:          2019,
 		CreatedAt:     time.Time{},
 		UpdatedAt:     time.Time{},
-	},
-	Books: []*model.Book{
-		{
-			Id:            1,
-			Title:         "some title",
-			Author:        "some author",
-			Isbn:          "some isbn",
-			Isbn13:        "some isbon13",
-			OpenLibraryId: "again some id",
-			CoverId:       "some cover ID",
-			Year:          2019,
-			CreatedAt:     time.Time{},
-			UpdatedAt:     time.Time{},
-		},
+	}
+	 books := []*model.Book{
+		book1,
 		{
 			Id:            2,
 			Title:         "other title",
@@ -60,9 +49,13 @@ var db = &mock.Store{
 			CreatedAt:     time.Time{},
 			UpdatedAt:     time.Time{},
 		},
-	},
-	Err:   nil,
+	}
+	 return book1,books
 }
+
+var book, books = initializeAttributes()
+var db = mock.NewStore(book,books,nil)
+
 var bookHandler BookHandler = BookHandler{
 	Db:  db,
 	Olc: nil,
@@ -120,7 +113,7 @@ func TestIndex(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	t.Run("assertion of expected response, and actual response", func(t *testing.T) {
 		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"title":"test title", "year":2019}`)))
-		params := map[string]string{"id": "1"}
+		params := map[string]string{"id": "2"}
 		req = mux.SetURLVars(req, params)
 		if err != nil {
 			t.Errorf("Error occured, %s", err)
@@ -137,7 +130,7 @@ func TestUpdate(t *testing.T) {
 		}
 		bookExpected := dto.BookResponse{
 
-			ID:            1,
+			ID:            2,
 			Title:         "test title",
 			Author:        "some author",
 			Isbn:          "some isbn",
@@ -194,7 +187,8 @@ func TestUpdate(t *testing.T) {
 		if err != nil {
 			t.Errorf("Error occured, %s", err)
 		}
-		db.Err = errors.New("Book with given Id can not be found")
+		db.Err=errors.New("Book with given Id can not be found")
+		//db.Err = errors.New("Book with given Id can not be found")
 		rr := httptest.NewRecorder()
 
 		handler := http.HandlerFunc(bookHandler.Update)
@@ -276,7 +270,8 @@ func TestCreate(t *testing.T) {
 		}
 
 		rr := httptest.NewRecorder()
-		db.Err = nil
+		book,books := initializeAttributes()
+		bookHandler.Db = mock.NewStore(book, books,nil)
 		handler := http.HandlerFunc(bookHandler.Create)
 
 		handler.ServeHTTP(rr, req)
@@ -328,7 +323,8 @@ func TestGet(t *testing.T) {
 		}
 
 		rr := httptest.NewRecorder()
-		db.Err = errors.New("Book with given Id can not be found")
+		bookHandler.Db = mock.NewStore(nil,books,errors.New("Book with given Id can not be found"))
+
 		handler := http.HandlerFunc(bookHandler.Get)
 
 		handler.ServeHTTP(rr, req)
@@ -346,19 +342,9 @@ func TestGet(t *testing.T) {
 		}
 
 		rr := httptest.NewRecorder()
-		db.Err = nil
-		db.Book = &model.Book{
-			Id:            1,
-			Title:         "some title",
-			Author:        "some author",
-			Isbn:          "some isbn",
-			Isbn13:        "some isbon13",
-			OpenLibraryId: "again some id",
-			CoverId:       "some cover ID",
-			Year:          2019,
-			CreatedAt:     time.Time{},
-			UpdatedAt:     time.Time{},
-		}
+		book, books := initializeAttributes()
+		bookHandler.Db = mock.NewStore(book,books,nil)
+
 		handler := http.HandlerFunc(bookHandler.Get)
 		handler.ServeHTTP(rr, req)
 		expectedBook := dto.BookResponse{
@@ -408,7 +394,8 @@ func TestDelete(t *testing.T) {
 		}
 
 		rr := httptest.NewRecorder()
-		db.Err = errors.New("Book with given Id can not be found" + "\n")
+		_,books := initializeAttributes()
+		bookHandler.Db = mock.NewStore(nil,books,errors.New("Book with given Id can not be found"))
 		handler := http.HandlerFunc(bookHandler.Delete)
 
 		handler.ServeHTTP(rr, req)
@@ -417,7 +404,7 @@ func TestDelete(t *testing.T) {
 			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusBadRequest, status)
 		}
 
-		assert.Equal(t, db.Err.Error(), rr.Body.String(), "Response body differs")
+		assert.Equal(t, db.Err.Error()+"\n", rr.Body.String(), "Response body differs")
 	})
 	t.Run("Book succesfully deleted", func(t *testing.T) {
 		req, err := http.NewRequest("DELETE", "/books/{id}", nil)
@@ -426,9 +413,10 @@ func TestDelete(t *testing.T) {
 		if err != nil {
 			t.Errorf("Error occured, %s", err)
 		}
-		db.Err=nil
+		book, books := initializeAttributes()
+		bookHandler.Db = mock.NewStore(book,books,nil)
 		rr := httptest.NewRecorder()
-		db.Err = nil
+
 		handler := http.HandlerFunc(bookHandler.Delete)
 
 		handler.ServeHTTP(rr, req)
