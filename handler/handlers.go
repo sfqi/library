@@ -97,17 +97,15 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	bookResponse := *toBookResponse(*book)
-
 	if err := json.NewEncoder(w).Encode(bookResponse); err != nil {
-
 		errorEncoding(w, err)
 		return
 	}
 }
 
 func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
-
 	isbn10 := ""
 	if book.Identifier.ISBN10 != nil {
 		isbn10 = book.Identifier.ISBN10[0]
@@ -246,6 +244,6 @@ func errorConvertingId(w http.ResponseWriter, err error) {
 }
 
 func errorFindingBook(w http.ResponseWriter, err error) {
-	fmt.Println("Cannot find book with given Id ")
+	fmt.Println("Cannot find book with given Id: ", err)
 	http.Error(w, "Book with given Id can not be found", http.StatusBadRequest)
 }
