@@ -7,12 +7,13 @@ import (
 	"strconv"
 
 	"net/http"
-
-	"github.com/sfqi/library/repository/inmemory"
+	"github.com/sfqi/library/repository/postgres"
+	//"github.com/sfqi/library/repository/inmemory"
 )
 
 type BookLoader struct {
-	Db *inmemory.DB
+	//Db *inmemory.DB
+	Db *postgres.Store
 }
 
 func (bl BookLoader) GetBook(next http.Handler) http.Handler {
@@ -24,7 +25,7 @@ func (bl BookLoader) GetBook(next http.Handler) http.Handler {
 			errorConvertingId(w, err)
 			return
 		}
-		book, err := bl.Db.FindBookByID(id)
+		book, err := bl.Db.FindBookById(id)
 		if err != nil {
 			errorFindingBook(w, err)
 			return

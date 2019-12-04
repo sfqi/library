@@ -3,28 +3,65 @@ package handler
 import (
 	"context"
 	"bytes"
-	"encoding/json"
 	"errors"
-	"net/http"
-	"net/http/httptest"
-	"strings"
-	"testing"
-
 	"github.com/gorilla/mux"
+
+	"github.com/stretchr/testify/assert"
+
+	"encoding/json"
+
+
 	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/handler/dto"
 	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
 	olmock "github.com/sfqi/library/openlibrary/mock"
-	"github.com/sfqi/library/repository/inmemory"
-	"github.com/stretchr/testify/assert"
+	"github.com/sfqi/library/repository/mock"
+
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+	"time"
 )
 
+func initializeBooks() []*model.Book {
+	books := []*model.Book{
+		{
+			Id:            1,
+			Title:         "some title",
+			Author:        "some author",
+			Isbn:          "some isbn",
+			Isbn13:        "some isbon13",
+			OpenLibraryId: "again some id",
+			CoverId:       "some cover ID",
+			Year:          2019,
+			CreatedAt:     time.Time{},
+			UpdatedAt:     time.Time{},
+		},
+		{
+			Id:            2,
+			Title:         "other title",
+			Author:        "other author",
+			Isbn:          "other isbn",
+			Isbn13:        "other isbon13",
+			OpenLibraryId: "other some id",
+			CoverId:       "other cover ID",
+			Year:          2019,
+			CreatedAt:     time.Time{},
+			UpdatedAt:     time.Time{},
+		},
+	}
+	return books
+}
+
 var bookHandler BookHandler = BookHandler{
-	Db:  inmemory.NewDB(),
 	Olc: nil,
 }
 
 func TestIndex(t *testing.T) {
+	var books = initializeBooks()
+	var db = mock.NewStore(books, nil)
+	bookHandler.Db = db
 	booksExpected := []*dto.BookResponse{
 		&dto.BookResponse{
 			ID:            1,
@@ -34,7 +71,7 @@ func TestIndex(t *testing.T) {
 			Isbn13:        "some isbon13",
 			OpenLibraryId: "again some id",
 			CoverId:       "some cover ID",
-			Year:          "2019",
+			Year:          2019,
 		},
 		&dto.BookResponse{
 			ID:            2,
@@ -44,19 +81,10 @@ func TestIndex(t *testing.T) {
 			Isbn13:        "other isbon13",
 			OpenLibraryId: "other some id",
 			CoverId:       "other cover ID",
-			Year:          "2019",
-		},
-		&dto.BookResponse{
-			ID:            3,
-			Title:         "another title",
-			Author:        "another author",
-			Isbn:          "another isbn",
-			Isbn13:        "another isbon13",
-			OpenLibraryId: "another some id",
-			CoverId:       "another cover ID",
-			Year:          "2019",
+			Year:          2019,
 		},
 	}
+
 	req, err := http.NewRequest("GET", "/books", nil)
 	if err != nil {
 		t.Fatal(err)
@@ -91,10 +119,13 @@ func TestUpdate(t *testing.T) {
 		Isbn13:        "other isbon13",
 		OpenLibraryId: "other some id",
 		CoverId:       "other cover ID",
-		Year:          "2019",
+		Year:          2019,
 		}
 	t.Run("assertion of expected response, and actual response", func(t *testing.T) {
-		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"title":"test title", "year":"2019"}`)))
+		var books = initializeBooks()
+		var db = mock.NewStore(books, nil)
+		bookHandler.Db = db
+		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"title":"test title", "year":2019}`)))
 		params := map[string]string{"id": "2"}
 		req = mux.SetURLVars(req, params)
 		if err != nil {
@@ -113,7 +144,6 @@ func TestUpdate(t *testing.T) {
 		if status := rr.Code; status != http.StatusOK {
 			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusOK, status)
 		}
-
 		bookExpected := dto.BookResponse{
 
 			ID:            2,
@@ -123,22 +153,22 @@ func TestUpdate(t *testing.T) {
 			Isbn13:        "other isbon13",
 			OpenLibraryId: "other some id",
 			CoverId:       "other cover ID",
-			Year:          "2019",
+			Year:          2019,
 		}
-
 		var response dto.BookResponse
 		err = json.NewDecoder(rr.Body).Decode(&response)
 
 		assert.Equal(t, bookExpected, response, "Response body differs")
 	})
 	t.Run("Error decoding Book attributes", func(t *testing.T) {
+		var db = &mock.Store{}
+		bookHandler.Db = db
 		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"id":"12","title":zdravo}`)))
 		params := map[string]string{"id": "2"}
 		req = mux.SetURLVars(req, params)
 		if err != nil {
 			t.Errorf("Error occured, %s", err)
 		}
-
 		ctx := context.WithValue(req.Context(),"book", book) 
 		req = req.WithContext(ctx)
 
@@ -149,6 +179,7 @@ func TestUpdate(t *testing.T) {
 		expectedError := "Error while decoding from request body"
 		if status := rr.Code; status != http.StatusBadRequest && rr.Body.String() != expectedError {
 			t.Errorf("Expected status code: %d and error: %s,  got: %d and %s", http.StatusBadRequest, expectedError, status, rr.Body.String())
+
 		}
 	})
 
@@ -156,6 +187,8 @@ func TestUpdate(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	t.Run("Invalid request body", func(t *testing.T) {
+		var db = &mock.Store{}
+		bookHandler.Db = db
 		clmock := olmock.Client{}
 		bookHandler.Olc = &clmock
 
@@ -176,6 +209,8 @@ func TestCreate(t *testing.T) {
 		}
 	})
 	t.Run("Fetching book error", func(t *testing.T) {
+		var db = &mock.Store{}
+		bookHandler.Db = db
 		clmock := olmock.Client{nil,
 			errors.New("Error while fetching book"),
 		}
@@ -198,6 +233,9 @@ func TestCreate(t *testing.T) {
 		}
 	})
 	t.Run("Testing book creation", func(t *testing.T) {
+		var books = initializeBooks()
+		var db = mock.NewStore(books, nil)
+		bookHandler.Db = db
 		clmock := olmock.Client{&openlibrarydto.Book{
 			Title: "War and Peace (Penguin Classics)",
 			Identifier: openlibrarydto.Identifier{
@@ -209,7 +247,7 @@ func TestCreate(t *testing.T) {
 				{Name: "Tolstoy"},
 			},
 			Cover: openlibrarydto.Cover{"https://covers.openlibrary.org/b/id/5049015-S.jpg"},
-			Year:  "2007",
+			Year:  2007,
 		},
 			nil,
 		}
@@ -228,13 +266,14 @@ func TestCreate(t *testing.T) {
 		handler.ServeHTTP(rr, req)
 
 		bookExpected := dto.BookResponse{
-			bookHandler.Db.Id, "War and Peace (Penguin Classics)",
+			0,
+			"War and Peace (Penguin Classics)",
 			"Tolstoy",
 			"0140447938",
 			"9780140447934",
 			"OL7355422M",
 			"5049015",
-			"2007",
+			2019,
 		}
 		var response dto.BookResponse
 		err = json.NewDecoder(rr.Body).Decode(&response)
@@ -246,22 +285,23 @@ func TestCreate(t *testing.T) {
 
 }
 
-
 func TestGet(t *testing.T) {
 	book := &model.Book{
-			Id:            2,
-			Title:         "test title",
-			Author:        "other author",
-			Isbn:          "other isbn",
-			Isbn13:        "other isbon13",
-			OpenLibraryId: "other some id",
-			CoverId:       "other cover ID",
-			Year:          "2019",
+			Id:            1,
+			Title:         "some title",
+			Author:        "some author",
+			Isbn:          "some isbn",
+			Isbn13:        "some isbon13",
+			OpenLibraryId: "again some id",
+			CoverId:       "some cover ID",
+			Year:          2019,
 	}
-
 	t.Run("Successfully retrieved book", func(t *testing.T) {
+		var books = initializeBooks()
+		var db = mock.NewStore(books, nil)
+		bookHandler.Db = db
 		req, err := http.NewRequest("GET", "/book/{id}", nil)
-		params := map[string]string{"id": "2"}
+		params := map[string]string{"id": "1"}
 		req = mux.SetURLVars(req, params)
 		if err != nil {
 			t.Errorf("Error occured, %s", err)
@@ -275,14 +315,14 @@ func TestGet(t *testing.T) {
 		handler := http.HandlerFunc(bookHandler.Get)
 		handler.ServeHTTP(rr, req)
 		expectedBook := dto.BookResponse{
-			ID:            2,
-			Title:         "test title",
-			Author:        "other author",
-			Isbn:          "other isbn",
-			Isbn13:        "other isbon13",
-			OpenLibraryId: "other some id",
-			CoverId:       "other cover ID",
-			Year:          "2019",
+			ID:            1,
+			Title:         "some title",
+			Author:        "some author",
+			Isbn:          "some isbn",
+			Isbn13:        "some isbon13",
+			OpenLibraryId: "again some id",
+			CoverId:       "some cover ID",
+			Year:          2019,
 		}
 		var response dto.BookResponse
 		err = json.NewDecoder(rr.Body).Decode(&response)
@@ -300,10 +340,13 @@ func TestDelete(t *testing.T) {
 		Isbn13:        "other isbon13",
 		OpenLibraryId: "other some id",
 		CoverId:       "other cover ID",
-		Year:          "2019",
+		Year:          2019,
 		}
 	
 	t.Run("Book succesfully deleted", func(t *testing.T) {
+		var books = initializeBooks()
+		var db = mock.NewStore(books, nil)
+		bookHandler.Db = db
 		req, err := http.NewRequest("DELETE", "/books/{id}", nil)
 		params := map[string]string{"id": "2"}
 		req = mux.SetURLVars(req, params)
