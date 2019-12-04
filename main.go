@@ -32,7 +32,7 @@ func main() {
 		Db: db,
 	}
 	r := mux.NewRouter()
-	s := r.PathPrefix("/book").Subrouter()
+	s := r.PathPrefix("/books").Subrouter()
 
 	r.HandleFunc("/books", bookHandler.Index).Methods("GET")
 	r.HandleFunc("/books", bookHandler.Create).Methods("POST")

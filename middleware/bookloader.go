@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"path"
+	"github.com/gorilla/mux"
 	"context"
 	"fmt"
 	"strconv"
@@ -17,7 +17,9 @@ type BookLoader struct {
 
 func (bl BookLoader) GetBook(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id, err := strconv.Atoi(path.Base(r.URL.Path))
+
+		vars := mux.Vars(r)
+		id, err := strconv.Atoi(vars["id"])
 		if err != nil {
 			errorConvertingId(w, err)
 			return

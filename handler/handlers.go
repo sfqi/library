@@ -143,10 +143,9 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	book, ok := r.Context().Value("book").(*model.Book)
 	if !ok {
-		errorContex(w, errors.New("error retrieving book from context Update"))
+		errorContex(w, errors.New("error retrieving book from context"))
 		return
 	}
-	fmt.Println("Book from context: ", book)
 	updateBookRequest := dto.UpdateBookRequest{}
 	err := json.NewDecoder(r.Body).Decode(&updateBookRequest)
 	if err != nil {
@@ -174,15 +173,13 @@ func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	book, ok := r.Context().Value("book").(*model.Book)
 	if !ok {
-		errorContex(w, errors.New("error retrieving book from context Get"))
+		errorContex(w, errors.New("error retrieving book from context"))
 		return
 	}
-	fmt.Println("Book from context: ", book)
 
 	bookResponse := *toBookResponse(*book)
 
-	err := json.NewEncoder(w).Encode(bookResponse)
-	if err != nil {
+	if err := json.NewEncoder(w).Encode(bookResponse); err != nil{
 		errorEncoding(w, err)
 		return
 	}
@@ -192,7 +189,7 @@ func (b *BookHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	book, ok := r.Context().Value("book").(*model.Book)
 	if !ok {
-		errorContex(w, errors.New("error retrieving book from context Delete"))
+		errorContex(w, errors.New("error retrieving book from context"))
 		return
 	}
 	fmt.Println("Book from context: ", book)
