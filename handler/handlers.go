@@ -143,7 +143,7 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	book, ok := r.Context().Value("book").(*model.Book)
 	if !ok {
-		errorContex(w, errors.New("error"))
+		errorContex(w, errors.New("error retrieving book from context Update"))
 		return
 	}
 	fmt.Println("Book from context: ", book)
@@ -153,10 +153,9 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 		errorDecodingBook(w, err)
 		return
 	}
-
+	
 	book.Title = updateBookRequest.Title
 	book.Year = updateBookRequest.Year
-
 	if err := b.Db.Update(book); err != nil {
 		return
 	}
@@ -175,7 +174,7 @@ func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	book, ok := r.Context().Value("book").(*model.Book)
 	if !ok {
-		errorContex(w, errors.New("error"))
+		errorContex(w, errors.New("error retrieving book from context Get"))
 		return
 	}
 	fmt.Println("Book from context: ", book)
@@ -193,7 +192,7 @@ func (b *BookHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	book, ok := r.Context().Value("book").(*model.Book)
 	if !ok {
-		errorContex(w, errors.New("error"))
+		errorContex(w, errors.New("error retrieving book from context Delete"))
 		return
 	}
 	fmt.Println("Book from context: ", book)

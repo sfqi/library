@@ -1,10 +1,10 @@
 package middleware
 
 import (
+	"path"
 	"context"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"net/http"
 
@@ -17,7 +17,7 @@ type BookLoader struct {
 
 func (bl BookLoader) GetBook(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id, err := strconv.Atoi(strings.Split(r.URL.Path, "/")[2])
+		id, err := strconv.Atoi(path.Base(r.URL.Path))
 		if err != nil {
 			errorConvertingId(w, err)
 			return
@@ -39,6 +39,6 @@ func errorConvertingId(w http.ResponseWriter, err error) {
 }
 
 func errorFindingBook(w http.ResponseWriter, err error) {
-	fmt.Println("Cannot find book with given Id ")
+	fmt.Println("Cannot find book with given Id ", err)
 	http.Error(w, "Book with given Id can not be found", http.StatusBadRequest)
 }
