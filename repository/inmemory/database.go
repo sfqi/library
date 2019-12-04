@@ -54,15 +54,38 @@ var books = []model.Book{
 	},
 }
 
+var users = []model.User{
+	{
+		Id:        1,
+		Email:     "prvi@email.com",
+		Name:      "ime",
+		LastName:  "prezime",
+		CreatedAt: time.Now().Add(-10 * time.Second),
+		UpdatedAt: time.Now().Add(-8 * time.Second),
+	},
+	{
+		Id:        2,
+		Email:     "drugi@email.com",
+		Name:      "ime2",
+		LastName:  "prezime2",
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	},
+}
+
 type DB struct {
 	Id    int
+	UserId int
 	books []model.Book
+	users []model.User
 }
 
 func NewDB() *DB {
 	return &DB{
 		Id:    len(books),
+		UserId: len(users),
 		books: books,
+		users: users,
 	}
 }
 
