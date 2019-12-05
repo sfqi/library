@@ -1,19 +1,21 @@
 package middleware
 
 import (
+	"github.com/sfqi/library/domain/model"
 	"github.com/gorilla/mux"
 	"context"
 	"fmt"
 	"strconv"
 
 	"net/http"
-	"github.com/sfqi/library/repository/postgres"
-	//"github.com/sfqi/library/repository/inmemory"
 )
 
+type store interface {
+	FindBookById(int) (*model.Book, error)
+}
+
 type BookLoader struct {
-	//Db *inmemory.DB
-	Db *postgres.Store
+	Db store
 }
 
 func (bl BookLoader) GetBook(next http.Handler) http.Handler {
