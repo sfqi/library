@@ -12,7 +12,6 @@ import (
 	"net/http"
 
 	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
-	//"github.com/sfqi/library/repository/inmemory"
 
 )
 
@@ -135,7 +134,7 @@ func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
 		Isbn13:        isbn13,
 		OpenLibraryId: libraryId,
 		CoverId:       CoverId,
-		Year:          2019, //Todo Srediti godinu da bude int
+		Year:          2019,
 	}
 	return &bookToAdd
 }

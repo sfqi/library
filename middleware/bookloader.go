@@ -8,11 +8,9 @@ import (
 
 	"net/http"
 	"github.com/sfqi/library/repository/postgres"
-	//"github.com/sfqi/library/repository/inmemory"
 )
 
 type BookLoader struct {
-	//Db *inmemory.DB
 	Db *postgres.Store
 }
 

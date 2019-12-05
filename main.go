@@ -26,8 +26,6 @@ func main() {
 		Name:     "library",
 	}
 
-	//db := inmemory.NewDB()
-
 	store, err:= postgres.Open(config)
 	if err != nil{
 		panic(err)
