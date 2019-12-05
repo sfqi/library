@@ -73,19 +73,42 @@ var users = []model.User{
 	},
 }
 
+var loans = []model.Loan{
+	{
+		Id:             1,
+		Transaction_id: "211231",
+		User_id:        1,
+		Book_id:        1,
+		Type:           1,
+		Created_at:     time.Now(),
+	},
+	{
+		Id:             2,
+		Transaction_id: "42423123",
+		User_id:        2,
+		Book_id:        2,
+		Type:           2,
+		Created_at:     time.Now(),
+	},
+}
+
 type DB struct {
 	Id    int
 	UserId int
+	LoanId int
 	books []model.Book
 	users []model.User
+	loans []model.Loan
 }
 
 func NewDB() *DB {
 	return &DB{
 		Id:    len(books),
 		UserId: len(users),
+		LoanId: len(loans),
 		books: books,
 		users: users,
+		loans: loans,
 	}
 }
 

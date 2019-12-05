@@ -24,6 +24,18 @@ type store interface{
 	UpdateBook(*model.Book) error
 	FindAllBooks() ([]*model.Book, error)
 	DeleteBook(*model.Book)error
+
+	FindUserById(int) (*model.User, error)
+	CreateUser(*model.User) error
+	UpdateUser(*model.User) error
+	FindAllUsers() ([]*model.User, error)
+	DeleteUser(*model.User)error
+
+	FindLoanById(int) (*model.Loan, error)
+	CreateLoan(*model.Loan) error
+	UpdateLoan(*model.Loan) error
+	FindAllLoans() ([]*model.Loan, error)
+	DeleteLoan(*model.Loan)error
 }
 
 type BookHandler struct {
