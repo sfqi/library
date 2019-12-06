@@ -38,7 +38,7 @@ func Open(config PostgresConfig) (*Store, error) {
 }
 
 func (store *Store) Close() error {
-	return store.Close()
+	return store.db.Close()
 }
 
 func (store *Store) FindBookById(id int) (*model.Book, error) {
