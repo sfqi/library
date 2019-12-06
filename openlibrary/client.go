@@ -17,19 +17,19 @@ const formatParams = "&format=json&jscmd=data"
 var fetchBookPath = bookPath + bibkeys + formatParams
 
 type Client struct {
-	url string
+	Url string
 }
 
 func NewClient(url string) *Client {
 	url = strings.TrimSuffix(url, "/")
 	return &Client{
-		url: url,
+		Url: url,
 	}
 
 }
 
 func (client *Client) FetchBook(isbn string) (*dto.Book, error) {
-	url := fmt.Sprintf(client.url+fetchBookPath, isbn)
+	url := fmt.Sprintf(client.Url+fetchBookPath, isbn)
 
 	response, err := http.Get(url)
 	if err != nil {

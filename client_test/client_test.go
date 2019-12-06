@@ -1,6 +1,7 @@
 package openlibrary
 
 import (
+	"github.com/sfqi/library/openlibrary"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -18,7 +19,7 @@ func TestFetchBook(t *testing.T) {
 		}))
 
 		defer server.Close()
-		client := &Client{
+		client := &openlibrary.Client{
 			server.URL,
 		}
 		responseBook, err := client.FetchBook("0201558025")
@@ -39,7 +40,7 @@ func TestFetchBook(t *testing.T) {
 		}))
 
 		defer server.Close()
-		client := &Client{
+		client := &openlibrary.Client{
 			server.URL,
 		}
 
@@ -57,7 +58,7 @@ func TestFetchBook(t *testing.T) {
 			w.Write([]byte(`{"ISBN:014044723123938": {"title": "War and Peace (Penguin Classics)"}}`))
 		}))
 		defer server.Close()
-		client := &Client{
+		client := &openlibrary.Client{
 			server.URL,
 		}
 		responseBook, err := client.FetchBook("0140447932111xxxx")

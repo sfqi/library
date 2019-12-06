@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/sfqi/library/handler"
 	"context"
 	"bytes"
 	"errors"
@@ -54,7 +55,7 @@ func initializeBooks() []*model.Book {
 	return books
 }
 
-var bookHandler BookHandler = BookHandler{
+var bookHandler handler.BookHandler = handler.BookHandler{
 	Olc: nil,
 }
 
