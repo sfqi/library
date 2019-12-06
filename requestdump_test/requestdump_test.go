@@ -19,8 +19,9 @@ func TestDump(t *testing.T) {
 		t.Fatal(err)
 	}
 	handler := http.HandlerFunc(testHandler)
+	logger := middleware.BodyDump(logger)
 	rr := httptest.NewRecorder()
-	newHandler := middleware.BodyDump{}.Dump(handler)
+	newHandler := middleware.BodyDump{logger}.Dump(handler)
 	newHandler.ServeHTTP(rr, req)
 	fmt.Println(rr.Code)
 	if rr.Code != http.StatusOK {

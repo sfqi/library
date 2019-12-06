@@ -28,10 +28,10 @@ func main() {
 	}
 
 	store, err := postgres.Open(config)
-	defer store.Close()
 	if err != nil {
 		panic(err)
 	}
+	defer store.Close()
 	fmt.Println("Successfully connected")
 	bookHandler := &handler.BookHandler{
 		Db:  store,

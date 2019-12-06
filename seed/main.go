@@ -43,11 +43,10 @@ func main() {
 	}
 
 	store, err := postgres.Open(config)
-	defer store.Close()
 	if err != nil {
 		panic(err)
 	}
-
+	defer store.Close()
 	for _, book := range books {
 		if err := store.CreateBook(book); err != nil {
 			panic(err)
