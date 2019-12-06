@@ -12,6 +12,17 @@ import (
 	"testing"
 )
 
+type bookHandler struct{
+	bookFromContext *model.Book
+}
+
+func(bh *bookHandler) ServeHTTP(w http.ResponseWriter,r *http.Request){
+	book := r.Context().Value("book").(*model.Book)
+	bh.bookFromContext = book
+	w.WriteHeader(http.StatusOK)
+}
+
+
 func testHandler(w http.ResponseWriter,r *http.Request){
 	book := r.Context().Value("book").(*model.Book)
 	fmt.Println("Context: ")
@@ -109,9 +120,11 @@ func TestGetBook(t *testing.T){
 		if err != nil {
 			t.Fatal(err)
 		}
-		handler := http.HandlerFunc(testHandler)
+
 		rr := httptest.NewRecorder()
-		newHandler := bookLoader.GetBook(handler)
+
+		bookHandler := &bookHandler{}
+		newHandler := bookLoader.GetBook(bookHandler)
 		newHandler.ServeHTTP(rr, req)
 		expectedResponse:=model.Book{
 			Id:            1,
@@ -123,10 +136,9 @@ func TestGetBook(t *testing.T){
 			CoverId:       "some cover ID",
 			Year:          2019,
 		}
-///////
-		book := req.Context().Value("book")
-//////////
-		assert.Equal(t,expectedResponse,rr.Body.String(),"Response body differs")
+		book := bookHandler.bookFromContext
+		fmt.Println(book)
+		assert.Equal(t,expectedResponse,*book,"Response body differs")
 	})
 
 
