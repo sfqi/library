@@ -43,6 +43,7 @@ func main() {
 	}
 
 	store, err := postgres.Open(config)
+	defer store.Close()
 	if err != nil {
 		panic(err)
 	}

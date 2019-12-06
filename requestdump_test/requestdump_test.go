@@ -1,9 +1,9 @@
 package requestdump_test
 
 import (
-	 "fmt"
+	"fmt"
 	"net/http"
-	 "net/http/httptest"
+	"net/http/httptest"
 	"testing"
 )
 
