@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/sfqi/library/middleware"
 )
 
 func testHandler(w http.ResponseWriter, r *http.Request) {
@@ -18,7 +20,7 @@ func TestDump(t *testing.T) {
 	}
 	handler := http.HandlerFunc(testHandler)
 	rr := httptest.NewRecorder()
-	newHandler := Dump(handler)
+	newHandler := middleware.BodyDump{}.Dump(handler)
 	newHandler.ServeHTTP(rr, req)
 	fmt.Println(rr.Code)
 	if rr.Code != http.StatusOK {
