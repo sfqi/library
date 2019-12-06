@@ -28,12 +28,13 @@ func (bl BookLoader) GetBook(next http.Handler) http.Handler {
 			errorConvertingId(w, err)
 			return
 		}
+
 		book, err := bl.Db.FindBookById(id)
 		if err != nil {
 			errorFindingBook(w, err)
 			return
 		}
-
+		fmt.Println(book)
 		ctx := context.WithValue(r.Context(), "book", book)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

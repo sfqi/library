@@ -21,8 +21,8 @@ func main() {
 	config := postgres.PostgresConfig{
 		Host:     "localhost",
 		Port:     5432,
-		User:     "postgres",
-		Password: "postgres",
+		User:     "bojan",
+		Password: "bojan",
 		Name:     "library",
 	}
 
