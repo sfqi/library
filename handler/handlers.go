@@ -12,19 +12,18 @@ import (
 	"net/http"
 
 	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
-
 )
 
-type store interface{
+type store interface {
 	FindBookById(int) (*model.Book, error)
 	CreateBook(*model.Book) error
 	UpdateBook(*model.Book) error
 	FindAllBooks() ([]*model.Book, error)
-	DeleteBook(*model.Book)error
+	DeleteBook(*model.Book) error
 }
 
 type BookHandler struct {
-	Db store
+	Db  store
 	Olc openLibraryClient
 }
 
@@ -50,9 +49,9 @@ func toBookResponse(b model.Book) *dto.BookResponse {
 func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
-	allBooks,err := b.Db.FindAllBooks()
+	allBooks, err := b.Db.FindAllBooks()
 	if err != nil {
-		http.Error(w,"Error finding books",http.StatusInternalServerError)
+		http.Error(w, "Error finding books", http.StatusInternalServerError)
 	}
 	var bookResponses []*dto.BookResponse
 
@@ -134,7 +133,7 @@ func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
 		Isbn13:        isbn13,
 		OpenLibraryId: libraryId,
 		CoverId:       CoverId,
-		Year:          2019,
+		Year:          2019, // TODO Change Year to become int
 	}
 	return &bookToAdd
 }
@@ -153,11 +152,11 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 		errorDecodingBook(w, err)
 		return
 	}
-	
+
 	book.Title = updateBookRequest.Title
 	book.Year = updateBookRequest.Year
 	if err := b.Db.UpdateBook(book); err != nil {
-	return
+		return
 	}
 	bookResponse := *toBookResponse(*book)
 
@@ -180,7 +179,7 @@ func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 	bookResponse := *toBookResponse(*book)
 
-	if err := json.NewEncoder(w).Encode(bookResponse); err != nil{
+	if err := json.NewEncoder(w).Encode(bookResponse); err != nil {
 		errorEncoding(w, err)
 		return
 	}

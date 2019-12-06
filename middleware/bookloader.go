@@ -1,11 +1,12 @@
 package middleware
 
 import (
-	"github.com/sfqi/library/domain/model"
-	"github.com/gorilla/mux"
 	"context"
 	"fmt"
 	"strconv"
+
+	"github.com/gorilla/mux"
+	"github.com/sfqi/library/domain/model"
 
 	"net/http"
 )

@@ -12,6 +12,7 @@ type Book struct {
 	OpenLibraryId string
 	CoverId       string
 	Year          int
+	Publisher     string
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 }
