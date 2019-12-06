@@ -12,8 +12,6 @@ var timeNow = time.Now()
 var earlier10sec = timeNow.Add(-10 * time.Second)
 var earlier15sec = timeNow.Add(-15 * time.Second)
 
-
-
 var books = []model.Book{
 	{
 		Id:            1,
@@ -73,42 +71,42 @@ var users = []model.User{
 	},
 }
 
-var loans = []model.Loan{
-	{
-		Id:             1,
-		Transaction_id: "211231",
-		User_id:        1,
-		Book_id:        1,
-		Type:           1,
-		Created_at:     time.Now(),
+var loans = []*model.Loan{
+	&model.Loan{
+		Id:            1,
+		TransactionID: "211231",
+		UserID:        1,
+		BookID:        1,
+		Type:          1,
+		CreatedAt:     time.Now(),
 	},
-	{
-		Id:             2,
-		Transaction_id: "42423123",
-		User_id:        2,
-		Book_id:        2,
-		Type:           2,
-		Created_at:     time.Now(),
+	&model.Loan{
+		Id:            2,
+		TransactionID: "42423123",
+		UserID:        2,
+		BookID:        2,
+		Type:          2,
+		CreatedAt:     time.Now(),
 	},
 }
 
 type DB struct {
-	Id    int
+	Id     int
 	UserId int
 	LoanId int
-	books []model.Book
-	users []model.User
-	loans []model.Loan
+	books  []model.Book
+	users  []model.User
+	loans  []*model.Loan
 }
 
 func NewDB() *DB {
 	return &DB{
-		Id:    len(books),
+		Id:     len(books),
 		UserId: len(users),
 		LoanId: len(loans),
-		books: books,
-		users: users,
-		loans: loans,
+		books:  books,
+		users:  users,
+		loans:  loans,
 	}
 }
 
@@ -126,13 +124,13 @@ func (db *DB) findBookByID(id int) (*model.Book, int, error) {
 	return nil, -1, fmt.Errorf("error while findBookByID")
 }
 
-func (db *DB) FindAllBooks() ([]*model.Book,error) {
-	pointers := make([]*model.Book,len(db.books))
-	for i:=0;i<len(db.books);i++{
+func (db *DB) FindAllBooks() ([]*model.Book, error) {
+	pointers := make([]*model.Book, len(db.books))
+	for i := 0; i < len(db.books); i++ {
 		pointers[i] = &db.books[i]
 	}
 	fmt.Println(pointers)
-	return pointers,nil
+	return pointers, nil
 }
 
 func (db *DB) CreateBook(book *model.Book) error {
