@@ -55,7 +55,7 @@ func initializeBooks() []*model.Book {
 	return books
 }
 
-var bookHandler handler.BookHandler = handler.BookHandler{
+var bookHandler = handler.BookHandler {
 	Olc: nil,
 }
 

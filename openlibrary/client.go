@@ -6,8 +6,6 @@ import (
 	"github.com/sfqi/library/openlibrary/dto"
 	"net/http"
 	"strings"
-
-
 )
 
 const bookPath = "/books"
@@ -17,19 +15,18 @@ const formatParams = "&format=json&jscmd=data"
 var fetchBookPath = bookPath + bibkeys + formatParams
 
 type Client struct {
-	Url string
+	url string
 }
 
 func NewClient(url string) *Client {
 	url = strings.TrimSuffix(url, "/")
 	return &Client{
-		Url: url,
+		url: url,
 	}
-
 }
 
 func (client *Client) FetchBook(isbn string) (*dto.Book, error) {
-	url := fmt.Sprintf(client.Url+fetchBookPath, isbn)
+	url := fmt.Sprintf(client.url+fetchBookPath, isbn)
 
 	response, err := http.Get(url)
 	if err != nil {
