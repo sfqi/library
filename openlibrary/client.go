@@ -6,8 +6,6 @@ import (
 	"github.com/sfqi/library/openlibrary/dto"
 	"net/http"
 	"strings"
-
-
 )
 
 const bookPath = "/books"
@@ -25,7 +23,6 @@ func NewClient(url string) *Client {
 	return &Client{
 		url: url,
 	}
-
 }
 
 func (client *Client) FetchBook(isbn string) (*dto.Book, error) {

@@ -1,17 +1,22 @@
 package middleware
 
 import (
-	"github.com/gorilla/mux"
 	"context"
 	"fmt"
 	"strconv"
 
+	"github.com/gorilla/mux"
+	"github.com/sfqi/library/domain/model"
+
 	"net/http"
-	"github.com/sfqi/library/repository/postgres"
 )
 
+type store interface {
+	FindBookById(int) (*model.Book, error)
+}
+
 type BookLoader struct {
-	Db *postgres.Store
+	Db store
 }
 
 func (bl BookLoader) GetBook(next http.Handler) http.Handler {
