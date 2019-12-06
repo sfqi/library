@@ -1,4 +1,4 @@
-package openlibrary
+package client_test
 
 import (
 	"github.com/sfqi/library/openlibrary"
