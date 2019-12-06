@@ -24,16 +24,17 @@ func main() {
 		panic(err)
 	}
 
-	openLibraryUrl := os.Getenv("LIBRARY_URL")
-	fmt.Println(openLibraryUrl)
-	olc := openlibrary.NewClient(openLibraryUrl)
+	olc := openlibrary.NewClient(os.Getenv("OPEN_LIBRARY_URL"))
 	port,err := strconv.Atoi(os.Getenv("DB_PORT"))
+	if err != nil{
+		panic(err)
+	}
 	config := postgres.PostgresConfig{
 		Host:     os.Getenv("DB_HOST"),
 		Port:     port,
 		User:     os.Getenv("DB_USER"),
 		Password: os.Getenv("DB_PASSWORD"),
-		Name:     os.Getenv("DB_DATABASE"),
+		Name:     os.Getenv("DB_NAME"),
 	}
 
 	//db := inmemory.NewDB()
