@@ -1,27 +1,50 @@
 package model
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"time"
 )
 
-type State int
+type loanType int
 const(
-	borrow State = 0
-	giveBack State = 1 // Not allowing me to call "return"
+	borrowed loanType = 0
+	returned loanType = 1
 )
 
 type Loan struct{
 	Id int
-	Transaction_id string
-	User_id int
-	Book_id int
-	Type State
-	Created_at time.Time
+	TransactionID string
+	UserID int
+	BookID int
+	Type loanType
+	CreatedAt time.Time
 }
 
 func NewLoan() *Loan{
-	return &Loan{
-		Transaction_id: uuid.New().String(),
+	uuid ,err := uuid.NewUUID()
+	if err != nil{
+		fmt.Println(err)
 	}
+	return &Loan{
+		TransactionID: uuid.String(),
+	}
+}
+
+func ReturnedLoan(userid int, bookid int) *Loan{
+	loan := NewLoan()
+	loan.CreatedAt = time.Now()
+	loan.BookID = bookid
+	loan.UserID=userid
+	loan.Type = 1
+	return loan
+}
+
+func BorrowedLoan(userid int, bookid int) *Loan{
+	loan := NewLoan()
+	loan.CreatedAt = time.Now()
+	loan.BookID = bookid
+	loan.UserID=userid
+	loan.Type = 0
+	return loan
 }
