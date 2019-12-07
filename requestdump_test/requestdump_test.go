@@ -6,6 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/sfqi/library/middleware"
 )
 
@@ -19,7 +21,7 @@ func TestDump(t *testing.T) {
 		t.Fatal(err)
 	}
 	handler := http.HandlerFunc(testHandler)
-	logger := middleware.BodyDump(logger)
+	logger := logrus.New()
 	rr := httptest.NewRecorder()
 	newHandler := middleware.BodyDump{logger}.Dump(handler)
 	newHandler.ServeHTTP(rr, req)
