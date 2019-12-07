@@ -46,7 +46,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
+	defer store.Close()
 	for _, book := range books {
 		if err := store.CreateBook(book); err != nil {
 			panic(err)
