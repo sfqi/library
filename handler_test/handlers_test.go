@@ -1,12 +1,16 @@
-package handler
+package handler_test
 
 import (
+	"github.com/sfqi/library/handler"
+	"context"
 	"bytes"
 	"errors"
 	"github.com/gorilla/mux"
+
 	"github.com/stretchr/testify/assert"
 
 	"encoding/json"
+
 
 	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/handler/dto"
@@ -51,7 +55,7 @@ func initializeBooks() []*model.Book {
 	return books
 }
 
-var bookHandler BookHandler = BookHandler{
+var bookHandler = handler.BookHandler {
 	Olc: nil,
 }
 
@@ -108,6 +112,16 @@ func TestIndex(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
+	book := &model.Book{
+		Id:            2,
+		Title:         "test title",
+		Author:        "other author",
+		Isbn:          "other isbn",
+		Isbn13:        "other isbon13",
+		OpenLibraryId: "other some id",
+		CoverId:       "other cover ID",
+		Year:          2019,
+		}
 	t.Run("assertion of expected response, and actual response", func(t *testing.T) {
 		var books = initializeBooks()
 		var db = mock.NewStore(books, nil)
@@ -118,6 +132,9 @@ func TestUpdate(t *testing.T) {
 		if err != nil {
 			t.Errorf("Error occured, %s", err)
 		}
+
+		ctx := context.WithValue(req.Context(),"book", book) 
+		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
 
@@ -153,6 +170,8 @@ func TestUpdate(t *testing.T) {
 		if err != nil {
 			t.Errorf("Error occured, %s", err)
 		}
+		ctx := context.WithValue(req.Context(),"book", book) 
+		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
 		handler := http.HandlerFunc(bookHandler.Update)
@@ -161,48 +180,7 @@ func TestUpdate(t *testing.T) {
 		expectedError := "Error while decoding from request body"
 		if status := rr.Code; status != http.StatusBadRequest && rr.Body.String() != expectedError {
 			t.Errorf("Expected status code: %d and error: %s,  got: %d and %s", http.StatusBadRequest, expectedError, status, rr.Body.String())
-		}
-	})
 
-	t.Run("Converting id parameter into integer", func(t *testing.T) {
-		var db = &mock.Store{}
-		bookHandler.Db = db
-		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"id":12,"title":"zdravo"}`)))
-		params := map[string]string{"id": "2ss"}
-		req = mux.SetURLVars(req, params)
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
-
-		rr := httptest.NewRecorder()
-
-		handler := http.HandlerFunc(bookHandler.Update)
-
-		handler.ServeHTTP(rr, req)
-		expectedError := "Error while converting url parameter into integer"
-		if status := rr.Code; status != http.StatusBadRequest && rr.Body.String() != expectedError {
-			t.Errorf("Expected status code: %d and error: %s,  got: %d and %s", http.StatusBadRequest, db.Err.Error(), status, rr.Body.String())
-		}
-	})
-	t.Run("Book with given Id can not be found", func(t *testing.T) {
-		var books = initializeBooks()
-		var db = mock.NewStore(books, errors.New("Book with given Id can not be found"))
-		bookHandler.Db = db
-		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"id":12,"title":"zdravo"}`)))
-		params := map[string]string{"id": "12"}
-		req = mux.SetURLVars(req, params)
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
-
-		rr := httptest.NewRecorder()
-
-		handler := http.HandlerFunc(bookHandler.Update)
-
-		handler.ServeHTTP(rr, req)
-
-		if status := rr.Code; status != http.StatusBadRequest && rr.Body.String() != db.Err.Error() {
-			t.Errorf("Expected status code: %d and error: %s,  got: %d and %s", http.StatusBadRequest, db.Err.Error(), status, rr.Body.String())
 		}
 	})
 
@@ -309,46 +287,16 @@ func TestCreate(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	t.Run("Given Id can not be converted", func(t *testing.T) {
-		var db = &mock.Store{}
-		bookHandler.Db = db
-		req, err := http.NewRequest("GET", "/book/{id}", nil)
-		params := map[string]string{"id": "ee"}
-		req = mux.SetURLVars(req, params)
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
-
-		rr := httptest.NewRecorder()
-
-		handler := http.HandlerFunc(bookHandler.Get)
-		handler.ServeHTTP(rr, req)
-		expectedError := "Error while converting url parameter into integer"
-		if status := rr.Code; status != http.StatusBadRequest && rr.Body.String() != expectedError {
-			t.Errorf("Expected status code: %d and error: %s,  got: %d and %s", http.StatusBadRequest, expectedError, status, rr.Body.String())
-		}
-	})
-	t.Run("Book with given Id can not be found", func(t *testing.T) {
-		var books = initializeBooks()
-		var db = mock.NewStore(books, errors.New("Book with given Id can not be found"))
-		bookHandler.Db = db
-		req, err := http.NewRequest("GET", "/book/{id}", nil)
-		params := map[string]string{"id": "44"}
-		req = mux.SetURLVars(req, params)
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
-
-		rr := httptest.NewRecorder()
-
-		handler := http.HandlerFunc(bookHandler.Get)
-
-		handler.ServeHTTP(rr, req)
-
-		if status := rr.Code; status != http.StatusBadRequest && rr.Body.String() != db.Err.Error() {
-			t.Errorf("Expected status code: %d and error: %s,  got: %d and %s", http.StatusBadRequest, db.Err.Error(), status, rr.Body.String())
-		}
-	})
+	book := &model.Book{
+			Id:            1,
+			Title:         "some title",
+			Author:        "some author",
+			Isbn:          "some isbn",
+			Isbn13:        "some isbon13",
+			OpenLibraryId: "again some id",
+			CoverId:       "some cover ID",
+			Year:          2019,
+	}
 	t.Run("Successfully retrieved book", func(t *testing.T) {
 		var books = initializeBooks()
 		var db = mock.NewStore(books, nil)
@@ -360,6 +308,9 @@ func TestGet(t *testing.T) {
 			t.Errorf("Error occured, %s", err)
 		}
 
+		ctx := context.WithValue(req.Context(),"book", book) 
+		req = req.WithContext(ctx)
+		
 		rr := httptest.NewRecorder()
 
 		handler := http.HandlerFunc(bookHandler.Get)
@@ -382,50 +333,17 @@ func TestGet(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	t.Run("Error converting Id to integer", func(t *testing.T) {
-		var db = &mock.Store{}
-		bookHandler.Db = db
-		req, err := http.NewRequest("DELETE", "/books/{id}", nil)
-		params := map[string]string{"id": "e"}
-		req = mux.SetURLVars(req, params)
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
+	book := &model.Book{
+		Id:            2,
+		Title:         "test title",
+		Author:        "other author",
+		Isbn:          "other isbn",
+		Isbn13:        "other isbon13",
+		OpenLibraryId: "other some id",
+		CoverId:       "other cover ID",
+		Year:          2019,
 		}
-
-		rr := httptest.NewRecorder()
-
-		handler := http.HandlerFunc(bookHandler.Delete)
-
-		handler.ServeHTTP(rr, req)
-
-		expectedError := "Error while converting url parameter into integer" + "\n"
-		if status := rr.Code; status != http.StatusBadRequest {
-			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusBadRequest, status)
-		}
-		assert.Equal(t, expectedError, rr.Body.String(), "Response body differs")
-	})
-	t.Run("Error finding book with given Id", func(t *testing.T) {
-		var books = initializeBooks()
-		var db = mock.NewStore(books, errors.New("Book with given Id can not be found"))
-		bookHandler.Db = db
-		req, err := http.NewRequest("DELETE", "/books/{id}", nil)
-		params := map[string]string{"id": "7"}
-		req = mux.SetURLVars(req, params)
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
-
-		rr := httptest.NewRecorder()
-		handler := http.HandlerFunc(bookHandler.Delete)
-
-		handler.ServeHTTP(rr, req)
-
-		if status := rr.Code; status != http.StatusBadRequest {
-			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusBadRequest, status)
-		}
-
-		assert.Equal(t, db.Err.Error()+"\n", rr.Body.String(), "Response body differs")
-	})
+	
 	t.Run("Book succesfully deleted", func(t *testing.T) {
 		var books = initializeBooks()
 		var db = mock.NewStore(books, nil)
@@ -436,6 +354,9 @@ func TestDelete(t *testing.T) {
 		if err != nil {
 			t.Errorf("Error occured, %s", err)
 		}
+
+		ctx := context.WithValue(req.Context(),"book", book) 
+		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
 

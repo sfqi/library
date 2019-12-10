@@ -17,7 +17,6 @@ import (
 	"github.com/sfqi/library/middleware"
 )
 
-
 func main() {
 	err := godotenv.Load()
 	if err != nil{
@@ -37,28 +36,34 @@ func main() {
 		Name:     os.Getenv("DB_NAME"),
 	}
 
-	//db := inmemory.NewDB()
-
-	store ,err:= postgres.Open(config)
-	if err != nil{
+	store, err := postgres.Open(config)
+	if err != nil {
 		panic(err)
 	}
+	defer store.Close()
 	fmt.Println("Successfully connected")
 	bookHandler := &handler.BookHandler{
-		Db: store,
+		Db:  store,
 		Olc: olc,
 	}
 
 	bodyDump := middleware.BodyDump{
 		Logger: log.New(),
 	}
+
+	bookLoad := middleware.BookLoader{
+		Db: store,
+	}
 	r := mux.NewRouter()
+	s := r.PathPrefix("/books").Subrouter()
 
 	r.HandleFunc("/books", bookHandler.Index).Methods("GET")
 	r.HandleFunc("/books", bookHandler.Create).Methods("POST")
-	r.HandleFunc("/books/{id}", bookHandler.Update).Methods("PUT")
-	r.HandleFunc("/book/{id}", bookHandler.Get).Methods("GET")
-	r.HandleFunc("/book/{id}", bookHandler.Delete).Methods("DELETE")
+	s.HandleFunc("/{id}", bookHandler.Update).Methods("PUT")
+	s.HandleFunc("/{id}", bookHandler.Get).Methods("GET")
+	s.HandleFunc("/{id}", bookHandler.Delete).Methods("DELETE")
 	r.Use(bodyDump.Dump)
+	s.Use(bookLoad.GetBook)
+
 	http.ListenAndServe(":8080", r)
 }
