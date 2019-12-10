@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
+	"github.com/joho/godotenv"
+	"github.com/sfqi/library/repository/postgres"
 	"net/http"
 	"os"
+	"strconv"
 
-	"github.com/sfqi/library/repository/postgres"
-
+	_ "github.com/joho/godotenv/autoload"
 	"github.com/sfqi/library/log"
-
 	"github.com/sfqi/library/openlibrary"
 
 	"github.com/gorilla/mux"
@@ -17,14 +18,22 @@ import (
 )
 
 func main() {
-	openLibraryUrl := os.Getenv("LIBRARY")
-	olc := openlibrary.NewClient(openLibraryUrl)
+	err := godotenv.Load()
+	if err != nil{
+		panic(err)
+	}
+
+	olc := openlibrary.NewClient(os.Getenv("OPEN_LIBRARY_URL"))
+	port,err := strconv.Atoi(os.Getenv("DB_PORT"))
+	if err != nil{
+		panic(err)
+	}
 	config := postgres.PostgresConfig{
-		Host:     "localhost",
-		Port:     5432,
-		User:     "bojan",
-		Password: "bojan",
-		Name:     "library",
+		Host:     os.Getenv("DB_HOST"),
+		Port:     port,
+		User:     os.Getenv("DB_USER"),
+		Password: os.Getenv("DB_PASSWORD"),
+		Name:     os.Getenv("DB_NAME"),
 	}
 
 	store, err := postgres.Open(config)

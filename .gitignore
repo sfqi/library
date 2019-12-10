@@ -2,5 +2,7 @@
 .vscode/*
 .vscode/launch.json
 exp
+.env
+
 
 
