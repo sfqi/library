@@ -1,10 +1,12 @@
-package openlibrary
+package openlibrary_test
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/sfqi/library/openlibrary"
 
 	"github.com/sfqi/library/openlibrary/dto"
 )
@@ -18,9 +20,9 @@ func TestFetchBook(t *testing.T) {
 		}))
 
 		defer server.Close()
-		client := &Client{
-			server.URL,
-		}
+
+		client := openlibrary.NewClient(server.URL)
+
 		responseBook, err := client.FetchBook("0201558025")
 
 		if err != nil {
@@ -39,10 +41,8 @@ func TestFetchBook(t *testing.T) {
 		}))
 
 		defer server.Close()
-		client := &Client{
-			server.URL,
-		}
 
+		client := openlibrary.NewClient(server.URL)
 		responseBook, err := client.FetchBook("0140447938")
 
 		checkError(t, err, "error while decoding from FetchBook:")
@@ -57,9 +57,8 @@ func TestFetchBook(t *testing.T) {
 			w.Write([]byte(`{"ISBN:014044723123938": {"title": "War and Peace (Penguin Classics)"}}`))
 		}))
 		defer server.Close()
-		client := &Client{
-			server.URL,
-		}
+
+		client := openlibrary.NewClient(server.URL)
 		responseBook, err := client.FetchBook("0140447932111xxxx")
 
 		checkError(t, err, "value for given key cannot be found:")
