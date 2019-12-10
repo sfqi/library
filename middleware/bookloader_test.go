@@ -18,15 +18,9 @@ type bookHandler struct{
 
 func(bh *bookHandler) ServeHTTP(w http.ResponseWriter,r *http.Request){
 	book := r.Context().Value("book").(*model.Book)
-	bh.bookFromContext = book
-	w.WriteHeader(http.StatusOK)
-}
-
-
-func testHandler(w http.ResponseWriter,r *http.Request){
-	book := r.Context().Value("book").(*model.Book)
 	fmt.Println("Context: ")
 	fmt.Println(book)
+	bh.bookFromContext = book
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -34,18 +28,18 @@ func TestGetBook(t *testing.T){
 	t.Run("Error converting id",func(t *testing.T){
 		bookStore := mock.NewStore(nil,nil)
 		bookLoader := BookLoader{Db:bookStore}
-
 		req, err := http.NewRequest("GET", "/{id}", nil)
 		if err != nil {
 			t.Fatal(err)
 		}
 		params := map[string]string{"id": "rrr"}
 		req = mux.SetURLVars(req, params)
-		handler := http.HandlerFunc(testHandler)
+		bookHandler := &bookHandler{}
+		newHandler := bookLoader.GetBook(bookHandler)
+
 		rr := httptest.NewRecorder()
-		newHandler := bookLoader.GetBook(handler)
 		newHandler.ServeHTTP(rr, req)
-		expectedError := "Error whilr converting url parameter into integer"
+		expectedError := "Error while converting url parameter into integer"
 		if rr.Code != http.StatusBadRequest && expectedError != rr.Body.String() {
 			t.Errorf("Expected code to be %d, got %d", http.StatusOK, rr.Code)
 		}
@@ -82,9 +76,10 @@ func TestGetBook(t *testing.T){
 		if err != nil {
 			t.Fatal(err)
 		}
-		handler := http.HandlerFunc(testHandler)
+		bookHandler := &bookHandler{}
+		newHandler := bookLoader.GetBook(bookHandler)
 		rr := httptest.NewRecorder()
-		newHandler := bookLoader.GetBook(handler)
+
 		newHandler.ServeHTTP(rr, req)
 		assert.Equal(t,bookStore.Err.Error(),rr.Body.String(),"Response body differs")
 	})
