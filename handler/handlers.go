@@ -19,7 +19,8 @@ type store interface {
 	CreateBook(*model.Book) error
 	UpdateBook(*model.Book) error
 	FindAllBooks() ([]*model.Book, error)
-	DeleteBook(*model.Book) error
+	DeleteBook(*model.Book)error
+
 }
 
 type BookHandler struct {
