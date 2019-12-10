@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/sfqi/library/domain/model"
@@ -125,6 +127,15 @@ func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
 	if book.Author != nil {
 		author = book.Author[0].Name
 	}
+	yearRgx := regexp.MustCompile(`[0-9]{4}`)
+
+	yearRgx.MatchString(book.Year)
+	yearString := yearRgx.FindString(book.Year)
+
+	year, err := strconv.Atoi(yearString)
+	if err != nil {
+		fmt.Println("error while converting year from string to int", err)
+	}
 
 	bookToAdd := model.Book{
 		Title:         book.Title,
@@ -133,7 +144,7 @@ func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
 		Isbn13:        isbn13,
 		OpenLibraryId: libraryId,
 		CoverId:       CoverId,
-		Year:          2019, // TODO Change Year to become int
+		Year:          year,
 	}
 	return &bookToAdd
 }

@@ -5,7 +5,7 @@ type Book struct {
 	Identifier Identifier `json:"identifiers"`
 	Author     []Author   `json:"authors"`
 	Cover      Cover      `json:"cover"`
-	Year       int     `json:"publish_date"`
+	Year       string     `json:"publish_date"`
 }
 
 type Identifier struct {
