@@ -5,6 +5,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/sirupsen/logrus"
+
+	"github.com/sfqi/library/middleware"
 )
 
 func testHandler(w http.ResponseWriter, r *http.Request) {
@@ -17,8 +21,9 @@ func TestDump(t *testing.T) {
 		t.Fatal(err)
 	}
 	handler := http.HandlerFunc(testHandler)
+	logger := logrus.New()
 	rr := httptest.NewRecorder()
-	newHandler := Dump(handler)
+	newHandler := middleware.BodyDump{logger}.Dump(handler)
 	newHandler.ServeHTTP(rr, req)
 	fmt.Println(rr.Code)
 	if rr.Code != http.StatusOK {
