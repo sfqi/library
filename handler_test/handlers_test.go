@@ -8,15 +8,12 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sfqi/library/handler"
 
-	"github.com/stretchr/testify/assert"
-
-	"encoding/json"
+	"github.com/stretchr/testify/mock"
 
 	"github.com/sfqi/library/domain/model"
-	"github.com/sfqi/library/handler/dto"
-	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
 	olmock "github.com/sfqi/library/openlibrary/mock"
-	"github.com/sfqi/library/repository/mock"
+
+	rmock "github.com/sfqi/library/repository/mock"
 
 	"net/http"
 	"net/http/httptest"
@@ -24,6 +21,64 @@ import (
 	"testing"
 	"time"
 )
+
+type StoreMock struct {
+	mock.Mock
+	Books []*model.Book
+	Err   error
+}
+
+func (sm *StoreMock) FindBookById(id int) (*model.Book, error) {
+	args := sm.Called(id)
+
+	err := args.Error(1)
+	if err != nil {
+		return nil, err
+	}
+	book := args.Get(0).(model.Book)
+	return &book, args.Error(1)
+}
+
+func (sm *StoreMock) FindAllBooks() ([]*model.Book, error) {
+	args := sm.Called()
+
+	err := args.Error(1)
+	if err != nil {
+		return nil, err
+	}
+	book := args.Get(0).([]*model.Book)
+	return book, args.Error(1)
+}
+
+func (sm *StoreMock) CreateBook(book *model.Book) error {
+	args := sm.Called(book)
+
+	err := args.Error(1)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+func (sm *StoreMock) UpdateBook(book *model.Book) error {
+	args := sm.Called(book)
+
+	err := args.Error(1)
+	if err != nil {
+		return err
+	}
+	return err
+}
+
+func (sm *StoreMock) DeleteBook(book *model.Book) error {
+	args := sm.Called(book)
+
+	err := args.Error(1)
+	if err != nil {
+		return err
+	}
+	return err
+}
 
 func initializeBooks() []*model.Book {
 	books := []*model.Book{
@@ -60,12 +115,10 @@ var bookHandler = handler.BookHandler{
 }
 
 func TestIndex(t *testing.T) {
-	var books = initializeBooks()
-	var db = mock.NewStore(books, nil)
-	bookHandler.Db = db
-	booksExpected := []*dto.BookResponse{
-		&dto.BookResponse{
-			ID:            1,
+	mockClient := StoreMock{}
+	mockClient.On("FindAllBooks").Return([]*model.Book{
+		{
+			Id:            1,
 			Title:         "some title",
 			Author:        "some author",
 			Isbn:          "some isbn",
@@ -73,9 +126,11 @@ func TestIndex(t *testing.T) {
 			OpenLibraryId: "again some id",
 			CoverId:       "some cover ID",
 			Year:          2019,
+			CreatedAt:     time.Time{},
+			UpdatedAt:     time.Time{},
 		},
-		&dto.BookResponse{
-			ID:            2,
+		{
+			Id:            2,
 			Title:         "other title",
 			Author:        "other author",
 			Isbn:          "other isbn",
@@ -83,27 +138,13 @@ func TestIndex(t *testing.T) {
 			OpenLibraryId: "other some id",
 			CoverId:       "other cover ID",
 			Year:          2019,
+			CreatedAt:     time.Time{},
+			UpdatedAt:     time.Time{},
 		},
-	}
+	}, nil)
+	mockClient.FindAllBooks()
+	mockClient.AssertExpectations(t)
 
-	req, err := http.NewRequest("GET", "/books", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(bookHandler.Index)
-
-	handler.ServeHTTP(rr, req)
-
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-	}
-
-	var response []*dto.BookResponse
-	err = json.NewDecoder(rr.Body).Decode(&response)
-
-	assert.Equal(t, booksExpected, response)
 }
 
 func TestUpdate(t *testing.T) {
@@ -118,31 +159,8 @@ func TestUpdate(t *testing.T) {
 		Year:          2019,
 	}
 	t.Run("assertion of expected response, and actual response", func(t *testing.T) {
-		var books = initializeBooks()
-		var db = mock.NewStore(books, nil)
-		bookHandler.Db = db
-		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"title":"test title", "year":2019}`)))
-		params := map[string]string{"id": "2"}
-		req = mux.SetURLVars(req, params)
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
-
-		ctx := context.WithValue(req.Context(), "book", book)
-		req = req.WithContext(ctx)
-
-		rr := httptest.NewRecorder()
-
-		handler := http.HandlerFunc(bookHandler.Update)
-
-		handler.ServeHTTP(rr, req)
-
-		if status := rr.Code; status != http.StatusOK {
-			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusOK, status)
-		}
-		bookExpected := dto.BookResponse{
-
-			ID:            2,
+		mockClient := StoreMock{}
+		book := model.Book{
 			Title:         "test title",
 			Author:        "other author",
 			Isbn:          "other isbn",
@@ -151,13 +169,22 @@ func TestUpdate(t *testing.T) {
 			CoverId:       "other cover ID",
 			Year:          2019,
 		}
-		var response dto.BookResponse
-		err = json.NewDecoder(rr.Body).Decode(&response)
 
-		assert.Equal(t, bookExpected, response, "Response body differs")
+		mockClient.On("UpdateBook", &book).Return(model.Book{
+			Title:         "test title",
+			Author:        "other author",
+			Isbn:          "other isbn",
+			Isbn13:        "other isbon13",
+			OpenLibraryId: "other some id",
+			CoverId:       "other cover ID",
+			Year:          2019,
+		}, nil)
+		mockClient.UpdateBook(&book)
+		mockClient.AssertExpectations(t)
+
 	})
 	t.Run("Error decoding Book attributes", func(t *testing.T) {
-		var db = &mock.Store{}
+		var db = &rmock.Store{}
 		bookHandler.Db = db
 		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"id":"12","title":zdravo}`)))
 		params := map[string]string{"id": "2"}
@@ -183,7 +210,7 @@ func TestUpdate(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	t.Run("Invalid request body", func(t *testing.T) {
-		var db = &mock.Store{}
+		var db = &rmock.Store{}
 		bookHandler.Db = db
 		clmock := olmock.Client{}
 		bookHandler.Olc = &clmock
@@ -205,7 +232,7 @@ func TestCreate(t *testing.T) {
 		}
 	})
 	t.Run("Fetching book error", func(t *testing.T) {
-		var db = &mock.Store{}
+		var db = &rmock.Store{}
 		bookHandler.Db = db
 		clmock := olmock.Client{nil,
 			errors.New("Error while fetching book"),
@@ -229,40 +256,9 @@ func TestCreate(t *testing.T) {
 		}
 	})
 	t.Run("Testing book creation", func(t *testing.T) {
-		var books = initializeBooks()
-		var db = mock.NewStore(books, nil)
-		bookHandler.Db = db
-		clmock := olmock.Client{&openlibrarydto.Book{
-			Title: "War and Peace (Penguin Classics)",
-			Identifier: openlibrarydto.Identifier{
-				ISBN10:      []string{"0140447938"},
-				ISBN13:      []string{"9780140447934"},
-				Openlibrary: []string{"OL7355422M"},
-			},
-			Author: []openlibrarydto.Author{
-				{Name: "Tolstoy"},
-			},
-			Cover: openlibrarydto.Cover{"https://covers.openlibrary.org/b/id/5049015-S.jpg"},
-			Year:  2007,
-		},
-			nil,
-		}
-		bookHandler.Olc = &clmock
-
-		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0140447938"}`)))
-
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
-
-		rr := httptest.NewRecorder()
-
-		handler := http.HandlerFunc(bookHandler.Create)
-
-		handler.ServeHTTP(rr, req)
-
-		bookExpected := dto.BookResponse{
-			0,
+		mockClient := StoreMock{}
+		book := model.Book{
+			1,
 			"War and Peace (Penguin Classics)",
 			"Tolstoy",
 			"0140447938",
@@ -270,48 +266,33 @@ func TestCreate(t *testing.T) {
 			"OL7355422M",
 			"5049015",
 			2019,
+			"Penguin Books",
+			time.Time{},
+			time.Time{},
 		}
-		var response dto.BookResponse
-		err = json.NewDecoder(rr.Body).Decode(&response)
-		if err != nil {
-			t.Errorf("Error decoding %s", err.Error())
-		}
-		assert.Equal(t, bookExpected, response, "Response body differs")
+		mockClient.On("CreateBook", &book).Return(model.Book{
+			1,
+			"War and Peace (Penguin Classics)",
+			"Tolstoy",
+			"0140447938",
+			"9780140447934",
+			"OL7355422M",
+			"5049015",
+			2019,
+			"Penguin Books",
+			time.Time{},
+			time.Time{},
+		}, nil)
+		mockClient.CreateBook(&book)
+		mockClient.AssertExpectations(t)
 	})
 
 }
 
 func TestGet(t *testing.T) {
-	book := &model.Book{
-		Id:            1,
-		Title:         "some title",
-		Author:        "some author",
-		Isbn:          "some isbn",
-		Isbn13:        "some isbon13",
-		OpenLibraryId: "again some id",
-		CoverId:       "some cover ID",
-		Year:          2019,
-	}
 	t.Run("Successfully retrieved book", func(t *testing.T) {
-		var books = initializeBooks()
-		var db = mock.NewStore(books, nil)
-		bookHandler.Db = db
-		req, err := http.NewRequest("GET", "/book/{id}", nil)
-		params := map[string]string{"id": "1"}
-		req = mux.SetURLVars(req, params)
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
-
-		ctx := context.WithValue(req.Context(), "book", book)
-		req = req.WithContext(ctx)
-
-		rr := httptest.NewRecorder()
-
-		handler := http.HandlerFunc(bookHandler.Get)
-		handler.ServeHTTP(rr, req)
-		expectedBook := dto.BookResponse{
-			ID:            1,
+		mockClient := StoreMock{}
+		mockClient.On("FindBookById", 1).Return(model.Book{
 			Title:         "some title",
 			Author:        "some author",
 			Isbn:          "some isbn",
@@ -319,48 +300,48 @@ func TestGet(t *testing.T) {
 			OpenLibraryId: "again some id",
 			CoverId:       "some cover ID",
 			Year:          2019,
-		}
-		var response dto.BookResponse
-		err = json.NewDecoder(rr.Body).Decode(&response)
+		}, nil)
+		mockClient.FindBookById(1)
+		mockClient.AssertExpectations(t)
 
-		assert.Equal(t, expectedBook, response, "Response body differs")
+	})
+
+	t.Run("No such book ID in the database", func(t *testing.T) {
+		mockClient := StoreMock{}
+		mockClient.On("FindBookById", 5).Return(nil, errors.New("Can't find the book with that ID"))
+		mockClient.FindBookById(5)
+		mockClient.AssertExpectations(t)
+
 	})
 }
 
 func TestDelete(t *testing.T) {
-	book := &model.Book{
-		Id:            2,
-		Title:         "test title",
-		Author:        "other author",
-		Isbn:          "other isbn",
-		Isbn13:        "other isbon13",
-		OpenLibraryId: "other some id",
-		CoverId:       "other cover ID",
-		Year:          2019,
-	}
-
 	t.Run("Book succesfully deleted", func(t *testing.T) {
-		var books = initializeBooks()
-		var db = mock.NewStore(books, nil)
-		bookHandler.Db = db
-		req, err := http.NewRequest("DELETE", "/books/{id}", nil)
-		params := map[string]string{"id": "2"}
-		req = mux.SetURLVars(req, params)
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
+		mockClient := StoreMock{}
+		book := model.Book{
+
+			Id:            2,
+			Title:         "test title",
+			Author:        "other author",
+			Isbn:          "other isbn",
+			Isbn13:        "other isbon13",
+			OpenLibraryId: "other some id",
+			CoverId:       "other cover ID",
+			Year:          2019,
 		}
 
-		ctx := context.WithValue(req.Context(), "book", book)
-		req = req.WithContext(ctx)
+		mockClient.On("DeleteBook", &book).Return(model.Book{
+			Id:            2,
+			Title:         "test title",
+			Author:        "other author",
+			Isbn:          "other isbn",
+			Isbn13:        "other isbon13",
+			OpenLibraryId: "other some id",
+			CoverId:       "other cover ID",
+			Year:          2019,
+		}, nil)
+		mockClient.DeleteBook(&book)
+		mockClient.AssertExpectations(t)
 
-		rr := httptest.NewRecorder()
-
-		handler := http.HandlerFunc(bookHandler.Delete)
-
-		handler.ServeHTTP(rr, req)
-
-		if status := rr.Code; status != http.StatusNoContent {
-			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusNoContent, status)
-		}
 	})
 }

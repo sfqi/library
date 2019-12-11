@@ -4,23 +4,31 @@ import (
 	"github.com/sfqi/library/domain/model"
 )
 
-type Store struct{
-	Books []*model.Book
-	Err error
+type StoreMock interface {
+	FindBookById(int) (*model.Book, error)
+	CreateBook(*model.Book) error
+	UpdateBook(*model.Book) error
+	FindAllBooks() ([]*model.Book, error)
+	DeleteBook(*model.Book) error
 }
 
-func NewStore(books []*model.Book,err error)*Store{
+type Store struct {
+	Books []*model.Book
+	Err   error
+}
+
+func NewStore(books []*model.Book, err error) *Store {
 	return &Store{
 		Books: books,
-		Err:err,
+		Err:   err,
 	}
 }
 
-func (s *Store)FindBookById(id int) (*model.Book, error){
-	return s.findBookByID(id),s.Err
+func (s *Store) FindBookById(id int) (*model.Book, error) {
+	return s.findBookByID(id), s.Err
 }
 
-func (s *Store) findBookByID(id int) (*model.Book) {
+func (s *Store) findBookByID(id int) *model.Book {
 	for _, b := range s.Books {
 		if b.Id == id {
 			return b
@@ -29,18 +37,18 @@ func (s *Store) findBookByID(id int) (*model.Book) {
 	return nil
 }
 
-func (s *Store)CreateBook(book *model.Book) error{
+func (s *Store) CreateBook(book *model.Book) error {
 	return s.Err
 }
 
-func (s *Store)UpdateBook(book *model.Book) error{
+func (s *Store) UpdateBook(book *model.Book) error {
 	return s.Err
 }
 
-func (s *Store)FindAllBooks() ([]*model.Book, error){
+func (s *Store) FindAllBooks() ([]*model.Book, error) {
 	return s.Books, s.Err
 }
 
-func(s *Store)DeleteBook(book *model.Book)error{
+func (s *Store) DeleteBook(book *model.Book) error {
 	return s.Err
 }
