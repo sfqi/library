@@ -135,7 +135,7 @@ func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
 	year, err := strconv.Atoi(yearString)
 	if err != nil {
 		fmt.Println("error while converting year from string to int", err)
-		return
+		return nil
 	}
 
 	bookToAdd := model.Book{
