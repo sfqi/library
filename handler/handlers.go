@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/sfqi/library/domain/model"
@@ -13,6 +15,8 @@ import (
 
 	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
 )
+
+var yearRgx = regexp.MustCompile(`[0-9]{4}`)
 
 type store interface {
 	FindBookById(int) (*model.Book, error)
@@ -127,6 +131,14 @@ func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
 		author = book.Author[0].Name
 	}
 
+	yearString := yearRgx.FindString(book.Year)
+
+	year, err := strconv.Atoi(yearString)
+	if err != nil {
+		fmt.Println("error while converting year from string to int", err)
+		return nil
+	}
+
 	bookToAdd := model.Book{
 		Title:         book.Title,
 		Author:        author,
@@ -134,7 +146,7 @@ func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
 		Isbn13:        isbn13,
 		OpenLibraryId: libraryId,
 		CoverId:       CoverId,
-		Year:          2019, // TODO Change Year to become int
+		Year:          year,
 	}
 	return &bookToAdd
 }
