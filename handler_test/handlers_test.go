@@ -1,16 +1,16 @@
 package handler_test
 
 import (
-	"github.com/sfqi/library/handler"
-	"context"
 	"bytes"
+	"context"
 	"errors"
+
 	"github.com/gorilla/mux"
+	"github.com/sfqi/library/handler"
 
 	"github.com/stretchr/testify/assert"
 
 	"encoding/json"
-
 
 	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/handler/dto"
@@ -55,7 +55,7 @@ func initializeBooks() []*model.Book {
 	return books
 }
 
-var bookHandler = handler.BookHandler {
+var bookHandler = handler.BookHandler{
 	Olc: nil,
 }
 
@@ -121,7 +121,7 @@ func TestUpdate(t *testing.T) {
 		OpenLibraryId: "other some id",
 		CoverId:       "other cover ID",
 		Year:          2019,
-		}
+	}
 	t.Run("assertion of expected response, and actual response", func(t *testing.T) {
 		var books = initializeBooks()
 		var db = mock.NewStore(books, nil)
@@ -133,7 +133,7 @@ func TestUpdate(t *testing.T) {
 			t.Errorf("Error occured, %s", err)
 		}
 
-		ctx := context.WithValue(req.Context(),"book", book) 
+		ctx := context.WithValue(req.Context(), "book", book)
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
@@ -170,7 +170,7 @@ func TestUpdate(t *testing.T) {
 		if err != nil {
 			t.Errorf("Error occured, %s", err)
 		}
-		ctx := context.WithValue(req.Context(),"book", book) 
+		ctx := context.WithValue(req.Context(), "book", book)
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
@@ -288,14 +288,14 @@ func TestCreate(t *testing.T) {
 
 func TestGet(t *testing.T) {
 	book := &model.Book{
-			Id:            1,
-			Title:         "some title",
-			Author:        "some author",
-			Isbn:          "some isbn",
-			Isbn13:        "some isbon13",
-			OpenLibraryId: "again some id",
-			CoverId:       "some cover ID",
-			Year:          2019,
+		Id:            1,
+		Title:         "some title",
+		Author:        "some author",
+		Isbn:          "some isbn",
+		Isbn13:        "some isbon13",
+		OpenLibraryId: "again some id",
+		CoverId:       "some cover ID",
+		Year:          2019,
 	}
 	t.Run("Successfully retrieved book", func(t *testing.T) {
 		var books = initializeBooks()
@@ -308,9 +308,9 @@ func TestGet(t *testing.T) {
 			t.Errorf("Error occured, %s", err)
 		}
 
-		ctx := context.WithValue(req.Context(),"book", book) 
+		ctx := context.WithValue(req.Context(), "book", book)
 		req = req.WithContext(ctx)
-		
+
 		rr := httptest.NewRecorder()
 
 		handler := http.HandlerFunc(bookHandler.Get)
@@ -342,8 +342,8 @@ func TestDelete(t *testing.T) {
 		OpenLibraryId: "other some id",
 		CoverId:       "other cover ID",
 		Year:          2019,
-		}
-	
+	}
+
 	t.Run("Book succesfully deleted", func(t *testing.T) {
 		var books = initializeBooks()
 		var db = mock.NewStore(books, nil)
@@ -355,7 +355,7 @@ func TestDelete(t *testing.T) {
 			t.Errorf("Error occured, %s", err)
 		}
 
-		ctx := context.WithValue(req.Context(),"book", book) 
+		ctx := context.WithValue(req.Context(), "book", book)
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
