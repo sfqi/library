@@ -6,11 +6,10 @@ import (
 	"errors"
 
 	"github.com/gorilla/mux"
-	"github.com/sfqi/library/handler"
-
 	"github.com/stretchr/testify/mock"
 
 	"github.com/sfqi/library/domain/model"
+	"github.com/sfqi/library/handler"
 	olmock "github.com/sfqi/library/openlibrary/mock"
 
 	rmock "github.com/sfqi/library/repository/mock"
@@ -78,36 +77,6 @@ func (sm *StoreMock) DeleteBook(book *model.Book) error {
 		return err
 	}
 	return err
-}
-
-func initializeBooks() []*model.Book {
-	books := []*model.Book{
-		{
-			Id:            1,
-			Title:         "some title",
-			Author:        "some author",
-			Isbn:          "some isbn",
-			Isbn13:        "some isbon13",
-			OpenLibraryId: "again some id",
-			CoverId:       "some cover ID",
-			Year:          2019,
-			CreatedAt:     time.Time{},
-			UpdatedAt:     time.Time{},
-		},
-		{
-			Id:            2,
-			Title:         "other title",
-			Author:        "other author",
-			Isbn:          "other isbn",
-			Isbn13:        "other isbon13",
-			OpenLibraryId: "other some id",
-			CoverId:       "other cover ID",
-			Year:          2019,
-			CreatedAt:     time.Time{},
-			UpdatedAt:     time.Time{},
-		},
-	}
-	return books
 }
 
 var bookHandler = handler.BookHandler{
