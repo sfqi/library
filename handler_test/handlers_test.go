@@ -19,39 +19,6 @@ import (
 	"testing"
 )
 
-//func initializeBooks() []*model.Book {
-//	books := []*model.Book{
-//		{
-//			Id:            1,
-//			Title:         "some title",
-//			Author:        "some author",
-//			Isbn:          "some isbn",
-//			Isbn13:        "some isbon13",
-//			OpenLibraryId: "again some id",
-//			CoverId:       "some cover ID",
-//			Year:          2019,
-//			CreatedAt:     time.Time{},
-//			UpdatedAt:     time.Time{},
-//		},
-//		{
-//			Id:            2,
-//			Title:         "other title",
-//			Author:        "other author",
-//			Isbn:          "other isbn",
-//			Isbn13:        "other isbon13",
-//			OpenLibraryId: "other some id",
-//			CoverId:       "other cover ID",
-//			Year:          2019,
-//			CreatedAt:     time.Time{},
-//			UpdatedAt:     time.Time{},
-//		},
-//	}
-//	return books
-//}
-
-//var bookHandler = handler.BookHandler {
-//	Olc: nil,
-//}
 
 func TestIndex(t *testing.T) {
 	var db = &mock.Store{}
