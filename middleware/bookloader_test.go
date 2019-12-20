@@ -83,7 +83,7 @@ func TestGetBook(t *testing.T) {
 			OpenLibraryId: "again some id",
 			CoverId:       "some cover ID",
 			Year:          2019,
-		}, nil)
+		}, nil, errors.New("Error finding book by ID"))
 		bookLoader.Db = &store
 		newHandler := bookLoader.GetBook(bookHandler)
 		newHandler.ServeHTTP(rr, req)

@@ -19,7 +19,6 @@ import (
 	"testing"
 )
 
-
 func TestIndex(t *testing.T) {
 	var db = &mock.Store{}
 	bookHandler := handler.BookHandler{}
@@ -73,7 +72,7 @@ func TestIndex(t *testing.T) {
 			OpenLibraryId: "other some id",
 			CoverId:       "other cover ID",
 			Year:          2019,
-		}}, nil)
+		}}, errors.New("Error finding all books"))
 
 	bookHandler.Db = db
 
@@ -87,6 +86,9 @@ func TestIndex(t *testing.T) {
 
 	var response []dto.BookResponse
 	err = json.NewDecoder(rr.Body).Decode(&response)
+	if err != nil {
+		t.Errorf("Error decoding %s", err.Error())
+	}
 	assert.Equal(t, booksExpected, response, "Asserting expectation and actual response")
 
 }
@@ -125,7 +127,7 @@ func TestUpdate(t *testing.T) {
 			OpenLibraryId: "other some id",
 			CoverId:       "other cover ID",
 			Year:          2019,
-		}).Return(nil)
+		}).Return(nil, errors.New("Error updating book"))
 		bookHandler.Db = db
 		handler := http.HandlerFunc(bookHandler.Update)
 
@@ -147,7 +149,9 @@ func TestUpdate(t *testing.T) {
 		}
 		var response dto.BookResponse
 		err = json.NewDecoder(rr.Body).Decode(&response)
-
+		if err != nil {
+			t.Errorf("Error decoding %s", err.Error())
+		}
 		assert.Equal(t, bookExpected, response, "Response body differs")
 	})
 	t.Run("Error decoding Book attributes", func(t *testing.T) {
@@ -182,6 +186,27 @@ func TestUpdate(t *testing.T) {
 			t.Errorf("Expected status code: %d and error: %s,  got: %d and %s", http.StatusBadRequest, expectedError, status, rr.Body.String())
 
 		}
+	})
+	t.Run("Cannot retreive book from context", func(t *testing.T) {
+
+		bookHandler := handler.BookHandler{}
+
+		req, err := http.NewRequest("UPDATE", "/book/{id}", nil)
+		params := map[string]string{"id": "5"}
+		req = mux.SetURLVars(req, params)
+		if err != nil {
+			t.Errorf("Error occured, %s", err)
+		}
+
+		ctx := context.WithValue(req.Context(), "book", nil)
+		req = req.WithContext(ctx)
+		rr := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(bookHandler.Update)
+		handler.ServeHTTP(rr, req)
+		expectedResponse := "Internal server error:error retrieving book from context" + "\n"
+
+		assert.Equal(t, expectedResponse, rr.Body.String(), "Response body differs")
 	})
 
 }
@@ -271,7 +296,7 @@ func TestCreate(t *testing.T) {
 			OpenLibraryId: "OL7355422M",
 			CoverId:       "5049015",
 			Year:          2007,
-		}).Return(nil)
+		}).Return(nil, errors.New("Error creating book"))
 		bookHandler.Db = &db
 		handler := http.HandlerFunc(bookHandler.Create)
 
@@ -332,7 +357,7 @@ func TestGet(t *testing.T) {
 			OpenLibraryId: "again some id",
 			CoverId:       "some cover ID",
 			Year:          2019,
-		}, nil)
+		}, errors.New("Error finding book by ID"))
 
 		bookHandler.Db = &db
 		handler := http.HandlerFunc(bookHandler.Get)
@@ -349,7 +374,9 @@ func TestGet(t *testing.T) {
 		}
 		var response dto.BookResponse
 		err = json.NewDecoder(rr.Body).Decode(&response)
-
+		if err != nil {
+			t.Errorf("Error decoding %s", err.Error())
+		}
 		assert.Equal(t, expectedBook, response, "Response body differs")
 	})
 	t.Run("Cannot retreive book from context", func(t *testing.T) {
@@ -402,7 +429,7 @@ func TestDelete(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 
-		db.On("DeleteBook", book).Return(nil)
+		db.On("DeleteBook", book).Return(nil, errors.New("Error deleting book"))
 
 		bookHandler.Db = &db
 
