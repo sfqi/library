@@ -1,6 +1,8 @@
 package openlibrary_test
 
 import (
+	"errors"
+	"github.com/sfqi/library/openlibrary/mock"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -14,15 +16,9 @@ import (
 func TestFetchBook(t *testing.T) {
 	t.Run("book is successfully fetched", func(t *testing.T) {
 		expected := `{ISBN:0201558025": {"title": "Concrete mathematics"}}`
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"ISBN:0201558025": {"title": "Concrete mathematics"}}`))
-		}))
 
-		defer server.Close()
-
-		client := openlibrary.NewClient(server.URL)
-
+		client := mock.Client{}
+		client.On("FetchBook", "0201558025").Return(&dto.Book{Title: "Concrete mathematics"}, nil)
 		responseBook, err := client.FetchBook("0201558025")
 
 		if err != nil {
@@ -52,13 +48,8 @@ func TestFetchBook(t *testing.T) {
 	})
 
 	t.Run("server response doesn't contain the expected ISBN key", func(t *testing.T) {
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"ISBN:014044723123938": {"title": "War and Peace (Penguin Classics)"}}`))
-		}))
-		defer server.Close()
-
-		client := openlibrary.NewClient(server.URL)
+		client := mock.Client{}
+		client.On("FetchBook", "0140447932111xxxx").Return(nil, errors.New("value for given key cannot be found:"))
 		responseBook, err := client.FetchBook("0140447932111xxxx")
 
 		checkError(t, err, "value for given key cannot be found:")

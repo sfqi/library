@@ -4,7 +4,7 @@ import (
 	"bytes"
 
 	"encoding/json"
-	"context"
+
 	"errors"
 
 	"github.com/gorilla/mux"
@@ -23,7 +23,7 @@ import (
 )
 
 func TestIndex(t *testing.T) {
-	t.Run("Successfully returned books",func(t *testing.T){
+	t.Run("Successfully returned books", func(t *testing.T) {
 		var db = &mock.Store{}
 		bookHandler := handler.BookHandler{}
 
@@ -95,7 +95,7 @@ func TestIndex(t *testing.T) {
 		}
 		assert.Equal(t, booksExpected, response, "Asserting expectation and actual response")
 	})
-	t.Run("Error retrieving books",func(t *testing.T){
+	t.Run("Error retrieving books", func(t *testing.T) {
 		var db = &mock.Store{}
 		bookHandler := handler.BookHandler{}
 
@@ -167,10 +167,8 @@ func TestUpdate(t *testing.T) {
 			t.Errorf("Error occured, %s", err)
 		}
 
-
 		ctx := context.WithValue(req.Context(), "book", book)
 		req = req.WithContext(ctx)
-
 
 		rr := httptest.NewRecorder()
 		db.On("UpdateBook", &model.Book{
@@ -376,13 +374,12 @@ func TestCreate(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 		db.On("CreateBook", &model.Book{
-			Title:         "War and Peace (Penguin Classics)",
+			Title: "War and Peace (Penguin Classics)",
 		}).Return(errors.New("Error creating book"))
 		bookHandler.Db = &db
 		handler := http.HandlerFunc(bookHandler.Create)
 
 		handler.ServeHTTP(rr, req)
-
 
 		expectedResponse := "Error creating book\n"
 		assert.Equal(t, expectedResponse, rr.Body.String(), "Response body differs")
