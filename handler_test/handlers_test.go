@@ -4,7 +4,7 @@ import (
 	"bytes"
 
 	"encoding/json"
-	"context"
+
 	"errors"
 
 	"github.com/gorilla/mux"
@@ -23,7 +23,7 @@ import (
 )
 
 func TestIndex(t *testing.T) {
-	t.Run("Successfully returned books",func(t *testing.T){
+	t.Run("Successfully returned books", func(t *testing.T) {
 		var db = &mock.Store{}
 		bookHandler := handler.BookHandler{}
 
@@ -95,7 +95,7 @@ func TestIndex(t *testing.T) {
 		}
 		assert.Equal(t, booksExpected, response, "Asserting expectation and actual response")
 	})
-	t.Run("Error retrieving books",func(t *testing.T){
+	t.Run("Error retrieving books", func(t *testing.T) {
 		var db = &mock.Store{}
 		bookHandler := handler.BookHandler{}
 
@@ -167,10 +167,8 @@ func TestUpdate(t *testing.T) {
 			t.Errorf("Error occured, %s", err)
 		}
 
-
 		ctx := context.WithValue(req.Context(), "book", book)
 		req = req.WithContext(ctx)
-
 
 		rr := httptest.NewRecorder()
 		db.On("UpdateBook", &model.Book{
@@ -313,10 +311,7 @@ func TestCreate(t *testing.T) {
 	t.Run("Invalid request body", func(t *testing.T) {
 
 		bookHandler := handler.BookHandler{}
-		clmock := olmock.Client{
-			Book: nil,
-			Err:  errors.New("Error while decoding from request body"),
-		}
+		clmock := olmock.Client{}
 		bookHandler.Olc = &clmock
 
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{ISBN:"0140447938"}`)))
@@ -337,9 +332,8 @@ func TestCreate(t *testing.T) {
 	})
 	t.Run("Fetching book error", func(t *testing.T) {
 		bookHandler := handler.BookHandler{}
-		clmock := olmock.Client{nil,
-			errors.New("Error while fetching book"),
-		}
+		clmock := olmock.Client{}
+		clmock.On("FetchBook", "0140447938222").Return(nil, errors.New("Error while fetching book: "))
 		bookHandler.Olc = &clmock
 
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0140447938222"}`)))
@@ -353,19 +347,18 @@ func TestCreate(t *testing.T) {
 		handler := http.HandlerFunc(bookHandler.Create)
 
 		handler.ServeHTTP(rr, req)
-		contains := strings.Contains(rr.Body.String(), clmock.Err.Error())
+		expectedError := "Error while fetching book: "
+		contains := strings.Contains(rr.Body.String(), expectedError)
 		if !contains && rr.Code != http.StatusBadRequest {
-			t.Errorf("Expected error to be %s, got error: %s", clmock.Err.Error(), rr.Body.String())
+			t.Errorf("Expected error to be %s, got error: %s", expectedError, rr.Body.String())
 		}
 	})
 	t.Run("Creation of book failed in database", func(t *testing.T) {
 		db := mock.Store{}
 		bookHandler := handler.BookHandler{}
-		clmock := olmock.Client{&openlibrarydto.Book{
-			Title: "War and Peace (Penguin Classics)",
-		},
-			nil,
-		}
+
+		clmock := olmock.Client{}
+		clmock.On("FetchBook", "0140447938").Return(&openlibrarydto.Book{Title: "War and Peace (Penguin Classics)"}, nil)
 		bookHandler.Olc = &clmock
 
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0140447938"}`)))
@@ -376,13 +369,12 @@ func TestCreate(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 		db.On("CreateBook", &model.Book{
-			Title:         "War and Peace (Penguin Classics)",
+			Title: "War and Peace (Penguin Classics)",
 		}).Return(errors.New("Error creating book"))
 		bookHandler.Db = &db
 		handler := http.HandlerFunc(bookHandler.Create)
 
 		handler.ServeHTTP(rr, req)
-
 
 		expectedResponse := "Error creating book\n"
 		assert.Equal(t, expectedResponse, rr.Body.String(), "Response body differs")
@@ -390,7 +382,9 @@ func TestCreate(t *testing.T) {
 	t.Run("Testing book creation", func(t *testing.T) {
 		db := mock.Store{}
 		bookHandler := handler.BookHandler{}
-		clmock := olmock.Client{&openlibrarydto.Book{
+
+		clmock := olmock.Client{}
+		clmock.On("FetchBook", "0140447938").Return(&openlibrarydto.Book{
 			Title: "War and Peace (Penguin Classics)",
 			Identifier: openlibrarydto.Identifier{
 				ISBN10:      []string{"0140447938"},
@@ -403,8 +397,7 @@ func TestCreate(t *testing.T) {
 			Cover: openlibrarydto.Cover{"https://covers.openlibrary.org/b/id/5049015-S.jpg"},
 			Year:  "2007",
 		},
-			nil,
-		}
+			nil)
 		bookHandler.Olc = &clmock
 
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0140447938"}`)))
@@ -446,7 +439,6 @@ func TestCreate(t *testing.T) {
 		}
 		assert.Equal(t, bookExpected, response, "Response body differs")
 	})
-
 }
 
 func TestGet(t *testing.T) {
