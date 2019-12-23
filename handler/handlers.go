@@ -57,6 +57,7 @@ func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) {
 	allBooks, err := b.Db.FindAllBooks()
 	if err != nil {
 		http.Error(w, "Error finding books", http.StatusInternalServerError)
+		return
 	}
 	var bookResponses []*dto.BookResponse
 
@@ -131,13 +132,17 @@ func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
 		author = book.Author[0].Name
 	}
 
+	year := 0
+	var err error
 	yearString := yearRgx.FindString(book.Year)
-
-	year, err := strconv.Atoi(yearString)
-	if err != nil {
-		fmt.Println("error while converting year from string to int", err)
-		return nil
+	if(yearString != ""){
+		year, err = strconv.Atoi(yearString)
+		if err != nil {
+			fmt.Println("error while converting year from string to int", err)
+			return nil
+		}
 	}
+
 
 	bookToAdd := model.Book{
 		Title:         book.Title,
@@ -169,6 +174,7 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 	book.Title = updateBookRequest.Title
 	book.Year = updateBookRequest.Year
 	if err := b.Db.UpdateBook(book); err != nil {
+		http.Error(w, "error updating book", http.StatusInternalServerError)
 		return
 	}
 	bookResponse := *toBookResponse(*book)
