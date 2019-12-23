@@ -13,6 +13,8 @@ import (
 )
 
 func TestFetchBook(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
 	t.Run("book is successfully fetched", func(t *testing.T) {
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -26,13 +28,9 @@ func TestFetchBook(t *testing.T) {
 
 		responseBook, err := client.FetchBook("0201558025")
 
-		if err != nil {
-			require.Error(t, err, "Got error")
-		}
+		require.NoError(err)
 
-		require.Equal(t, expectedBook, responseBook, "Response body differs")
-
-		//assert.Equal(t, responseBook, server.Client, "Response body differs")
+		require.Equal(expectedBook, responseBook, "Response body differs")
 	})
 
 	t.Run("error decoding from fetchBook", func(t *testing.T) {
@@ -46,8 +44,8 @@ func TestFetchBook(t *testing.T) {
 		client := openlibrary.NewClient(server.URL)
 		responseBook, err := client.FetchBook("0140447938")
 
-		assert.Contains(t, err, "error while decoding from FetchBook:")
-		assert.Nil(t, responseBook)
+		assert.Contains(err, "error while decoding from FetchBook:")
+		assert.Nil(responseBook)
 
 	})
 
@@ -61,7 +59,7 @@ func TestFetchBook(t *testing.T) {
 		client := openlibrary.NewClient(server.URL)
 		responseBook, err := client.FetchBook("0140447932111xxxx")
 
-		assert.Contains(t, err, "value for given key cannot be found:")
-		assert.Nil(t, responseBook)
+		assert.Contains(err, "value for given key cannot be found:")
+		assert.Nil(responseBook)
 	})
 }

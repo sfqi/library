@@ -22,6 +22,7 @@ func (bh *bookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func TestGetBook(t *testing.T) {
+	assert := assert.New(t)
 	t.Run("Error converting id", func(t *testing.T) {
 		bookLoader := BookLoader{}
 		req, err := http.NewRequest("GET", "/{id}", nil)
@@ -37,9 +38,9 @@ func TestGetBook(t *testing.T) {
 		newHandler.ServeHTTP(rr, req)
 		expectedError := "Error while converting url parameter into integer\n"
 
-		assert.NotEqual(t, http.StatusOK, rr.Code)
+		assert.NotEqual(http.StatusOK, rr.Code)
 
-		assert.Equal(t, expectedError, rr.Body.String(), "Response body differs")
+		assert.Equal(expectedError, rr.Body.String(), "Response body differs")
 	})
 	t.Run("Error finding book with given ID", func(t *testing.T) {
 		store := &mock.Store{}
@@ -58,7 +59,7 @@ func TestGetBook(t *testing.T) {
 
 		newHandler.ServeHTTP(rr, req)
 		expectedRespose := "Book with given Id can not be found" + "\n"
-		assert.Equal(t, expectedRespose, rr.Body.String(), "Response body differs")
+		assert.Equal(expectedRespose, rr.Body.String(), "Response body differs")
 	})
 	t.Run("Expected response and actual response", func(t *testing.T) {
 
@@ -100,6 +101,6 @@ func TestGetBook(t *testing.T) {
 		}
 		book := bookHandler.bookFromContext
 
-		assert.Equal(t, expectedResponse, *book, "Response body differs")
+		assert.Equal(expectedResponse, *book, "Response body differs")
 	})
 }
