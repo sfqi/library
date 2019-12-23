@@ -57,6 +57,7 @@ func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) {
 	allBooks, err := b.Db.FindAllBooks()
 	if err != nil {
 		http.Error(w, "Error finding books", http.StatusInternalServerError)
+		return
 	}
 	var bookResponses []*dto.BookResponse
 
@@ -169,6 +170,7 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 	book.Title = updateBookRequest.Title
 	book.Year = updateBookRequest.Year
 	if err := b.Db.UpdateBook(book); err != nil {
+		http.Error(w, "error updating book", http.StatusInternalServerError)
 		return
 	}
 	bookResponse := *toBookResponse(*book)
