@@ -35,10 +35,11 @@ func TestGetBook(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 		newHandler.ServeHTTP(rr, req)
-		expectedError := "Error while converting url parameter into integer"
-		if rr.Code != http.StatusBadRequest && expectedError != rr.Body.String() {
-			t.Errorf("Expected code to be %d, got %d", http.StatusOK, rr.Code)
-		}
+		expectedError := "Error while converting url parameter into integer\n"
+
+		assert.NotEqual(t, http.StatusOK, rr.Code)
+
+		assert.Equal(t, expectedError, rr.Body.String(), "Response body differs")
 	})
 	t.Run("Error finding book with given ID", func(t *testing.T) {
 		store := &mock.Store{}

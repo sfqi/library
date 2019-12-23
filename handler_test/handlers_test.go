@@ -4,8 +4,12 @@ import (
 	"bytes"
 
 	"encoding/json"
-	"context"
 	"errors"
+
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
 
 	"github.com/gorilla/mux"
 	"github.com/sfqi/library/domain/model"
@@ -15,15 +19,12 @@ import (
 	olmock "github.com/sfqi/library/openlibrary/mock"
 	"github.com/sfqi/library/repository/mock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
-	"net/http"
-	"net/http/httptest"
-	"strings"
-	"testing"
 )
 
 func TestIndex(t *testing.T) {
-	t.Run("Successfully returned books",func(t *testing.T){
+	t.Run("Successfully returned books", func(t *testing.T) {
 		var db = &mock.Store{}
 		bookHandler := handler.BookHandler{}
 
@@ -79,23 +80,17 @@ func TestIndex(t *testing.T) {
 			}}, nil)
 
 		bookHandler.Db = db
-
 		handler := http.HandlerFunc(bookHandler.Index)
-
 		handler.ServeHTTP(rr, req)
-
-		if status := rr.Code; status != http.StatusOK {
-			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-		}
+		require.Equal(t, http.StatusOK, rr.Code)
 
 		var response []dto.BookResponse
 		err = json.NewDecoder(rr.Body).Decode(&response)
-		if err != nil {
-			t.Errorf("Error decoding %s", err.Error())
-		}
+		require.NoError(t, err)
+
 		assert.Equal(t, booksExpected, response, "Asserting expectation and actual response")
 	})
-	t.Run("Error retrieving books",func(t *testing.T){
+	t.Run("Error retrieving books", func(t *testing.T) {
 		var db = &mock.Store{}
 		bookHandler := handler.BookHandler{}
 
@@ -113,9 +108,7 @@ func TestIndex(t *testing.T) {
 
 		handler.ServeHTTP(rr, req)
 
-		if status := rr.Code; status != http.StatusInternalServerError {
-			t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusInternalServerError)
-		}
+		assert.Equal(t, http.StatusInternalServerError, rr.Code)
 
 		expectedResponse := "Error finding books\n"
 		assert.Equal(t, expectedResponse, rr.Body.String(), "Asserting expectation and actual response")
@@ -131,9 +124,8 @@ func TestUpdate(t *testing.T) {
 		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"title":"test title", "year":2019}`)))
 		params := map[string]string{"id": "2"}
 		req = mux.SetURLVars(req, params)
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
+
+		require.NoError(t, err)
 
 		ctx := context.WithValue(req.Context(), "book", 5)
 		req = req.WithContext(ctx)
@@ -163,14 +155,11 @@ func TestUpdate(t *testing.T) {
 		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"title":"test title", "year":2019}`)))
 		params := map[string]string{"id": "2"}
 		req = mux.SetURLVars(req, params)
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
 
+		require.NoError(t, err)
 
 		ctx := context.WithValue(req.Context(), "book", book)
 		req = req.WithContext(ctx)
-
 
 		rr := httptest.NewRecorder()
 		db.On("UpdateBook", &model.Book{
@@ -188,9 +177,8 @@ func TestUpdate(t *testing.T) {
 
 		handler.ServeHTTP(rr, req)
 
-		if status := rr.Code; status != http.StatusInternalServerError {
-			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusInternalServerError, status)
-		}
+		assert.Equal(t, http.StatusInternalServerError, rr.Code)
+
 		expectedError := "error updating book\n"
 		assert.Equal(t, expectedError, rr.Body.String(), "Response body differs")
 	})
@@ -210,9 +198,8 @@ func TestUpdate(t *testing.T) {
 		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"title":"test title", "year":2019}`)))
 		params := map[string]string{"id": "2"}
 		req = mux.SetURLVars(req, params)
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
+
+		require.NoError(t, err)
 
 		ctx := context.WithValue(req.Context(), "book", book)
 		req = req.WithContext(ctx)
@@ -233,9 +220,8 @@ func TestUpdate(t *testing.T) {
 
 		handler.ServeHTTP(rr, req)
 
-		if status := rr.Code; status != http.StatusOK {
-			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusOK, status)
-		}
+		require.Equal(t, http.StatusOK, rr.Code)
+
 		bookExpected := dto.BookResponse{
 
 			ID:            2,
@@ -249,9 +235,9 @@ func TestUpdate(t *testing.T) {
 		}
 		var response dto.BookResponse
 		err = json.NewDecoder(rr.Body).Decode(&response)
-		if err != nil {
-			t.Errorf("Error decoding %s", err.Error())
-		}
+
+		require.NoError(t, err, "Error decoding")
+
 		assert.Equal(t, bookExpected, response, "Response body differs")
 	})
 	t.Run("Error decoding Book attributes", func(t *testing.T) {
@@ -269,9 +255,9 @@ func TestUpdate(t *testing.T) {
 		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"id":"12","title":zdravo}`)))
 		params := map[string]string{"id": "2"}
 		req = mux.SetURLVars(req, params)
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
+
+		require.NoError(t, err)
+
 		ctx := context.WithValue(req.Context(), "book", book)
 		req = req.WithContext(ctx)
 
@@ -279,11 +265,10 @@ func TestUpdate(t *testing.T) {
 		handler := http.HandlerFunc(bookHandler.Update)
 
 		handler.ServeHTTP(rr, req)
-		expectedError := "Error while decoding from request body"
-		if status := rr.Code; status != http.StatusBadRequest && rr.Body.String() != expectedError {
-			t.Errorf("Expected status code: %d and error: %s,  got: %d and %s", http.StatusBadRequest, expectedError, status, rr.Body.String())
+		expectedError := "Error while decoding from request body\n"
 
-		}
+		assert.Equal(t, expectedError, rr.Body.String(), "Response body differs")
+
 	})
 	t.Run("Cannot retreive book from context", func(t *testing.T) {
 
@@ -292,9 +277,8 @@ func TestUpdate(t *testing.T) {
 		req, err := http.NewRequest("UPDATE", "/book/{id}", nil)
 		params := map[string]string{"id": "5"}
 		req = mux.SetURLVars(req, params)
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
+
+		require.NoError(t, err)
 
 		ctx := context.WithValue(req.Context(), "book", nil)
 		req = req.WithContext(ctx)
@@ -321,19 +305,16 @@ func TestCreate(t *testing.T) {
 
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{ISBN:"0140447938"}`)))
 
-		if err != nil {
-			t.Errorf("Error occured while sending request, %s", err)
-		}
+		require.NoError(t, err, "Error occured while sending request")
 
 		rr := httptest.NewRecorder()
 
 		handler := http.HandlerFunc(bookHandler.Create)
 
 		handler.ServeHTTP(rr, req)
-		expectedError := "Error while decoding from request body"
-		if status := rr.Code; status != http.StatusBadRequest && rr.Body.String() != expectedError {
-			t.Errorf("Expected status code: %d and error: %s,  got: %d and %s", http.StatusBadRequest, expectedError, status, rr.Body.String())
-		}
+		expectedError := "Error while decoding from request body\n"
+
+		assert.Equal(t, expectedError, rr.Body.String(), "Response body differs")
 	})
 	t.Run("Fetching book error", func(t *testing.T) {
 		bookHandler := handler.BookHandler{}
@@ -344,9 +325,7 @@ func TestCreate(t *testing.T) {
 
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0140447938222"}`)))
 
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
+		require.NoError(t, err)
 
 		rr := httptest.NewRecorder()
 
@@ -354,9 +333,9 @@ func TestCreate(t *testing.T) {
 
 		handler.ServeHTTP(rr, req)
 		contains := strings.Contains(rr.Body.String(), clmock.Err.Error())
-		if !contains && rr.Code != http.StatusBadRequest {
-			t.Errorf("Expected error to be %s, got error: %s", clmock.Err.Error(), rr.Body.String())
-		}
+
+		require.NotEqual(t, contains, rr.Code)
+
 	})
 	t.Run("Creation of book failed in database", func(t *testing.T) {
 		db := mock.Store{}
@@ -370,19 +349,16 @@ func TestCreate(t *testing.T) {
 
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0140447938"}`)))
 
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
+		require.NoError(t, err)
 
 		rr := httptest.NewRecorder()
 		db.On("CreateBook", &model.Book{
-			Title:         "War and Peace (Penguin Classics)",
+			Title: "War and Peace (Penguin Classics)",
 		}).Return(errors.New("Error creating book"))
 		bookHandler.Db = &db
 		handler := http.HandlerFunc(bookHandler.Create)
 
 		handler.ServeHTTP(rr, req)
-
 
 		expectedResponse := "Error creating book\n"
 		assert.Equal(t, expectedResponse, rr.Body.String(), "Response body differs")
@@ -409,9 +385,7 @@ func TestCreate(t *testing.T) {
 
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0140447938"}`)))
 
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
+		require.NoError(t, err)
 
 		rr := httptest.NewRecorder()
 		db.On("CreateBook", &model.Book{
@@ -441,9 +415,9 @@ func TestCreate(t *testing.T) {
 		}
 		var response dto.BookResponse
 		err = json.NewDecoder(rr.Body).Decode(&response)
-		if err != nil {
-			t.Errorf("Error decoding %s", err.Error())
-		}
+
+		require.NoError(t, err, "Error decoding")
+
 		assert.Equal(t, bookExpected, response, "Response body differs")
 	})
 
@@ -466,9 +440,8 @@ func TestGet(t *testing.T) {
 		req, err := http.NewRequest("GET", "/book/{id}", nil)
 		params := map[string]string{"id": "1"}
 		req = mux.SetURLVars(req, params)
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
+
+		require.NoError(t, err)
 
 		ctx := context.WithValue(req.Context(), "book", book)
 		req = req.WithContext(ctx)
@@ -501,9 +474,9 @@ func TestGet(t *testing.T) {
 		}
 		var response dto.BookResponse
 		err = json.NewDecoder(rr.Body).Decode(&response)
-		if err != nil {
-			t.Errorf("Error decoding %s", err.Error())
-		}
+
+		require.NoError(t, err, "Error decoding")
+
 		assert.Equal(t, expectedBook, response, "Response body differs")
 	})
 	t.Run("Cannot retreive book from context", func(t *testing.T) {
@@ -512,9 +485,8 @@ func TestGet(t *testing.T) {
 		req, err := http.NewRequest("GET", "/book/{id}", nil)
 		params := map[string]string{"id": "5"}
 		req = mux.SetURLVars(req, params)
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
+
+		require.NoError(t, err)
 
 		ctx := context.WithValue(req.Context(), "book", nil)
 		req = req.WithContext(ctx)
@@ -546,9 +518,8 @@ func TestDelete(t *testing.T) {
 		req, err := http.NewRequest("DELETE", "/books/{id}", nil)
 		params := map[string]string{"id": "2"}
 		req = mux.SetURLVars(req, params)
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
+
+		require.NoError(t, err)
 
 		ctx := context.WithValue(req.Context(), "book", book)
 		req = req.WithContext(ctx)
@@ -563,9 +534,7 @@ func TestDelete(t *testing.T) {
 
 		handler.ServeHTTP(rr, req)
 
-		if status := rr.Code; status != http.StatusNoContent {
-			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusNoContent, status)
-		}
+		require.Equal(t, http.StatusNoContent, rr.Code)
 	})
 	t.Run("Error retrieving book from context", func(t *testing.T) {
 		bookHandler := handler.BookHandler{}
@@ -573,9 +542,8 @@ func TestDelete(t *testing.T) {
 		req, err := http.NewRequest("DELETE", "/books/{id}", nil)
 		params := map[string]string{"id": "2"}
 		req = mux.SetURLVars(req, params)
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
+
+		require.NoError(t, err)
 
 		ctx := context.WithValue(req.Context(), "book", nil)
 		req = req.WithContext(ctx)
@@ -586,9 +554,9 @@ func TestDelete(t *testing.T) {
 
 		handler.ServeHTTP(rr, req)
 		expectedResponse := "Internal server error:error retrieving book from context" + "\n"
-		if status := rr.Code; status != http.StatusInternalServerError {
-			t.Errorf("Status code differs. Expected %d. Got %d", http.StatusInternalServerError, status)
-		}
+
+		require.Equal(t, http.StatusInternalServerError, rr.Code)
+
 		assert.Equal(t, expectedResponse, rr.Body.String(), "Real and expected response differs")
 	})
 	t.Run("Error deleting book", func(t *testing.T) {
@@ -607,9 +575,8 @@ func TestDelete(t *testing.T) {
 		req, err := http.NewRequest("DELETE", "/books/{id}", nil)
 		params := map[string]string{"id": "-5"}
 		req = mux.SetURLVars(req, params)
-		if err != nil {
-			t.Errorf("Error occured, %s", err)
-		}
+
+		require.NoError(t, err)
 
 		ctx := context.WithValue(req.Context(), "book", book)
 		req = req.WithContext(ctx)
