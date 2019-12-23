@@ -2,8 +2,11 @@ package handler_test
 
 import (
 	"bytes"
+
 	"encoding/json"
+	"context"
 	"errors"
+
 	"github.com/gorilla/mux"
 	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/handler"
@@ -164,8 +167,10 @@ func TestUpdate(t *testing.T) {
 			t.Errorf("Error occured, %s", err)
 		}
 
+
 		ctx := context.WithValue(req.Context(), "book", book)
 		req = req.WithContext(ctx)
+
 
 		rr := httptest.NewRecorder()
 		db.On("UpdateBook", &model.Book{
@@ -458,7 +463,6 @@ func TestGet(t *testing.T) {
 			CoverId:       "some cover ID",
 			Year:          2019,
 		}
-
 		req, err := http.NewRequest("GET", "/book/{id}", nil)
 		params := map[string]string{"id": "1"}
 		req = mux.SetURLVars(req, params)
@@ -468,6 +472,7 @@ func TestGet(t *testing.T) {
 
 		ctx := context.WithValue(req.Context(), "book", book)
 		req = req.WithContext(ctx)
+
 		rr := httptest.NewRecorder()
 
 		db.On("FindBookById", 1).Return(&model.Book{
@@ -538,7 +543,6 @@ func TestDelete(t *testing.T) {
 		}
 
 		bookHandler := handler.BookHandler{}
-
 		req, err := http.NewRequest("DELETE", "/books/{id}", nil)
 		params := map[string]string{"id": "2"}
 		req = mux.SetURLVars(req, params)
