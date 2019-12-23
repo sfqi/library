@@ -358,16 +358,6 @@ func TestCreate(t *testing.T) {
 		bookHandler := handler.BookHandler{}
 		clmock := olmock.Client{&openlibrarydto.Book{
 			Title: "War and Peace (Penguin Classics)",
-			Identifier: openlibrarydto.Identifier{
-				ISBN10:      []string{"0140447938"},
-				ISBN13:      []string{"9780140447934"},
-				Openlibrary: []string{"OL7355422M"},
-			},
-			Author: []openlibrarydto.Author{
-				{Name: "Tolstoy"},
-			},
-			Cover: openlibrarydto.Cover{"https://covers.openlibrary.org/b/id/5049015-S.jpg"},
-			Year:  "2007",
 		},
 			nil,
 		}
@@ -381,14 +371,7 @@ func TestCreate(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 		db.On("CreateBook", &model.Book{
-			Id:            0,
 			Title:         "War and Peace (Penguin Classics)",
-			Author:        "Tolstoy",
-			Isbn:          "0140447938",
-			Isbn13:        "9780140447934",
-			OpenLibraryId: "OL7355422M",
-			CoverId:       "5049015",
-			Year:          2007,
 		}).Return(errors.New("Error creating book"))
 		bookHandler.Db = &db
 		handler := http.HandlerFunc(bookHandler.Create)

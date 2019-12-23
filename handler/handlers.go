@@ -132,13 +132,17 @@ func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
 		author = book.Author[0].Name
 	}
 
+	year := 0
+	var err error
 	yearString := yearRgx.FindString(book.Year)
-
-	year, err := strconv.Atoi(yearString)
-	if err != nil {
-		fmt.Println("error while converting year from string to int", err)
-		return nil
+	if(yearString != ""){
+		year, err = strconv.Atoi(yearString)
+		if err != nil {
+			fmt.Println("error while converting year from string to int", err)
+			return nil
+		}
 	}
+
 
 	bookToAdd := model.Book{
 		Title:         book.Title,
