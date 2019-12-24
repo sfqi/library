@@ -77,27 +77,15 @@ func TestGetBook(t *testing.T) {
 
 		bookHandler := &bookHandler{}
 		store.On("FindBookById", 1).Return(&model.Book{
-			Id:            1,
-			Title:         "some title",
-			Author:        "some author",
-			Isbn:          "some isbn",
-			Isbn13:        "some isbon13",
-			OpenLibraryId: "again some id",
-			CoverId:       "some cover ID",
-			Year:          2019,
+			Id:    1,
+			Title: "some title",
 		}, nil, errors.New("Error finding book by ID"))
 		bookLoader.Db = &store
 		newHandler := bookLoader.GetBook(bookHandler)
 		newHandler.ServeHTTP(rr, req)
 		expectedResponse := model.Book{
-			Id:            1,
-			Title:         "some title",
-			Author:        "some author",
-			Isbn:          "some isbn",
-			Isbn13:        "some isbon13",
-			OpenLibraryId: "again some id",
-			CoverId:       "some cover ID",
-			Year:          2019,
+			Id:    1,
+			Title: "some title",
 		}
 		book := bookHandler.bookFromContext
 

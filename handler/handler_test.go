@@ -32,24 +32,12 @@ func TestIndex(t *testing.T) {
 
 		booksExpected := []dto.BookResponse{
 			{
-				ID:            1,
-				Title:         "some title",
-				Author:        "some author",
-				Isbn:          "some isbn",
-				Isbn13:        "some isbon13",
-				OpenLibraryId: "again some id",
-				CoverId:       "some cover ID",
-				Year:          2019,
+				ID:    1,
+				Title: "some title",
 			},
 			{
-				ID:            2,
-				Title:         "other title",
-				Author:        "other author",
-				Isbn:          "other isbn",
-				Isbn13:        "other isbon13",
-				OpenLibraryId: "other some id",
-				CoverId:       "other cover ID",
-				Year:          2019,
+				ID:    2,
+				Title: "other title",
 			},
 		}
 
@@ -61,24 +49,12 @@ func TestIndex(t *testing.T) {
 		rr := httptest.NewRecorder()
 		db.On("FindAllBooks").Return([]*model.Book{
 			{
-				Id:            1,
-				Title:         "some title",
-				Author:        "some author",
-				Isbn:          "some isbn",
-				Isbn13:        "some isbon13",
-				OpenLibraryId: "again some id",
-				CoverId:       "some cover ID",
-				Year:          2019,
+				Id:    1,
+				Title: "some title",
 			},
 			{
-				Id:            2,
-				Title:         "other title",
-				Author:        "other author",
-				Isbn:          "other isbn",
-				Isbn13:        "other isbon13",
-				OpenLibraryId: "other some id",
-				CoverId:       "other cover ID",
-				Year:          2019,
+				Id:    2,
+				Title: "other title",
 			}}, nil)
 
 		bookHandler.Db = db
@@ -147,14 +123,9 @@ func TestUpdate(t *testing.T) {
 		var db = &mock.Store{}
 		bookHandler := handler.BookHandler{}
 		book := &model.Book{
-			Id:            2,
-			Title:         "some title",
-			Author:        "other author",
-			Isbn:          "other isbn",
-			Isbn13:        "other isbon13",
-			OpenLibraryId: "other some id",
-			CoverId:       "other cover ID",
-			Year:          2000,
+			Id:    2,
+			Title: "some title",
+			Year:  2000,
 		}
 		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"title":"test title", "year":2019}`)))
 		params := map[string]string{"id": "2"}
@@ -167,14 +138,9 @@ func TestUpdate(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 		db.On("UpdateBook", &model.Book{
-			Id:            2,
-			Title:         "test title",
-			Author:        "other author",
-			Isbn:          "other isbn",
-			Isbn13:        "other isbon13",
-			OpenLibraryId: "other some id",
-			CoverId:       "other cover ID",
-			Year:          2019,
+			Id:    2,
+			Title: "test title",
+			Year:  2019,
 		}).Return(errors.New("error updating book"))
 		bookHandler.Db = db
 		handler := http.HandlerFunc(bookHandler.Update)
@@ -190,14 +156,9 @@ func TestUpdate(t *testing.T) {
 		var db = &mock.Store{}
 		bookHandler := handler.BookHandler{}
 		book := &model.Book{
-			Id:            2,
-			Title:         "some title",
-			Author:        "other author",
-			Isbn:          "other isbn",
-			Isbn13:        "other isbon13",
-			OpenLibraryId: "other some id",
-			CoverId:       "other cover ID",
-			Year:          2000,
+			Id:    2,
+			Title: "some title",
+			Year:  2000,
 		}
 		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"title":"test title", "year":2019}`)))
 		params := map[string]string{"id": "2"}
@@ -210,14 +171,9 @@ func TestUpdate(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 		db.On("UpdateBook", &model.Book{
-			Id:            2,
-			Title:         "test title",
-			Author:        "other author",
-			Isbn:          "other isbn",
-			Isbn13:        "other isbon13",
-			OpenLibraryId: "other some id",
-			CoverId:       "other cover ID",
-			Year:          2019,
+			Id:    2,
+			Title: "test title",
+			Year:  2019,
 		}).Return(nil)
 		bookHandler.Db = db
 		handler := http.HandlerFunc(bookHandler.Update)
@@ -228,14 +184,9 @@ func TestUpdate(t *testing.T) {
 
 		bookExpected := dto.BookResponse{
 
-			ID:            2,
-			Title:         "test title",
-			Author:        "other author",
-			Isbn:          "other isbn",
-			Isbn13:        "other isbon13",
-			OpenLibraryId: "other some id",
-			CoverId:       "other cover ID",
-			Year:          2019,
+			ID:    2,
+			Title: "test title",
+			Year:  2019,
 		}
 		var response dto.BookResponse
 		err = json.NewDecoder(rr.Body).Decode(&response)
@@ -247,14 +198,9 @@ func TestUpdate(t *testing.T) {
 	t.Run("Error decoding Book attributes", func(t *testing.T) {
 		bookHandler := handler.BookHandler{}
 		book := &model.Book{
-			Id:            2,
-			Title:         "some title",
-			Author:        "other author",
-			Isbn:          "other isbn",
-			Isbn13:        "other isbon13",
-			OpenLibraryId: "other some id",
-			CoverId:       "other cover ID",
-			Year:          2000,
+			Id:    2,
+			Title: "some title",
+			Year:  2000,
 		}
 		req, err := http.NewRequest("PUT", "/books/{id}", bytes.NewBuffer([]byte(`{"id":"12","title":zdravo}`)))
 		params := map[string]string{"id": "2"}
@@ -425,14 +371,8 @@ func TestGet(t *testing.T) {
 		var db = mock.Store{}
 		bookHandler := handler.BookHandler{}
 		book := &model.Book{
-			Id:            1,
-			Title:         "some title",
-			Author:        "some author",
-			Isbn:          "some isbn",
-			Isbn13:        "some isbon13",
-			OpenLibraryId: "again some id",
-			CoverId:       "some cover ID",
-			Year:          2019,
+			Id:    1,
+			Title: "some title",
 		}
 		req, err := http.NewRequest("GET", "/book/{id}", nil)
 		params := map[string]string{"id": "1"}
@@ -446,28 +386,16 @@ func TestGet(t *testing.T) {
 		rr := httptest.NewRecorder()
 
 		db.On("FindBookById", 1).Return(&model.Book{
-			Id:            1,
-			Title:         "some title",
-			Author:        "some author",
-			Isbn:          "some isbn",
-			Isbn13:        "some isbon13",
-			OpenLibraryId: "again some id",
-			CoverId:       "some cover ID",
-			Year:          2019,
+			Id:    1,
+			Title: "some title",
 		}, nil)
 
 		bookHandler.Db = &db
 		handler := http.HandlerFunc(bookHandler.Get)
 		handler.ServeHTTP(rr, req)
 		expectedBook := dto.BookResponse{
-			ID:            1,
-			Title:         "some title",
-			Author:        "some author",
-			Isbn:          "some isbn",
-			Isbn13:        "some isbon13",
-			OpenLibraryId: "again some id",
-			CoverId:       "some cover ID",
-			Year:          2019,
+			ID:    1,
+			Title: "some title",
 		}
 		var response dto.BookResponse
 		err = json.NewDecoder(rr.Body).Decode(&response)
@@ -503,14 +431,8 @@ func TestDelete(t *testing.T) {
 	t.Run("Book successfully deleted", func(t *testing.T) {
 		var db = mock.Store{}
 		book := &model.Book{
-			Id:            2,
-			Title:         "test title",
-			Author:        "other author",
-			Isbn:          "other isbn",
-			Isbn13:        "other isbon13",
-			OpenLibraryId: "other some id",
-			CoverId:       "other cover ID",
-			Year:          2019,
+			Id:    2,
+			Title: "test title",
 		}
 
 		bookHandler := handler.BookHandler{}
@@ -561,14 +483,8 @@ func TestDelete(t *testing.T) {
 	t.Run("Error deleting book", func(t *testing.T) {
 		bookHandler := handler.BookHandler{}
 		book := &model.Book{
-			Id:            2,
-			Title:         "test title",
-			Author:        "other author",
-			Isbn:          "other isbn",
-			Isbn13:        "other isbon13",
-			OpenLibraryId: "other some id",
-			CoverId:       "other cover ID",
-			Year:          2019,
+			Id:    2,
+			Title: "test title",
 		}
 		db := &mock.Store{}
 		req, err := http.NewRequest("DELETE", "/books/{id}", nil)
