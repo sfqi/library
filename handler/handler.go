@@ -23,8 +23,7 @@ type store interface {
 	CreateBook(*model.Book) error
 	UpdateBook(*model.Book) error
 	FindAllBooks() ([]*model.Book, error)
-	DeleteBook(*model.Book)error
-
+	DeleteBook(*model.Book) error
 }
 
 type BookHandler struct {
@@ -135,14 +134,13 @@ func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
 	year := 0
 	var err error
 	yearString := yearRgx.FindString(book.Year)
-	if(yearString != ""){
+	if yearString != "" {
 		year, err = strconv.Atoi(yearString)
 		if err != nil {
 			fmt.Println("error while converting year from string to int", err)
 			return nil
 		}
 	}
-
 
 	bookToAdd := model.Book{
 		Title:         book.Title,

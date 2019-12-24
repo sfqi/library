@@ -1,4 +1,4 @@
-package requestdump_test
+package middleware_test
 
 import (
 	"fmt"
