@@ -2,13 +2,10 @@ package handler_test
 
 import (
 	"bytes"
+	"context"
 
 	"encoding/json"
 	"errors"
-
-	"net/http"
-	"net/http/httptest"
-	"testing"
 
 	"github.com/gorilla/mux"
 	"github.com/sfqi/library/domain/model"
@@ -18,14 +15,17 @@ import (
 	olmock "github.com/sfqi/library/openlibrary/mock"
 	"github.com/sfqi/library/repository/mock"
 	"github.com/stretchr/testify/assert"
+
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func TestIndex(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
-
 	t.Run("Successfully returned books", func(t *testing.T) {
 		var db = &mock.Store{}
 		bookHandler := handler.BookHandler{}

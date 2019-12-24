@@ -1,9 +1,10 @@
-package middleware
+package middleware_test
 
 import (
 	"errors"
 	"github.com/gorilla/mux"
 	"github.com/sfqi/library/domain/model"
+	"github.com/sfqi/library/middleware"
 	"github.com/sfqi/library/repository/mock"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -24,7 +25,7 @@ func (bh *bookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func TestGetBook(t *testing.T) {
 	assert := assert.New(t)
 	t.Run("Error converting id", func(t *testing.T) {
-		bookLoader := BookLoader{}
+		bookLoader := middleware.BookLoader{}
 		req, err := http.NewRequest("GET", "/{id}", nil)
 		if err != nil {
 			t.Fatal(err)
@@ -52,7 +53,7 @@ func TestGetBook(t *testing.T) {
 		}
 		store.On("FindBookById", 6).Return(nil, errors.New("Book with given Id can not be found"))
 		bookHandler := &bookHandler{}
-		bookLoader := &BookLoader{Db: store}
+		bookLoader := &middleware.BookLoader{Db: store}
 		newHandler := bookLoader.GetBook(bookHandler)
 		rr := httptest.NewRecorder()
 
@@ -63,7 +64,7 @@ func TestGetBook(t *testing.T) {
 	t.Run("Expected response and actual response", func(t *testing.T) {
 
 		store := mock.Store{}
-		bookLoader := BookLoader{}
+		bookLoader := middleware.BookLoader{}
 
 		req, err := http.NewRequest("GET", "/{id}", nil)
 		params := map[string]string{"id": "1"}
