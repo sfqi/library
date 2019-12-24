@@ -1,8 +1,13 @@
 package interactor
 
 import (
+	"fmt"
 	"github.com/sfqi/library/domain/model"
+	"github.com/sfqi/library/handler/dto"
 	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
+	"regexp"
+	"strconv"
+	"strings"
 )
 
 type store interface {
@@ -22,6 +27,8 @@ type Book struct {
 	openlib openlibraryClient
 }
 
+var yearRgx = regexp.MustCompile(`[0-9]{4}`)
+
 func NewBook(store store, olc openlibraryClient) *Book {
 	return &Book{
 		store:   store,
@@ -34,9 +41,20 @@ func (b *Book) FindAll() ([]*model.Book, error) {
 	return nil, nil
 }
 
-func (b *Book) Create(*model.Book) error {
+func (b *Book) Create(bookRequest dto.CreateBookRequest) (*model.Book, error) {
+	openLibraryBook, err := b.openlib.FetchBook(bookRequest.ISBN)
+	if err != nil {
+		fmt.Println("error while fetching book: ", err)
+		return nil, err
+	}
 
-	return nil
+	book := b.toBook(openLibraryBook)
+
+	if err := b.store.CreateBook(book); err != nil {
+		fmt.Println("Error creating book in database : " + err.Error())
+		return nil, err
+	}
+	return book, nil
 }
 
 func (b *Book) Update(*model.Book) error {
@@ -52,4 +70,52 @@ func (b *Book) FindById(int) (*model.Book, error) {
 func (b *Book) Delete(*model.Book) error {
 
 	return nil
+}
+
+func (b *Book) toBook(book *openlibrarydto.Book) (bm *model.Book) {
+	isbn10 := ""
+	if book.Identifier.ISBN10 != nil {
+		isbn10 = book.Identifier.ISBN10[0]
+	}
+	isbn13 := ""
+	if book.Identifier.ISBN13 != nil {
+		isbn13 = book.Identifier.ISBN13[0]
+	}
+
+	CoverId := ""
+	if book.Cover.Url != "" {
+		part1 := strings.Split(book.Cover.Url, "/")[5]
+		part2 := strings.Split(part1, ".")[0]
+		CoverId = strings.Split(part2, "-")[0]
+	}
+	libraryId := ""
+	if book.Identifier.Openlibrary != nil {
+		libraryId = book.Identifier.Openlibrary[0]
+	}
+	author := ""
+	if book.Author != nil {
+		author = book.Author[0].Name
+	}
+
+	year := 0
+	var err error
+	yearString := yearRgx.FindString(book.Year)
+	if yearString != "" {
+		year, err = strconv.Atoi(yearString)
+		if err != nil {
+			fmt.Println("error while converting year from string to int", err)
+			return nil
+		}
+	}
+
+	bookToAdd := model.Book{
+		Title:         book.Title,
+		Author:        author,
+		Isbn:          isbn10,
+		Isbn13:        isbn13,
+		OpenLibraryId: libraryId,
+		CoverId:       CoverId,
+		Year:          year,
+	}
+	return &bookToAdd
 }
