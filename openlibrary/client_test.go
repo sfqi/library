@@ -3,35 +3,34 @@ package openlibrary_test
 import (
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/sfqi/library/openlibrary"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/sfqi/library/openlibrary/dto"
 )
 
 func TestFetchBook(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
 	t.Run("book is successfully fetched", func(t *testing.T) {
-		expected := `{ISBN:0201558025": {"title": "Concrete mathematics"}}`
+
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(`{"ISBN:0201558025": {"title": "Concrete mathematics"}}`))
 		}))
-
 		defer server.Close()
+		expectedBook := &dto.Book{Title: "Concrete mathematics"}
 
 		client := openlibrary.NewClient(server.URL)
 
 		responseBook, err := client.FetchBook("0201558025")
 
-		if err != nil {
-			t.Errorf("Got error: %s", err)
-		}
+		require.NoError(err)
 
-		if responseBook.Title != "Concrete mathematics" {
-			t.Errorf("We did not get the expected response,expected %s, got %s", expected, responseBook.Title)
-		}
+		require.Equal(expectedBook, responseBook)
 	})
 
 	t.Run("error decoding from fetchBook", func(t *testing.T) {
@@ -44,10 +43,9 @@ func TestFetchBook(t *testing.T) {
 
 		client := openlibrary.NewClient(server.URL)
 		responseBook, err := client.FetchBook("0140447938")
+		require.Error(err)
 
-		checkError(t, err, "error while decoding from FetchBook:")
-
-		checkIfBookIsNil(responseBook, t)
+		assert.Nil(responseBook)
 
 	})
 
@@ -60,24 +58,8 @@ func TestFetchBook(t *testing.T) {
 
 		client := openlibrary.NewClient(server.URL)
 		responseBook, err := client.FetchBook("0140447932111xxxx")
+		require.Error(err)
 
-		checkError(t, err, "value for given key cannot be found:")
-
-		checkIfBookIsNil(responseBook, t)
+		assert.Nil(responseBook)
 	})
-}
-
-func checkError(t *testing.T, err error, expected string) {
-	if err == nil {
-		t.Error("Expected error ,  got nil")
-	}
-	if !strings.Contains(err.Error(), expected) {
-		t.Errorf("Got error: %s", err)
-	}
-}
-
-func checkIfBookIsNil(b *dto.Book, t *testing.T) {
-	if b != nil {
-		t.Errorf("Expected Book to be nil, got : %v", b)
-	}
 }
