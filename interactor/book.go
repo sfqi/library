@@ -13,43 +13,43 @@ type store interface {
 	DeleteBook(*model.Book) error
 }
 
-type openLibraryClient interface {
+type openlibraryClient interface {
 	FetchBook(isbn string) (*openlibrarydto.Book, error)
 }
 
 type Book struct {
-	Db  store
-	Olc openLibraryClient
+	store   store
+	openlib openlibraryClient
 }
 
-func NewBook(store store, olc openLibraryClient) *Book {
+func NewBook(store store, olc openlibraryClient) *Book {
 	return &Book{
-		Db:  store,
-		Olc: olc,
+		store:   store,
+		openlib: olc,
 	}
 }
 
-func (bi *Book) FindAll() ([]*model.Book, error) {
+func (b *Book) FindAll() ([]*model.Book, error) {
 	//TODO : implement function
 	return nil, nil
 }
 
-func (bi *Book) Create(*model.Book) error {
+func (b *Book) Create(*model.Book) error {
 
 	return nil
 }
 
-func (bi *Book) Update(*model.Book) error {
+func (b *Book) Update(*model.Book) error {
 
 	return nil
 }
 
-func (bi *Book) FindById(int) (*model.Book, error) {
+func (b *Book) FindById(int) (*model.Book, error) {
 
 	return nil, nil
 }
 
-func (bi *Book) Delete(*model.Book) error {
+func (b *Book) Delete(*model.Book) error {
 
 	return nil
 }
