@@ -40,7 +40,7 @@ func TestGetBook(t *testing.T) {
 
 		assert.NotEqual(http.StatusOK, rr.Code)
 
-		assert.Equal(expectedError, rr.Body.String(), "Response body differs")
+		assert.Equal(expectedError, rr.Body.String())
 	})
 	t.Run("Error finding book with given ID", func(t *testing.T) {
 		store := &mock.Store{}
@@ -59,7 +59,7 @@ func TestGetBook(t *testing.T) {
 
 		newHandler.ServeHTTP(rr, req)
 		expectedRespose := "Book with given Id can not be found" + "\n"
-		assert.Equal(expectedRespose, rr.Body.String(), "Response body differs")
+		assert.Equal(expectedRespose, rr.Body.String())
 	})
 	t.Run("Expected response and actual response", func(t *testing.T) {
 
@@ -101,6 +101,6 @@ func TestGetBook(t *testing.T) {
 		}
 		book := bookHandler.bookFromContext
 
-		assert.Equal(expectedResponse, *book, "Response body differs")
+		assert.Equal(expectedResponse, *book)
 	})
 }

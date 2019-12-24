@@ -21,8 +21,8 @@ func TestFetchBook(t *testing.T) {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(`{"ISBN:0201558025": {"title": "Concrete mathematics"}}`))
 		}))
-		expectedBook := &dto.Book{Title: "Concrete mathematics"}
 		defer server.Close()
+		expectedBook := &dto.Book{Title: "Concrete mathematics"}
 
 		client := openlibrary.NewClient(server.URL)
 
@@ -30,7 +30,7 @@ func TestFetchBook(t *testing.T) {
 
 		require.NoError(err)
 
-		require.Equal(expectedBook, responseBook, "Response body differs")
+		require.Equal(expectedBook, responseBook)
 	})
 
 	t.Run("error decoding from fetchBook", func(t *testing.T) {
@@ -43,8 +43,8 @@ func TestFetchBook(t *testing.T) {
 
 		client := openlibrary.NewClient(server.URL)
 		responseBook, err := client.FetchBook("0140447938")
+		require.Error(err)
 
-		assert.Contains(err, "error while decoding from FetchBook:")
 		assert.Nil(responseBook)
 
 	})
@@ -58,8 +58,8 @@ func TestFetchBook(t *testing.T) {
 
 		client := openlibrary.NewClient(server.URL)
 		responseBook, err := client.FetchBook("0140447932111xxxx")
+		require.Error(err)
 
-		assert.Contains(err, "value for given key cannot be found:")
 		assert.Nil(responseBook)
 	})
 }
