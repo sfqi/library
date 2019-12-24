@@ -22,8 +22,8 @@ import (
 )
 
 func TestIndex(t *testing.T) {
-	t.Run("Successfully returned books",func(t *testing.T){
-		var db = &mock.Store{}  
+	t.Run("Successfully returned books", func(t *testing.T) {
+		var db = &mock.Store{}
 		bookHandler := handler.BookHandler{}
 
 		booksExpected := []dto.BookResponse{
@@ -94,8 +94,8 @@ func TestIndex(t *testing.T) {
 		}
 		assert.Equal(t, booksExpected, response, "Asserting expectation and actual response")
 	})
-	t.Run("Error retrieving books",func(t *testing.T){
-		var db = &mock.Store{}  
+	t.Run("Error retrieving books", func(t *testing.T) {
+		var db = &mock.Store{}
 		bookHandler := handler.BookHandler{}
 
 		req, err := http.NewRequest("GET", "/books", nil)
@@ -166,7 +166,7 @@ func TestUpdate(t *testing.T) {
 			t.Errorf("Error occured, %s", err)
 		}
 
-
+		ctx := context.WithValue(req.Context(), "book", book)
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
@@ -373,8 +373,8 @@ func TestCreate(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 		db.On("CreateBook", &model.Book{
-			Title:         "War and Peace (Penguin Classics)",
-		}).Retur.New("Error creating book"))
+			Title: "War and Peace (Penguin Classics)",
+		}).Return(errors.New("Error creating book"))
 		bookHandler.Db = &db
 		handler := http.HandlerFunc(bookHandler.Create)
 
