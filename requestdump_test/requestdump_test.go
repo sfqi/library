@@ -1,12 +1,12 @@
 package requestdump_test
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/sfqi/library/middleware"
 )
@@ -16,6 +16,7 @@ func testHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func TestDump(t *testing.T) {
+	assert := assert.New(t)
 	req, err := http.NewRequest("GET", "/testmiddleware", nil)
 	if err != nil {
 		t.Fatal(err)
@@ -25,8 +26,5 @@ func TestDump(t *testing.T) {
 	rr := httptest.NewRecorder()
 	newHandler := middleware.BodyDump{logger}.Dump(handler)
 	newHandler.ServeHTTP(rr, req)
-	fmt.Println(rr.Code)
-	if rr.Code != http.StatusOK {
-		t.Errorf("Expected code to be %d, got %d", http.StatusOK, rr.Code)
-	}
+	assert.Equal(http.StatusOK, rr.Code)
 }
