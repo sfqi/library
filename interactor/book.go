@@ -20,6 +20,7 @@ type openlibraryClient interface {
 type Book struct {
 	store   store
 	openlib openlibraryClient
+	books   []model.Book
 }
 
 func NewBook(store store, olc openlibraryClient) *Book {
@@ -44,9 +45,10 @@ func (b *Book) Update(*model.Book) error {
 	return nil
 }
 
-func (b *Book) FindById(int) (*model.Book, error) {
+func (b *Book) FindById(id int) (*model.Book, error) {
 
-	return nil, nil
+	return b.store.FindBookById(id)
+	//2 scenarija, jedan kad se vrati dobro, drugi kad vrati gresku
 }
 
 func (b *Book) Delete(*model.Book) error {
