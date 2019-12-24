@@ -38,8 +38,7 @@ func TestGetBook(t *testing.T) {
 		newHandler.ServeHTTP(rr, req)
 		expectedError := "Error while converting url parameter into integer\n"
 
-		assert.NotEqual(http.StatusOK, rr.Code)
-
+		assert.Equal(http.StatusBadRequest, rr.Code)
 		assert.Equal(expectedError, rr.Body.String())
 	})
 	t.Run("Error finding book with given ID", func(t *testing.T) {
