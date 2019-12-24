@@ -48,7 +48,6 @@ func (b *Book) Update(*model.Book) error {
 func (b *Book) FindById(id int) (*model.Book, error) {
 
 	return b.store.FindBookById(id)
-	//2 scenarija, jedan kad se vrati dobro, drugi kad vrati gresku
 }
 
 func (b *Book) Delete(*model.Book) error {
