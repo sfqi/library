@@ -76,13 +76,13 @@ func TestFindAll(t *testing.T) {
 
 		b := interactor.NewBook(store, nil)
 
-		store.On("FindAllBooks").Return(nil, errors.New("Error finding books"))
+		store.On("FindAllBooks").Return(nil, storeError)
 
 		book, err := b.FindAll()
 
 		assert.Nil(book)
 		assert.Error(err)
-		assert.Equal(errors.New("Error finding books"), storeError)
+		assert.Equal(err, storeError)
 	})
 
 }

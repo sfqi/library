@@ -31,7 +31,6 @@ func NewBook(store store, olc openlibraryClient) *Book {
 
 func (b *Book) FindAll() ([]*model.Book, error) {
 	return b.store.FindAllBooks()
-
 }
 
 func (b *Book) Create(*model.Book) error {
