@@ -1,7 +1,6 @@
 package interactor
 
 import (
-	"fmt"
 	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/handler/dto"
 	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
@@ -41,14 +40,14 @@ func (b *Book) Create(*model.Book) error {
 	return nil
 }
 
-func (b *Book) Update(bookToChange *model.Book, updateBookRequest dto.UpdateBookRequest) (*model.Book, error) {
-	bookToChange.Title = updateBookRequest.Title
-	bookToChange.Year = updateBookRequest.Year
-	if err := b.store.UpdateBook(bookToChange); err != nil {
-		fmt.Println("Error updating book in database : " + err.Error())
+func (b *Book) Update(book *model.Book, updateBookRequest dto.UpdateBookRequest) (*model.Book, error) {
+	book.Title = updateBookRequest.Title
+	book.Year = updateBookRequest.Year
+	if err := b.store.UpdateBook(book); err != nil {
 		return nil, err
 	}
-	return bookToChange, nil
+
+	return book, nil
 }
 
 func (b *Book) FindById(int) (*model.Book, error) {
