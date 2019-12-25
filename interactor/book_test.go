@@ -19,12 +19,13 @@ func TestBook_FindAll(t *testing.T) {
 }
 
 func TestFindById(t *testing.T) {
+	assert := assert.New(t)
 	t.Run("Successfully retrieved book", func(t *testing.T) {
-		var db = &mock.Store{}
+		store := &mock.Store{}
 
-		b := interactor.NewBook(db, nil)
+		b := interactor.NewBook(store, nil)
 
-		db.On("FindBookById", 1).Return(&model.Book{
+		store.On("FindBookById", 1).Return(&model.Book{
 			Id:            1,
 			Title:         "some title",
 			Author:        "some author",
@@ -37,21 +38,35 @@ func TestFindById(t *testing.T) {
 
 		book, err := b.FindById(1)
 
-		assert.NotNil(t, book)
-		assert.NoError(t, err)
+		expectedBook := &model.Book{
+			Id:            1,
+			Title:         "some title",
+			Author:        "some author",
+			Isbn:          "some isbn",
+			Isbn13:        "some isbon13",
+			OpenLibraryId: "again some id",
+			CoverId:       "some cover ID",
+			Year:          2019,
+		}
+
+		assert.Equal(book, expectedBook)
+		assert.NoError(err)
 
 	})
 	t.Run("Cannot retrieve book", func(t *testing.T) {
-		var db = &mock.Store{}
+		store := &mock.Store{}
 
-		b := interactor.NewBook(db, nil)
+		storeError := errors.New("Error finding ID from database")
 
-		db.On("FindBookById", 12).Return(nil, errors.New("Error finding ID from database"))
+		b := interactor.NewBook(store, nil)
+
+		store.On("FindBookById", 12).Return(nil, errors.New("Error finding ID from database"))
 
 		book, err := b.FindById(12)
 
-		assert.Nil(t, book)
-		assert.Error(t, err)
+		assert.Nil(book)
+		assert.Error(err)
+		assert.Equal(errors.New("Error finding ID from database"), storeError)
 	})
 }
 
