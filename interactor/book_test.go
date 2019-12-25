@@ -41,11 +41,11 @@ func TestDelete(t *testing.T) {
 		storeError := errors.New("Error while deleting book")
 
 		bookToDelete := &model.Book{}
-		store.On("DeleteBook", bookToDelete).Return(errors.New("Error while deleting book"))
+		store.On("DeleteBook", bookToDelete).Return(storeError)
 
 		err := b.Delete(bookToDelete)
 		assert.Error(err)
-		assert.Equal(errors.New("Error while deleting book"), storeError)
+		assert.Equal(err, storeError)
 	})
 }
 
