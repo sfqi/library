@@ -81,7 +81,6 @@ func TestFindAll(t *testing.T) {
 		book, err := b.FindAll()
 
 		assert.Nil(book)
-		assert.Error(err)
 		assert.Equal(err, storeError)
 	})
 
