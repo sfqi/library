@@ -64,7 +64,6 @@ func TestFindById(t *testing.T) {
 		book, err := b.FindById(12)
 
 		assert.Nil(book)
-		assert.Error(err)
 		assert.Equal(err, storeError)
 	})
 }
