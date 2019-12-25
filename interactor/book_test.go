@@ -44,7 +44,6 @@ func TestDelete(t *testing.T) {
 		store.On("DeleteBook", bookToDelete).Return(storeError)
 
 		err := b.Delete(bookToDelete)
-		assert.Error(err)
 		assert.Equal(err, storeError)
 	})
 }
