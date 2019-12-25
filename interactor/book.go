@@ -47,7 +47,10 @@ func (b *Book) Create(bookRequest dto.CreateBookRequest) (*model.Book, error) {
 		return nil, err
 	}
 
-	book := toBook(openLibraryBook)
+	book, err := toBook(openLibraryBook)
+	if err != nil {
+		return nil, err
+	}
 
 	if err := b.store.CreateBook(book); err != nil {
 		return nil, err
@@ -70,7 +73,7 @@ func (b *Book) Delete(*model.Book) error {
 	return nil
 }
 
-func toBook(book *openlibrarydto.Book) (bm *model.Book) {
+func toBook(book *openlibrarydto.Book) (*model.Book, error) {
 	isbn10 := ""
 	if book.Identifier.ISBN10 != nil {
 		isbn10 = book.Identifier.ISBN10[0]
@@ -95,18 +98,16 @@ func toBook(book *openlibrarydto.Book) (bm *model.Book) {
 		author = book.Author[0].Name
 	}
 
-	year := 0
-	var err error
 	yearString := yearRgx.FindString(book.Year)
-	if yearString != "" {
-		year, err = strconv.Atoi(yearString)
-		if err != nil {
-			fmt.Println("error while converting year from string to int", err)
-			return nil
-		}
+	if yearString == "" {
+		return nil, fmt.Errorf("no conversion is aloved")
+	}
+	year, err := strconv.Atoi(yearString)
+	if err != nil {
+		return nil, err
 	}
 
-	bookToAdd := model.Book{
+	return &model.Book{
 		Title:         book.Title,
 		Author:        author,
 		Isbn:          isbn10,
@@ -114,6 +115,6 @@ func toBook(book *openlibrarydto.Book) (bm *model.Book) {
 		OpenLibraryId: libraryId,
 		CoverId:       CoverId,
 		Year:          year,
-	}
-	return &bookToAdd
+	}, nil
+
 }

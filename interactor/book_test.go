@@ -14,13 +14,12 @@ import (
 
 func TestBook_Create(t *testing.T) {
 	assert := assert.New(t)
-	//require := require.New(t)
 	t.Run("Error while fetching book", func(t *testing.T) {
 		store := &repomock.Store{}
 		openlibClient := &openlibmock.Client{}
 		clientError := "Error while fetching book: "
 
-		openlibClient.On("FetchBook", "0140447938222").Return(nil, errors.New("Error while fetching book: "))
+		openlibClient.On("FetchBook", "0140447938222").Return(nil, errors.New(clientError))
 		bookInteractor := interactor.NewBook(store, openlibClient)
 		request := dto.CreateBookRequest{ISBN: "0140447938222"}
 		book, err := bookInteractor.Create(request)
@@ -33,8 +32,8 @@ func TestBook_Create(t *testing.T) {
 		openlibClient := &openlibmock.Client{}
 		storeError := "Error saving book in database"
 
-		openlibClient.On("FetchBook", "0140447938").Return(&openlibrarydto.Book{Title: "War and Peace (Penguin Classics)"}, nil)
-		store.On("CreateBook", &model.Book{Title: "War and Peace (Penguin Classics)"}).Return(errors.New("Error saving book in database"))
+		openlibClient.On("FetchBook", "0140447938").Return(&openlibrarydto.Book{Title: "War and Peace (Penguin Classics)", Year: "2007"}, nil)
+		store.On("CreateBook", &model.Book{Title: "War and Peace (Penguin Classics)", Year: 2007}).Return(errors.New(storeError))
 		bookInteractor := interactor.NewBook(store, openlibClient)
 		request := dto.CreateBookRequest{ISBN: "0140447938"}
 		book, err := bookInteractor.Create(request)
@@ -70,7 +69,8 @@ func TestBook_Create(t *testing.T) {
 				Cover: openlibrarydto.Cover{"https://covers.openlibrary.org/b/id/5049015-S.jpg"},
 				Year:  "2007",
 			},
-			nil)
+			nil,
+		)
 		store.On("CreateBook", &model.Book{
 			Id:            0,
 			Title:         "War and Peace (Penguin Classics)",
