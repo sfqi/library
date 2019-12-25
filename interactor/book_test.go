@@ -91,8 +91,30 @@ func TestBook_FindById(t *testing.T) {
 
 }
 
-func TestBook_Delete(t *testing.T) {
+func TestDelete(t *testing.T) {
+	assert := assert.New(t)
+	t.Run("Book successfully deleted", func(t *testing.T) {
+		store := &mock.Store{}
+		b := interactor.NewBook(store, nil)
 
+		bookToDelete := &model.Book{}
+		store.On("DeleteBook", bookToDelete).Return(nil)
+
+		err := b.Delete(bookToDelete)
+		assert.NoError(err)
+
+	})
+	t.Run("Error deleting book", func(t *testing.T) {
+		store := &mock.Store{}
+		b := interactor.NewBook(store, nil)
+		storeError := errors.New("Error while deleting book")
+
+		bookToDelete := &model.Book{}
+		store.On("DeleteBook", bookToDelete).Return(storeError)
+
+		err := b.Delete(bookToDelete)
+		assert.Equal(err, storeError)
+	})
 }
 
 func TestBook_Update(t *testing.T) {

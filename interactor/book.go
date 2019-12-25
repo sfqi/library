@@ -48,7 +48,7 @@ func (b *Book) FindById(int) (*model.Book, error) {
 	return nil, nil
 }
 
-func (b *Book) Delete(*model.Book) error {
+func (b *Book) Delete(book *model.Book) error {
+	return b.store.DeleteBook(book)
 
-	return nil
 }
