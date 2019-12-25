@@ -44,14 +44,12 @@ func (b *Book) FindAll() ([]*model.Book, error) {
 func (b *Book) Create(bookRequest dto.CreateBookRequest) (*model.Book, error) {
 	openLibraryBook, err := b.openlib.FetchBook(bookRequest.ISBN)
 	if err != nil {
-		fmt.Println("error while fetching book: ", err)
 		return nil, err
 	}
 
-	book := b.toBook(openLibraryBook)
+	book := toBook(openLibraryBook)
 
 	if err := b.store.CreateBook(book); err != nil {
-		fmt.Println("Error creating book in database : " + err.Error())
 		return nil, err
 	}
 	return book, nil
@@ -72,7 +70,7 @@ func (b *Book) Delete(*model.Book) error {
 	return nil
 }
 
-func (b *Book) toBook(book *openlibrarydto.Book) (bm *model.Book) {
+func toBook(book *openlibrarydto.Book) (bm *model.Book) {
 	isbn10 := ""
 	if book.Identifier.ISBN10 != nil {
 		isbn10 = book.Identifier.ISBN10[0]
