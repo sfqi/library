@@ -55,18 +55,17 @@ func TestFindById(t *testing.T) {
 	})
 	t.Run("Cannot retrieve book", func(t *testing.T) {
 		store := &mock.Store{}
-
 		storeError := errors.New("Error finding ID from database")
 
 		b := interactor.NewBook(store, nil)
 
-		store.On("FindBookById", 12).Return(nil, errors.New("Error finding ID from database"))
+		store.On("FindBookById", 12).Return(nil, storeError)
 
 		book, err := b.FindById(12)
 
 		assert.Nil(book)
 		assert.Error(err)
-		assert.Equal(errors.New("Error finding ID from database"), storeError)
+		assert.Equal(err, storeError)
 	})
 }
 
