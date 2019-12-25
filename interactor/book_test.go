@@ -6,7 +6,6 @@ import (
 
 	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/interactor"
-	olmock "github.com/sfqi/library/openlibrary/mock"
 	"github.com/sfqi/library/repository/mock"
 	"github.com/stretchr/testify/assert"
 )
@@ -22,8 +21,8 @@ func TestBook_FindAll(t *testing.T) {
 func TestFindById(t *testing.T) {
 	t.Run("Successfully retrieved book", func(t *testing.T) {
 		var db = &mock.Store{}
-		clmock := &olmock.Client{}
-		b := interactor.NewBook(db, clmock)
+
+		b := interactor.NewBook(db, nil)
 
 		db.On("FindBookById", 1).Return(&model.Book{
 			Id:            1,
@@ -44,8 +43,9 @@ func TestFindById(t *testing.T) {
 	})
 	t.Run("Cannot retrieve book", func(t *testing.T) {
 		var db = &mock.Store{}
-		clmock := &olmock.Client{}
-		b := interactor.NewBook(db, clmock)
+
+		b := interactor.NewBook(db, nil)
+
 		db.On("FindBookById", 12).Return(nil, errors.New("Error finding ID from database"))
 
 		book, err := b.FindById(12)
