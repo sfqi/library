@@ -4,35 +4,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"regexp"
-	"strconv"
-	"strings"
-
 	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/handler/dto"
+	"github.com/sfqi/library/interactor"
+	"regexp"
 
 	"net/http"
-
-	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
 )
 
 var yearRgx = regexp.MustCompile(`[0-9]{4}`)
 
-type store interface {
-	FindBookById(int) (*model.Book, error)
-	CreateBook(*model.Book) error
-	UpdateBook(*model.Book) error
-	FindAllBooks() ([]*model.Book, error)
-	DeleteBook(*model.Book) error
-}
-
 type BookHandler struct {
-	Db  store
-	Olc openLibraryClient
-}
-
-type openLibraryClient interface {
-	FetchBook(isbn string) (*openlibrarydto.Book, error)
+	Book *interactor.Book
 }
 
 func toBookResponse(b model.Book) *dto.BookResponse {
@@ -53,7 +36,7 @@ func toBookResponse(b model.Book) *dto.BookResponse {
 func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
-	allBooks, err := b.Db.FindAllBooks()
+	allBooks, err := b.Book.FindAll()
 	if err != nil {
 		http.Error(w, "Error finding books", http.StatusInternalServerError)
 		return
@@ -84,18 +67,9 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println(createBook.ISBN)
-	openlibraryBook, err := b.Olc.FetchBook(createBook.ISBN)
-
+	book, err := b.Book.Create(createBook)
 	if err != nil {
-		fmt.Println("error while fetching book: ", err)
-		http.Error(w, "Error while fetching book: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	book := b.toBook(openlibraryBook)
-
-	if err := b.Db.CreateBook(book); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "Internal server error:"+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -104,54 +78,6 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
 		errorEncoding(w, err)
 		return
 	}
-}
-
-func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
-	isbn10 := ""
-	if book.Identifier.ISBN10 != nil {
-		isbn10 = book.Identifier.ISBN10[0]
-	}
-	isbn13 := ""
-	if book.Identifier.ISBN13 != nil {
-		isbn13 = book.Identifier.ISBN13[0]
-	}
-
-	CoverId := ""
-	if book.Cover.Url != "" {
-		part1 := strings.Split(book.Cover.Url, "/")[5]
-		part2 := strings.Split(part1, ".")[0]
-		CoverId = strings.Split(part2, "-")[0]
-	}
-	libraryId := ""
-	if book.Identifier.Openlibrary != nil {
-		libraryId = book.Identifier.Openlibrary[0]
-	}
-	author := ""
-	if book.Author != nil {
-		author = book.Author[0].Name
-	}
-
-	year := 0
-	var err error
-	yearString := yearRgx.FindString(book.Year)
-	if yearString != "" {
-		year, err = strconv.Atoi(yearString)
-		if err != nil {
-			fmt.Println("error while converting year from string to int", err)
-			return nil
-		}
-	}
-
-	bookToAdd := model.Book{
-		Title:         book.Title,
-		Author:        author,
-		Isbn:          isbn10,
-		Isbn13:        isbn13,
-		OpenLibraryId: libraryId,
-		CoverId:       CoverId,
-		Year:          year,
-	}
-	return &bookToAdd
 }
 
 func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
@@ -168,14 +94,12 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 		errorDecodingBook(w, err)
 		return
 	}
-
-	book.Title = updateBookRequest.Title
-	book.Year = updateBookRequest.Year
-	if err := b.Db.UpdateBook(book); err != nil {
+	updatedBook, err := b.Book.Update(book, updateBookRequest)
+	if err != nil {
 		http.Error(w, "error updating book", http.StatusInternalServerError)
 		return
 	}
-	bookResponse := *toBookResponse(*book)
+	bookResponse := *toBookResponse(*updatedBook)
 
 	err = json.NewEncoder(w).Encode(bookResponse)
 	if err != nil {
@@ -211,7 +135,7 @@ func (b *BookHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println("Book from context: ", book)
 
-	if err := b.Db.DeleteBook(book); err != nil {
+	if err := b.Book.Delete(book); err != nil {
 		http.Error(w, "Error while deleting book", http.StatusInternalServerError)
 		return
 	}
