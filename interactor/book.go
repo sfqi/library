@@ -25,6 +25,7 @@ type openlibraryClient interface {
 type Book struct {
 	store   store
 	openlib openlibraryClient
+	books   []model.Book
 }
 
 var yearRgx = regexp.MustCompile(`[0-9]{4}`)
@@ -37,8 +38,7 @@ func NewBook(store store, olc openlibraryClient) *Book {
 }
 
 func (b *Book) FindAll() ([]*model.Book, error) {
-	//TODO : implement function
-	return nil, nil
+	return b.store.FindAllBooks()
 }
 
 func (b *Book) Create(bookRequest dto.CreateBookRequest) (*model.Book, error) {
@@ -63,14 +63,14 @@ func (b *Book) Update(*model.Book) error {
 	return nil
 }
 
-func (b *Book) FindById(int) (*model.Book, error) {
+func (b *Book) FindById(id int) (*model.Book, error) {
 
-	return nil, nil
+	return b.store.FindBookById(id)
 }
 
-func (b *Book) Delete(*model.Book) error {
+func (b *Book) Delete(book *model.Book) error {
+	return b.store.DeleteBook(book)
 
-	return nil
 }
 
 func toBook(book *openlibrarydto.Book) (*model.Book, error) {
