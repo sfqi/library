@@ -58,9 +58,14 @@ func (b *Book) Create(bookRequest dto.CreateBookRequest) (*model.Book, error) {
 	return book, nil
 }
 
-func (b *Book) Update(*model.Book) error {
+func (b *Book) Update(book *model.Book, updateBookRequest dto.UpdateBookRequest) (*model.Book, error) {
+	book.Title = updateBookRequest.Title
+	book.Year = updateBookRequest.Year
+	if err := b.store.UpdateBook(book); err != nil {
+		return nil, err
+	}
 
-	return nil
+	return book, nil
 }
 
 func (b *Book) FindById(id int) (*model.Book, error) {
