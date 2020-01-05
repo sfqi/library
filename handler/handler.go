@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
+
 	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/handler/dto"
-	"github.com/sfqi/library/interactor"
-	"regexp"
 
 	"net/http"
 )
@@ -15,7 +15,15 @@ import (
 var yearRgx = regexp.MustCompile(`[0-9]{4}`)
 
 type BookHandler struct {
-	Book *interactor.Book
+	Book bookInteractor
+}
+
+type bookInteractor interface {
+	FindAll() ([]*model.Book, error)
+	Create(bookRequest dto.CreateBookRequest) (*model.Book, error)
+	Update(book *model.Book, updateBookRequest dto.UpdateBookRequest) (*model.Book, error)
+	FindById(id int) (*model.Book, error)
+	Delete(book *model.Book) error
 }
 
 func toBookResponse(b model.Book) *dto.BookResponse {
@@ -68,6 +76,7 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(createBook.ISBN)
 	book, err := b.Book.Create(createBook)
+
 	if err != nil {
 		http.Error(w, "Internal server error:"+err.Error(), http.StatusInternalServerError)
 		return
@@ -94,6 +103,7 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 		errorDecodingBook(w, err)
 		return
 	}
+
 	updatedBook, err := b.Book.Update(book, updateBookRequest)
 	if err != nil {
 		http.Error(w, "error updating book", http.StatusInternalServerError)
