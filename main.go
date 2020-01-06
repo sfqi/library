@@ -45,7 +45,7 @@ func main() {
 	fmt.Println("Successfully connected")
 	bookInteractor := interactor.NewBook(store, olc)
 	bookHandler := &handler.BookHandler{
-		Book: bookInteractor,
+		Interactor: bookInteractor,
 	}
 
 	bodyDump := middleware.BodyDump{

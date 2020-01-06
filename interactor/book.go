@@ -2,12 +2,13 @@ package interactor
 
 import (
 	"fmt"
-	"github.com/sfqi/library/domain/model"
-	"github.com/sfqi/library/handler/dto"
-	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/sfqi/library/domain/model"
+	"github.com/sfqi/library/handler/dto"
+	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
 )
 
 type store interface {

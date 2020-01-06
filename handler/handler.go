@@ -15,7 +15,7 @@ import (
 var yearRgx = regexp.MustCompile(`[0-9]{4}`)
 
 type BookHandler struct {
-	Book bookInteractor
+	Interactor bookInteractor
 }
 
 type bookInteractor interface {
@@ -44,7 +44,7 @@ func toBookResponse(b model.Book) *dto.BookResponse {
 func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
-	allBooks, err := b.Book.FindAll()
+	allBooks, err := b.Interactor.FindAll()
 	if err != nil {
 		http.Error(w, "Error finding books", http.StatusInternalServerError)
 		return
@@ -75,7 +75,7 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println(createBook.ISBN)
-	book, err := b.Book.Create(createBook)
+	book, err := b.Interactor.Create(createBook)
 
 	if err != nil {
 		http.Error(w, "Internal server error:"+err.Error(), http.StatusInternalServerError)
@@ -104,7 +104,7 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedBook, err := b.Book.Update(book, updateBookRequest)
+	updatedBook, err := b.Interactor.Update(book, updateBookRequest)
 	if err != nil {
 		http.Error(w, "error updating book", http.StatusInternalServerError)
 		return
@@ -145,7 +145,7 @@ func (b *BookHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println("Book from context: ", book)
 
-	if err := b.Book.Delete(book); err != nil {
+	if err := b.Interactor.Delete(book); err != nil {
 		http.Error(w, "Error while deleting book", http.StatusInternalServerError)
 		return
 	}

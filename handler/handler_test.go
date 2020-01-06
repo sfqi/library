@@ -78,7 +78,8 @@ func TestIndex(t *testing.T) {
 				Year:          2019,
 			}}, nil)
 
-		bookHandler.Book = interactor
+		bookHandler.Interactor = interactor
+
 		handler := http.HandlerFunc(bookHandler.Index)
 		handler.ServeHTTP(rr, req)
 		require.Equal(http.StatusOK, rr.Code)
@@ -100,7 +101,7 @@ func TestIndex(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 		interactor.On("FindAll").Return(nil, errors.New("Error finding books"))
-		bookHandler.Book = interactor
+		bookHandler.Interactor = interactor
 
 		handler := http.HandlerFunc(bookHandler.Index)
 
@@ -176,7 +177,8 @@ func TestUpdate(t *testing.T) {
 			Year:  2019,
 		},
 		).Return(nil, errors.New("error updating book"))
-		bookHandler.Book = interactor
+		bookHandler.Interactor = interactor
+
 		handler := http.HandlerFunc(bookHandler.Update)
 
 		handler.ServeHTTP(rr, req)
@@ -231,7 +233,8 @@ func TestUpdate(t *testing.T) {
 			CoverId:       "other cover ID",
 			Year:          2019,
 		}, nil)
-		bookHandler.Book = interactor
+		bookHandler.Interactor = interactor
+
 		handler := http.HandlerFunc(bookHandler.Update)
 
 		handler.ServeHTTP(rr, req)
@@ -315,7 +318,7 @@ func TestCreate(t *testing.T) {
 
 		bookHandler := handler.BookHandler{}
 		interactor := &imock.Book{}
-		bookHandler.Book = interactor
+		bookHandler.Interactor = interactor
 
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{ISBN:"0140447938"}`)))
 
@@ -337,7 +340,7 @@ func TestCreate(t *testing.T) {
 		interactor.On("Create", dto.CreateBookRequest{
 			ISBN: "0140447938222",
 		}).Return(nil, errors.New("Error while fetching book: "))
-		bookHandler.Book = interactor
+		bookHandler.Interactor = interactor
 
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0140447938222"}`)))
 		require.NoError(err)
@@ -363,7 +366,8 @@ func TestCreate(t *testing.T) {
 			ISBN: "0140447938",
 		}).Return(nil, errors.New("Error creating book"))
 
-		bookHandler.Book = interactor
+		bookHandler.Interactor = interactor
+
 		handler := http.HandlerFunc(bookHandler.Create)
 
 		handler.ServeHTTP(rr, req)
@@ -375,7 +379,7 @@ func TestCreate(t *testing.T) {
 		bookHandler := handler.BookHandler{}
 		interactor := &imock.Book{}
 
-		bookHandler.Book = interactor
+		bookHandler.Interactor = interactor
 
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0140447938"}`)))
 
@@ -454,7 +458,8 @@ func TestGet(t *testing.T) {
 			Year:          2019,
 		}, nil)
 
-		bookHandler.Book = interactor
+		bookHandler.Interactor = interactor
+
 		handler := http.HandlerFunc(bookHandler.Get)
 		handler.ServeHTTP(rr, req)
 		expectedBook := dto.BookResponse{
@@ -524,8 +529,7 @@ func TestDelete(t *testing.T) {
 		rr := httptest.NewRecorder()
 
 		interactor.On("Delete", book).Return(nil)
-
-		bookHandler.Book = interactor
+		bookHandler.Interactor = interactor
 
 		handler := http.HandlerFunc(bookHandler.Delete)
 
@@ -580,7 +584,8 @@ func TestDelete(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 		interactor.On("Delete", book).Return(errors.New("Error while deleting book"))
-		bookHandler.Book = interactor
+		bookHandler.Interactor = interactor
+
 		handler := http.HandlerFunc(bookHandler.Delete)
 
 		handler.ServeHTTP(rr, req)
