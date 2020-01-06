@@ -11,12 +11,12 @@ import (
 	"net/http"
 )
 
-type BookInteractor interface {
+type bookInteractor interface {
 	FindById(id int) (*model.Book, error)
 }
 
 type BookLoader struct {
-	Interactor BookInteractor
+	Interactor bookInteractor
 }
 
 func (bl BookLoader) GetBook(next http.Handler) http.Handler {
