@@ -2,18 +2,20 @@ package middleware_test
 
 import (
 	"errors"
-	"github.com/gorilla/mux"
-	"github.com/sfqi/library/domain/model"
-	"github.com/sfqi/library/middleware"
-	"github.com/sfqi/library/repository/mock"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/gorilla/mux"
+	"github.com/sfqi/library/domain/model"
+	imock "github.com/sfqi/library/interactor/mock"
+	"github.com/sfqi/library/middleware"
+	"github.com/stretchr/testify/assert"
 )
 
 type bookHandler struct {
 	bookFromContext *model.Book
+	Interactor      middleware.BookInteractor
 }
 
 func (bh *bookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -43,7 +45,8 @@ func TestGetBook(t *testing.T) {
 		assert.Equal(expectedError, rr.Body.String())
 	})
 	t.Run("Error finding book with given ID", func(t *testing.T) {
-		store := &mock.Store{}
+		interactor := &imock.Book{}
+		bookHandler := &bookHandler{}
 
 		req, err := http.NewRequest("GET", "/{id}", nil)
 		params := map[string]string{"id": "6"}
@@ -51,9 +54,10 @@ func TestGetBook(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		store.On("FindBookById", 6).Return(nil, errors.New("Book with given Id can not be found"))
-		bookHandler := &bookHandler{}
-		bookLoader := &middleware.BookLoader{Db: store}
+		interactor.On("FindById", 6).Return(nil, errors.New("Book with given Id can not be found"))
+
+		bookLoader := &middleware.BookLoader{Interactor: interactor}
+
 		newHandler := bookLoader.GetBook(bookHandler)
 		rr := httptest.NewRecorder()
 
@@ -63,7 +67,7 @@ func TestGetBook(t *testing.T) {
 	})
 	t.Run("Expected response and actual response", func(t *testing.T) {
 
-		store := mock.Store{}
+		interactor := &imock.Book{}
 		bookLoader := middleware.BookLoader{}
 
 		req, err := http.NewRequest("GET", "/{id}", nil)
@@ -76,7 +80,7 @@ func TestGetBook(t *testing.T) {
 		rr := httptest.NewRecorder()
 
 		bookHandler := &bookHandler{}
-		store.On("FindBookById", 1).Return(&model.Book{
+		interactor.On("FindById", 1).Return(&model.Book{
 			Id:            1,
 			Title:         "some title",
 			Author:        "some author",
@@ -86,7 +90,9 @@ func TestGetBook(t *testing.T) {
 			CoverId:       "some cover ID",
 			Year:          2019,
 		}, nil, errors.New("Error finding book by ID"))
-		bookLoader.Db = &store
+
+		bookLoader.Interactor = interactor
+
 		newHandler := bookLoader.GetBook(bookHandler)
 		newHandler.ServeHTTP(rr, req)
 		expectedResponse := model.Book{

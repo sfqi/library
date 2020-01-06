@@ -3,15 +3,20 @@ package middleware
 import (
 	"context"
 	"fmt"
-	"github.com/sfqi/library/interactor"
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/sfqi/library/domain/model"
+
 	"net/http"
 )
 
+type BookInteractor interface {
+	FindById(id int) (*model.Book, error)
+}
+
 type BookLoader struct {
-	Book *interactor.Book
+	Interactor BookInteractor
 }
 
 func (bl BookLoader) GetBook(next http.Handler) http.Handler {
@@ -24,7 +29,7 @@ func (bl BookLoader) GetBook(next http.Handler) http.Handler {
 			return
 		}
 
-		book, err := bl.Book.FindById(id)
+		book, err := bl.Interactor.FindById(id)
 		if err != nil {
 			errorFindingBook(w, err)
 			return

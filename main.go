@@ -53,7 +53,7 @@ func main() {
 	}
 
 	bookLoad := middleware.BookLoader{
-		Book: bookInteractor,
+		Interactor: bookInteractor,
 	}
 	r := mux.NewRouter()
 	s := r.PathPrefix("/books").Subrouter()
