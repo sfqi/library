@@ -50,13 +50,13 @@ func toBookResponse(b model.Book) *dto.BookResponse {
 	return &bookResponse
 }
 
-func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) {
+func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) error {
 
 	w.Header().Set("Content-Type", "application/json")
 	allBooks, err := b.Db.FindAllBooks()
 	if err != nil {
 		http.Error(w, "Error finding books", http.StatusInternalServerError)
-		return
+		return err
 	}
 	var bookResponses []*dto.BookResponse
 
@@ -69,8 +69,9 @@ func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("error while getting books: ", err)
 		http.Error(w, "Bad request", http.StatusBadRequest)
-		return
+		return err
 	}
+	return nil
 }
 
 func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) {

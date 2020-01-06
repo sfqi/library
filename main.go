@@ -19,13 +19,13 @@ import (
 
 func main() {
 	err := godotenv.Load()
-	if err != nil{
+	if err != nil {
 		panic(err)
 	}
 
 	olc := openlibrary.NewClient(os.Getenv("OPEN_LIBRARY_URL"))
-	port,err := strconv.Atoi(os.Getenv("DB_PORT"))
-	if err != nil{
+	port, err := strconv.Atoi(os.Getenv("DB_PORT"))
+	if err != nil {
 		panic(err)
 	}
 	config := postgres.PostgresConfig{
@@ -51,13 +51,15 @@ func main() {
 		Logger: log.New(),
 	}
 
+	handleFunc := handler.ErrorHandler{Logger: log.New()}
+
 	bookLoad := middleware.BookLoader{
 		Db: store,
 	}
 	r := mux.NewRouter()
 	s := r.PathPrefix("/books").Subrouter()
 
-	r.HandleFunc("/books", bookHandler.Index).Methods("GET")
+	r.Handle("/books", handleFunc.Wrap(bookHandler.Index)).Methods("GET")
 	r.HandleFunc("/books", bookHandler.Create).Methods("POST")
 	s.HandleFunc("/{id}", bookHandler.Update).Methods("PUT")
 	s.HandleFunc("/{id}", bookHandler.Get).Methods("GET")
