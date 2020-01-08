@@ -74,14 +74,14 @@ func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
+func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Set("Content-Type", "application/json")
 
 	var createBook dto.CreateBookRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&createBook); err != nil {
 		errorDecodingBook(w, err)
-		return
+		return err
 	}
 
 	fmt.Println(createBook.ISBN)
@@ -90,21 +90,22 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("error while fetching book: ", err)
 		http.Error(w, "Error while fetching book: "+err.Error(), http.StatusInternalServerError)
-		return
+		return err
 	}
 
 	book := b.toBook(openlibraryBook)
 
 	if err := b.Db.CreateBook(book); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		return err
 	}
 
 	bookResponse := *toBookResponse(*book)
 	if err := json.NewEncoder(w).Encode(bookResponse); err != nil {
 		errorEncoding(w, err)
-		return
+		return err
 	}
+	return nil
 }
 
 func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
@@ -155,68 +156,71 @@ func (b *BookHandler) toBook(book *openlibrarydto.Book) (bm *model.Book) {
 	return &bookToAdd
 }
 
-func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
+func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) error {
 
 	w.Header().Set("Content-Type", "application/json")
 	book, ok := r.Context().Value("book").(*model.Book)
 	if !ok {
 		errorContex(w, errors.New("error retrieving book from context"))
-		return
+		return errors.New("Error retrieving book from context")
 	}
 	updateBookRequest := dto.UpdateBookRequest{}
 	err := json.NewDecoder(r.Body).Decode(&updateBookRequest)
 	if err != nil {
 		errorDecodingBook(w, err)
-		return
+		return err
 	}
 
 	book.Title = updateBookRequest.Title
 	book.Year = updateBookRequest.Year
 	if err := b.Db.UpdateBook(book); err != nil {
 		http.Error(w, "error updating book", http.StatusInternalServerError)
-		return
+		return err
 	}
 	bookResponse := *toBookResponse(*book)
 
 	err = json.NewEncoder(w).Encode(bookResponse)
 	if err != nil {
 		errorEncoding(w, err)
-		return
+		return err
 	}
+	return nil
 }
 
-func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) {
+func (b *BookHandler) Get(w http.ResponseWriter, r *http.Request) error {
 
 	w.Header().Set("Content-Type", "application/json")
 
 	book, ok := r.Context().Value("book").(*model.Book)
 	if !ok {
 		errorContex(w, errors.New("error retrieving book from context"))
-		return
+		return errors.New("error retrieving book from context")
 	}
 
 	bookResponse := *toBookResponse(*book)
 
 	if err := json.NewEncoder(w).Encode(bookResponse); err != nil {
 		errorEncoding(w, err)
-		return
+		return err
 	}
+	return nil
 }
 
-func (b *BookHandler) Delete(w http.ResponseWriter, r *http.Request) {
+func (b *BookHandler) Delete(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Set("Content-Type", "application/json")
 	book, ok := r.Context().Value("book").(*model.Book)
 	if !ok {
 		errorContex(w, errors.New("error retrieving book from context"))
-		return
+		return errors.New("error retrieving book from context")
 	}
 	fmt.Println("Book from context: ", book)
 
 	if err := b.Db.DeleteBook(book); err != nil {
 		http.Error(w, "Error while deleting book", http.StatusInternalServerError)
-		return
+		return err
 	}
 	w.WriteHeader(http.StatusNoContent)
+	return nil
 }
 
 func errorDecodingBook(w http.ResponseWriter, err error) {

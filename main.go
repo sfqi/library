@@ -60,10 +60,10 @@ func main() {
 	s := r.PathPrefix("/books").Subrouter()
 
 	r.Handle("/books", handleFunc.Wrap(bookHandler.Index)).Methods("GET")
-	r.HandleFunc("/books", bookHandler.Create).Methods("POST")
-	s.HandleFunc("/{id}", bookHandler.Update).Methods("PUT")
-	s.HandleFunc("/{id}", bookHandler.Get).Methods("GET")
-	s.HandleFunc("/{id}", bookHandler.Delete).Methods("DELETE")
+	r.Handle("/books", handleFunc.Wrap(bookHandler.Create)).Methods("POST")
+	s.Handle("/{id}", handleFunc.Wrap(bookHandler.Update)).Methods("PUT")
+	s.Handle("/{id}", handleFunc.Wrap(bookHandler.Get)).Methods("GET")
+	s.Handle("/{id}", handleFunc.Wrap(bookHandler.Delete)).Methods("DELETE")
 	r.Use(bodyDump.Dump)
 	s.Use(bookLoad.GetBook)
 
