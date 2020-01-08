@@ -14,6 +14,36 @@ import (
 
 var yearRgx = regexp.MustCompile(`[0-9]{4}`)
 
+type HTTPError struct {
+	code     int
+	internal error
+	context  string
+}
+
+func (h HTTPError) Error() string {
+	return fmt.Sprintf("HTTP %d: %s. Error: %s", h.code, h.context, h.internal)
+}
+
+func newHTTPError(code int, err error) *HTTPError {
+	return &HTTPError{
+		code:     code,
+		internal: err,
+	}
+}
+
+func (e *HTTPError) Wrap(ctx string) *HTTPError {
+	e.context = ctx
+	return e
+}
+
+type store interface {
+	FindBookById(int) (*model.Book, error)
+	CreateBook(*model.Book) error
+	UpdateBook(*model.Book) error
+	FindAllBooks() ([]*model.Book, error)
+	DeleteBook(*model.Book) error
+}
+
 type BookHandler struct {
 	Interactor bookInteractor
 }
