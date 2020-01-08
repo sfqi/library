@@ -35,6 +35,11 @@ func newHTTPError(code int, err error) *HTTPError {
 	}
 }
 
+func (e *HTTPError) Wrap(ctx string) *HTTPError {
+	e.context = ctx
+	return e
+}
+
 type store interface {
 	FindBookById(int) (*model.Book, error)
 	CreateBook(*model.Book) error
