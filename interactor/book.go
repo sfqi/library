@@ -25,7 +25,6 @@ type openlibraryClient interface {
 type Book struct {
 	store   store
 	openlib openlibraryClient
-	books   []model.Book
 }
 
 var yearRgx = regexp.MustCompile(`[0-9]{4}`)

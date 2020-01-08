@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/joho/godotenv"
+	"github.com/sfqi/library/interactor"
 	"github.com/sfqi/library/repository/postgres"
 	"net/http"
 	"os"
@@ -19,13 +20,13 @@ import (
 
 func main() {
 	err := godotenv.Load()
-	if err != nil{
+	if err != nil {
 		panic(err)
 	}
 
 	olc := openlibrary.NewClient(os.Getenv("OPEN_LIBRARY_URL"))
-	port,err := strconv.Atoi(os.Getenv("DB_PORT"))
-	if err != nil{
+	port, err := strconv.Atoi(os.Getenv("DB_PORT"))
+	if err != nil {
 		panic(err)
 	}
 	config := postgres.PostgresConfig{
@@ -42,9 +43,9 @@ func main() {
 	}
 	defer store.Close()
 	fmt.Println("Successfully connected")
+	bookInteractor := interactor.NewBook(store, olc)
 	bookHandler := &handler.BookHandler{
-		Db:  store,
-		Olc: olc,
+		Interactor: bookInteractor,
 	}
 
 	bodyDump := middleware.BodyDump{
@@ -52,7 +53,7 @@ func main() {
 	}
 
 	bookLoad := middleware.BookLoader{
-		Db: store,
+		Interactor: bookInteractor,
 	}
 	r := mux.NewRouter()
 	s := r.PathPrefix("/books").Subrouter()
