@@ -25,14 +25,13 @@ type HTTPError struct {
 }
 
 func (h HTTPError) Error() string {
-	return fmt.Sprintf("HTTP %d: %s", h.code, h.context)
+	return fmt.Sprintf("HTTP %d: %s. Error: %s", h.code, h.context, h.internal)
 }
 
-func newHTTPError(code int, err error, ctx string) *HTTPError {
+func newHTTPError(code int, err error) *HTTPError {
 	return &HTTPError{
 		code:     code,
 		internal: err,
-		context:  ctx,
 	}
 }
 
