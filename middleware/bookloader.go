@@ -11,12 +11,12 @@ import (
 	"net/http"
 )
 
-type store interface {
-	FindBookById(int) (*model.Book, error)
+type bookInteractor interface {
+	FindById(id int) (*model.Book, error)
 }
 
 type BookLoader struct {
-	Db store
+	Interactor bookInteractor
 }
 
 func (bl BookLoader) GetBook(next http.Handler) http.Handler {
@@ -29,7 +29,7 @@ func (bl BookLoader) GetBook(next http.Handler) http.Handler {
 			return
 		}
 
-		book, err := bl.Db.FindBookById(id)
+		book, err := bl.Interactor.FindById(id)
 		if err != nil {
 			errorFindingBook(w, err)
 			return
