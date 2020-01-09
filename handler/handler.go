@@ -98,6 +98,7 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) *HTTPError 
 
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, errors.New("Internal server error: "+err.Error()))
+
 	}
 
 	bookResponse := *toBookResponse(*book)
