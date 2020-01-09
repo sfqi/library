@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"fmt"
-	"github.com/sirupsen/logrus"
 	"net/http"
+
+	"github.com/sirupsen/logrus"
 )
 
 type customHandler func(http.ResponseWriter, *http.Request) *HTTPError
@@ -19,7 +19,7 @@ func (eh *ErrorHandler) Wrap(handler customHandler) http.Handler {
 			w.WriteHeader(err.code)
 			eh.Logger.Error(err)
 			if err.code < http.StatusInternalServerError {
-				fmt.Fprintf(w, err.Error())
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 		}
 	})
