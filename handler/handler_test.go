@@ -3,7 +3,6 @@ package handler_test
 import (
 	"bytes"
 	"context"
-
 	"encoding/json"
 	"errors"
 
@@ -11,9 +10,7 @@ import (
 	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/handler"
 	"github.com/sfqi/library/handler/dto"
-	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
-	olmock "github.com/sfqi/library/openlibrary/mock"
-	"github.com/sfqi/library/repository/mock"
+	imock "github.com/sfqi/library/interactor/mock"
 	"github.com/stretchr/testify/assert"
 
 	"net/http"
@@ -27,7 +24,7 @@ func TestIndex(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 	t.Run("Successfully returned books", func(t *testing.T) {
-		var db = &mock.Store{}
+		interactor := &imock.Book{}
 		bookHandler := handler.BookHandler{}
 
 		booksExpected := []dto.BookResponse{
@@ -59,7 +56,7 @@ func TestIndex(t *testing.T) {
 		}
 
 		rr := httptest.NewRecorder()
-		db.On("FindAllBooks").Return([]*model.Book{
+		interactor.On("FindAll").Return([]*model.Book{
 			{
 				Id:            1,
 				Title:         "some title",
@@ -81,7 +78,7 @@ func TestIndex(t *testing.T) {
 				Year:          2019,
 			}}, nil)
 
-		bookHandler.Db = db
+		bookHandler.Interactor = interactor
 		handler := http.HandlerFunc(bookHandler.Index)
 		handler.ServeHTTP(rr, req)
 		require.Equal(http.StatusOK, rr.Code)
@@ -93,7 +90,7 @@ func TestIndex(t *testing.T) {
 		assert.Equal(booksExpected, response)
 	})
 	t.Run("Error retrieving books", func(t *testing.T) {
-		var db = &mock.Store{}
+		interactor := &imock.Book{}
 		bookHandler := handler.BookHandler{}
 
 		req, err := http.NewRequest("GET", "/books", nil)
@@ -102,9 +99,8 @@ func TestIndex(t *testing.T) {
 		}
 
 		rr := httptest.NewRecorder()
-		db.On("FindAllBooks").Return(nil, errors.New("Error finding books"))
-
-		bookHandler.Db = db
+		interactor.On("FindAll").Return(nil, errors.New("Error finding books"))
+		bookHandler.Interactor = interactor
 
 		handler := http.HandlerFunc(bookHandler.Index)
 
@@ -144,7 +140,7 @@ func TestUpdate(t *testing.T) {
 		assert.Equal(expectedError, rr.Body.String())
 	})
 	t.Run("error updating book in database", func(t *testing.T) {
-		var db = &mock.Store{}
+		interactor := &imock.Book{}
 		bookHandler := handler.BookHandler{}
 		book := &model.Book{
 			Id:            2,
@@ -166,17 +162,21 @@ func TestUpdate(t *testing.T) {
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
-		db.On("UpdateBook", &model.Book{
+		interactor.On("Update", &model.Book{
 			Id:            2,
-			Title:         "test title",
+			Title:         "some title",
 			Author:        "other author",
 			Isbn:          "other isbn",
 			Isbn13:        "other isbon13",
 			OpenLibraryId: "other some id",
 			CoverId:       "other cover ID",
-			Year:          2019,
-		}).Return(errors.New("error updating book"))
-		bookHandler.Db = db
+			Year:          2000,
+		}, dto.UpdateBookRequest{
+			Title: "test title",
+			Year:  2019,
+		},
+		).Return(nil, errors.New("error updating book"))
+		bookHandler.Interactor = interactor
 		handler := http.HandlerFunc(bookHandler.Update)
 
 		handler.ServeHTTP(rr, req)
@@ -187,7 +187,7 @@ func TestUpdate(t *testing.T) {
 		assert.Equal(expectedError, rr.Body.String())
 	})
 	t.Run("assertion of expected response, and actual response", func(t *testing.T) {
-		var db = &mock.Store{}
+		interactor := &imock.Book{}
 		bookHandler := handler.BookHandler{}
 		book := &model.Book{
 			Id:            2,
@@ -209,7 +209,19 @@ func TestUpdate(t *testing.T) {
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
-		db.On("UpdateBook", &model.Book{
+		interactor.On("Update", &model.Book{
+			Id:            2,
+			Title:         "some title",
+			Author:        "other author",
+			Isbn:          "other isbn",
+			Isbn13:        "other isbon13",
+			OpenLibraryId: "other some id",
+			CoverId:       "other cover ID",
+			Year:          2000,
+		}, dto.UpdateBookRequest{
+			Title: "test title",
+			Year:  2019,
+		}).Return(&model.Book{
 			Id:            2,
 			Title:         "test title",
 			Author:        "other author",
@@ -218,8 +230,8 @@ func TestUpdate(t *testing.T) {
 			OpenLibraryId: "other some id",
 			CoverId:       "other cover ID",
 			Year:          2019,
-		}).Return(nil)
-		bookHandler.Db = db
+		}, nil)
+		bookHandler.Interactor = interactor
 		handler := http.HandlerFunc(bookHandler.Update)
 
 		handler.ServeHTTP(rr, req)
@@ -272,8 +284,8 @@ func TestUpdate(t *testing.T) {
 		expectedError := "Error while decoding from request body\n"
 
 		assert.Equal(expectedError, rr.Body.String())
-
 	})
+
 	t.Run("Cannot retreive book from context", func(t *testing.T) {
 
 		bookHandler := handler.BookHandler{}
@@ -302,8 +314,8 @@ func TestCreate(t *testing.T) {
 	t.Run("Invalid request body", func(t *testing.T) {
 
 		bookHandler := handler.BookHandler{}
-		clmock := olmock.Client{}
-		bookHandler.Olc = &clmock
+		interactor := &imock.Book{}
+		bookHandler.Interactor = interactor
 
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{ISBN:"0140447938"}`)))
 
@@ -320,9 +332,12 @@ func TestCreate(t *testing.T) {
 	})
 	t.Run("Fetching book error", func(t *testing.T) {
 		bookHandler := handler.BookHandler{}
-		clmock := olmock.Client{}
-		clmock.On("FetchBook", "0140447938222").Return(nil, errors.New("Error while fetching book: "))
-		bookHandler.Olc = &clmock
+		interactor := &imock.Book{}
+
+		interactor.On("Create", dto.CreateBookRequest{
+			ISBN: "0140447938222",
+		}).Return(nil, errors.New("Error while fetching book: "))
+		bookHandler.Interactor = interactor
 
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0140447938222"}`)))
 		require.NoError(err)
@@ -335,56 +350,39 @@ func TestCreate(t *testing.T) {
 		require.Contains(rr.Body.String(), "Error while fetching book: ")
 	})
 	t.Run("Creation of book failed in database", func(t *testing.T) {
-		db := mock.Store{}
-		bookHandler := handler.BookHandler{}
 
-		clmock := olmock.Client{}
-		clmock.On("FetchBook", "0140447938").Return(&openlibrarydto.Book{Title: "War and Peace (Penguin Classics)"}, nil)
-		bookHandler.Olc = &clmock
+		interactor := &imock.Book{}
+		bookHandler := handler.BookHandler{}
 
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0140447938"}`)))
 
 		require.NoError(err)
 
 		rr := httptest.NewRecorder()
-		db.On("CreateBook", &model.Book{
-			Title: "War and Peace (Penguin Classics)",
-		}).Return(errors.New("Error creating book"))
-		bookHandler.Db = &db
+		interactor.On("Create", dto.CreateBookRequest{
+			ISBN: "0140447938",
+		}).Return(nil, errors.New("Error creating book"))
+
+		bookHandler.Interactor = interactor
 		handler := http.HandlerFunc(bookHandler.Create)
 
 		handler.ServeHTTP(rr, req)
 
-		expectedResponse := "Error creating book\n"
+		expectedResponse := "Internal server error:Error creating book\n"
 		assert.Equal(expectedResponse, rr.Body.String())
 	})
 	t.Run("Testing book creation", func(t *testing.T) {
-		db := mock.Store{}
 		bookHandler := handler.BookHandler{}
+		interactor := &imock.Book{}
 
-		clmock := olmock.Client{}
-		clmock.On("FetchBook", "0140447938").Return(&openlibrarydto.Book{
-			Title: "War and Peace (Penguin Classics)",
-			Identifier: openlibrarydto.Identifier{
-				ISBN10:      []string{"0140447938"},
-				ISBN13:      []string{"9780140447934"},
-				Openlibrary: []string{"OL7355422M"},
-			},
-			Author: []openlibrarydto.Author{
-				{Name: "Tolstoy"},
-			},
-			Cover: openlibrarydto.Cover{"https://covers.openlibrary.org/b/id/5049015-S.jpg"},
-			Year:  "2007",
-		},
-			nil)
-		bookHandler.Olc = &clmock
+		bookHandler.Interactor = interactor
 
 		req, err := http.NewRequest("POST", "/books", bytes.NewBuffer([]byte(`{"ISBN":"0140447938"}`)))
 
-		require.NoError(err)
-
 		rr := httptest.NewRecorder()
-		db.On("CreateBook", &model.Book{
+		interactor.On("Create", dto.CreateBookRequest{
+			ISBN: "0140447938",
+		}).Return(&model.Book{
 			Id:            0,
 			Title:         "War and Peace (Penguin Classics)",
 			Author:        "Tolstoy",
@@ -393,8 +391,8 @@ func TestCreate(t *testing.T) {
 			OpenLibraryId: "OL7355422M",
 			CoverId:       "5049015",
 			Year:          2007,
-		}).Return(nil)
-		bookHandler.Db = &db
+		}, nil)
+
 		handler := http.HandlerFunc(bookHandler.Create)
 
 		handler.ServeHTTP(rr, req)
@@ -422,7 +420,7 @@ func TestGet(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 	t.Run("Successfully retrieved book", func(t *testing.T) {
-		var db = mock.Store{}
+		interactor := &imock.Book{}
 		bookHandler := handler.BookHandler{}
 		book := &model.Book{
 			Id:            1,
@@ -445,7 +443,7 @@ func TestGet(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 
-		db.On("FindBookById", 1).Return(&model.Book{
+		interactor.On("FindBookById", 1).Return(&model.Book{
 			Id:            1,
 			Title:         "some title",
 			Author:        "some author",
@@ -456,7 +454,7 @@ func TestGet(t *testing.T) {
 			Year:          2019,
 		}, nil)
 
-		bookHandler.Db = &db
+		bookHandler.Interactor = interactor
 		handler := http.HandlerFunc(bookHandler.Get)
 		handler.ServeHTTP(rr, req)
 		expectedBook := dto.BookResponse{
@@ -501,7 +499,7 @@ func TestDelete(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 	t.Run("Book successfully deleted", func(t *testing.T) {
-		var db = mock.Store{}
+		interactor := &imock.Book{}
 		book := &model.Book{
 			Id:            2,
 			Title:         "test title",
@@ -525,9 +523,9 @@ func TestDelete(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 
-		db.On("DeleteBook", book).Return(nil)
+		interactor.On("Delete", book).Return(nil)
 
-		bookHandler.Db = &db
+		bookHandler.Interactor = interactor
 
 		handler := http.HandlerFunc(bookHandler.Delete)
 
@@ -570,7 +568,7 @@ func TestDelete(t *testing.T) {
 			CoverId:       "other cover ID",
 			Year:          2019,
 		}
-		db := &mock.Store{}
+		interactor := &imock.Book{}
 		req, err := http.NewRequest("DELETE", "/books/{id}", nil)
 		params := map[string]string{"id": "-5"}
 		req = mux.SetURLVars(req, params)
@@ -581,8 +579,8 @@ func TestDelete(t *testing.T) {
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
-		db.On("DeleteBook", book).Return(errors.New("Error while deleting book"))
-		bookHandler.Db = db
+		interactor.On("Delete", book).Return(errors.New("Error while deleting book"))
+		bookHandler.Interactor = interactor
 		handler := http.HandlerFunc(bookHandler.Delete)
 
 		handler.ServeHTTP(rr, req)
