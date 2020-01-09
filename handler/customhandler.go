@@ -17,7 +17,7 @@ func (eh *ErrorHandler) Wrap(handler customHandler) http.Handler {
 		err := handler(w, r)
 		if err != nil {
 			w.WriteHeader(err.code)
-			eh.Logger.Error(err) //1. logging
+			eh.Logger.Error(err)
 			if err.code < http.StatusInternalServerError {
 				fmt.Fprintf(w, err.Error())
 			}
