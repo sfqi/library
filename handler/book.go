@@ -14,28 +14,6 @@ import (
 
 var yearRgx = regexp.MustCompile(`[0-9]{4}`)
 
-type HTTPError struct {
-	Code     int
-	internal error
-	context  string
-}
-
-func (h HTTPError) Error() string {
-	return fmt.Sprintf("HTTP %d: %s. Error: %s", h.Code, h.context, h.internal)
-}
-
-func newHTTPError(code int, err error) *HTTPError {
-	return &HTTPError{
-		Code:     code,
-		internal: err,
-	}
-}
-
-func (e *HTTPError) Wrap(ctx string) *HTTPError {
-	e.context = ctx
-	return e
-}
-
 type BookHandler struct {
 	Interactor bookInteractor
 }
