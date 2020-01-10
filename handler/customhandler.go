@@ -16,9 +16,9 @@ func (eh *ErrorHandler) Wrap(handler customHandler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := handler(w, r)
 		if err != nil {
-			w.WriteHeader(err.code)
+			w.WriteHeader(err.Code)
 			eh.Logger.Error(err)
-			if err.code < http.StatusInternalServerError {
+			if err.Code < http.StatusInternalServerError {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 		}

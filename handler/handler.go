@@ -15,18 +15,18 @@ import (
 var yearRgx = regexp.MustCompile(`[0-9]{4}`)
 
 type HTTPError struct {
-	code     int
+	Code     int
 	internal error
 	context  string
 }
 
 func (h HTTPError) Error() string {
-	return fmt.Sprintf("HTTP %d: %s. Error: %s", h.code, h.context, h.internal)
+	return fmt.Sprintf("HTTP %d: %s. Error: %s", h.Code, h.context, h.internal)
 }
 
 func newHTTPError(code int, err error) *HTTPError {
 	return &HTTPError{
-		code:     code,
+		Code:     code,
 		internal: err,
 	}
 }
