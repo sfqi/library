@@ -15,7 +15,6 @@ import (
 
 type bookHandler struct {
 	bookFromContext *model.Book
-	Interactor      middleware.BookInteractor
 }
 
 func (bh *bookHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
