@@ -79,9 +79,9 @@ func TestIndex(t *testing.T) {
 			}}, nil)
 
 		bookHandler.Interactor = interactor
-		handler := http.HandlerFunc(bookHandler.Index)
-		handler.ServeHTTP(rr, req)
-		require.Equal(http.StatusOK, rr.Code)
+		httpError := bookHandler.Index(rr, req)
+		assert.Nil(httpError)
+		assert.Equal(http.StatusOK, rr.Code)
 
 		var response []dto.BookResponse
 		err = json.NewDecoder(rr.Body).Decode(&response)
@@ -102,14 +102,13 @@ func TestIndex(t *testing.T) {
 		interactor.On("FindAll").Return(nil, errors.New("Error finding books"))
 		bookHandler.Interactor = interactor
 
-		handler := http.HandlerFunc(bookHandler.Index)
+		handler := bookHandler.Index
+		httperror := handler(rr, req)
 
-		handler.ServeHTTP(rr, req)
+		expectedResponse := "HTTP 500: Error finding books"
+		assert.Equal(expectedResponse, httperror.Error())
 
-		assert.Equal(http.StatusInternalServerError, rr.Code)
-
-		expectedResponse := "Error finding books\n"
-		assert.Equal(expectedResponse, rr.Body.String())
+		assert.Equal(http.StatusInternalServerError, httperror.Code())
 
 	})
 
@@ -132,12 +131,10 @@ func TestUpdate(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 
-		handler := http.HandlerFunc(bookHandler.Update)
+		httpError := bookHandler.Update(rr, req)
 
-		handler.ServeHTTP(rr, req)
-
-		expectedError := "Internal server error:error retrieving book from context\n"
-		assert.Equal(expectedError, rr.Body.String())
+		expectedError := "HTTP 500: error retrieving book from context"
+		assert.Equal(expectedError, httpError.Error())
 	})
 	t.Run("error updating book in database", func(t *testing.T) {
 		interactor := &imock.Book{}
@@ -177,14 +174,13 @@ func TestUpdate(t *testing.T) {
 		},
 		).Return(nil, errors.New("error updating book"))
 		bookHandler.Interactor = interactor
-		handler := http.HandlerFunc(bookHandler.Update)
 
-		handler.ServeHTTP(rr, req)
+		httpError := bookHandler.Update(rr, req)
 
-		assert.Equal(http.StatusInternalServerError, rr.Code)
+		assert.Equal(http.StatusInternalServerError, httpError.Code())
 
-		expectedError := "error updating book\n"
-		assert.Equal(expectedError, rr.Body.String())
+		expectedError := "HTTP 500: error updating book"
+		assert.Equal(expectedError, httpError.Error())
 	})
 	t.Run("assertion of expected response, and actual response", func(t *testing.T) {
 		interactor := &imock.Book{}
@@ -232,9 +228,9 @@ func TestUpdate(t *testing.T) {
 			Year:          2019,
 		}, nil)
 		bookHandler.Interactor = interactor
-		handler := http.HandlerFunc(bookHandler.Update)
 
-		handler.ServeHTTP(rr, req)
+		httpError := bookHandler.Update(rr, req)
+		assert.Nil(httpError)
 
 		require.Equal(http.StatusOK, rr.Code)
 
@@ -278,32 +274,12 @@ func TestUpdate(t *testing.T) {
 		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
-		handler := http.HandlerFunc(bookHandler.Update)
 
-		handler.ServeHTTP(rr, req)
-		expectedError := "Error while decoding from request body\n"
+		httpError := bookHandler.Update(rr, req)
 
-		assert.Equal(expectedError, rr.Body.String())
-	})
+		expectedError := "HTTP 400: invalid character 'z' looking for beginning of value"
 
-	t.Run("Cannot retreive book from context", func(t *testing.T) {
-
-		bookHandler := handler.BookHandler{}
-
-		req, err := http.NewRequest("UPDATE", "/book/{id}", nil)
-		params := map[string]string{"id": "5"}
-		req = mux.SetURLVars(req, params)
-		require.NoError(err)
-
-		ctx := context.WithValue(req.Context(), "book", nil)
-		req = req.WithContext(ctx)
-		rr := httptest.NewRecorder()
-
-		handler := http.HandlerFunc(bookHandler.Update)
-		handler.ServeHTTP(rr, req)
-		expectedResponse := "Internal server error:error retrieving book from context" + "\n"
-
-		assert.Equal(expectedResponse, rr.Body.String())
+		assert.Equal(expectedError, httpError.Error())
 	})
 
 }
@@ -323,12 +299,10 @@ func TestCreate(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 
-		handler := http.HandlerFunc(bookHandler.Create)
+		httpError := bookHandler.Create(rr, req)
+		expectedError := "HTTP 400: invalid character 'I' looking for beginning of object key string"
 
-		handler.ServeHTTP(rr, req)
-		expectedError := "Error while decoding from request body\n"
-
-		assert.Equal(expectedError, rr.Body.String())
+		assert.Equal(expectedError, httpError.Error())
 	})
 	t.Run("Fetching book error", func(t *testing.T) {
 		bookHandler := handler.BookHandler{}
@@ -344,10 +318,10 @@ func TestCreate(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 
-		handler := http.HandlerFunc(bookHandler.Create)
-		handler.ServeHTTP(rr, req)
+		httpError := bookHandler.Create(rr, req)
 
-		require.Contains(rr.Body.String(), "Error while fetching book: ")
+		require.Contains(httpError.Error(), "Error while fetching book: ")
+		assert.Equal(http.StatusInternalServerError, httpError.Code())
 	})
 	t.Run("Creation of book failed in database", func(t *testing.T) {
 
@@ -364,12 +338,12 @@ func TestCreate(t *testing.T) {
 		}).Return(nil, errors.New("Error creating book"))
 
 		bookHandler.Interactor = interactor
-		handler := http.HandlerFunc(bookHandler.Create)
 
-		handler.ServeHTTP(rr, req)
+		httpError := bookHandler.Create(rr, req)
 
-		expectedResponse := "Internal server error:Error creating book\n"
-		assert.Equal(expectedResponse, rr.Body.String())
+		expectedResponse := "HTTP 500: Error creating book"
+		assert.Equal(expectedResponse, httpError.Error())
+		assert.Equal(http.StatusInternalServerError, httpError.Code())
 	})
 	t.Run("Testing book creation", func(t *testing.T) {
 		bookHandler := handler.BookHandler{}
@@ -393,10 +367,8 @@ func TestCreate(t *testing.T) {
 			Year:          2007,
 		}, nil)
 
-		handler := http.HandlerFunc(bookHandler.Create)
-
-		handler.ServeHTTP(rr, req)
-
+		httpError := bookHandler.Create(rr, req)
+		assert.Nil(httpError)
 		bookExpected := dto.BookResponse{
 			0,
 			"War and Peace (Penguin Classics)",
@@ -455,8 +427,9 @@ func TestGet(t *testing.T) {
 		}, nil)
 
 		bookHandler.Interactor = interactor
-		handler := http.HandlerFunc(bookHandler.Get)
-		handler.ServeHTTP(rr, req)
+
+		httpError := bookHandler.Get(rr, req)
+		assert.Nil(httpError)
 		expectedBook := dto.BookResponse{
 			ID:            1,
 			Title:         "some title",
@@ -487,11 +460,10 @@ func TestGet(t *testing.T) {
 		req = req.WithContext(ctx)
 		rr := httptest.NewRecorder()
 
-		handler := http.HandlerFunc(bookHandler.Get)
-		handler.ServeHTTP(rr, req)
-		expectedResponse := "Internal server error:error retrieving book from context" + "\n"
+		httpError := bookHandler.Get(rr, req)
+		expectedResponse := "HTTP 500: error retrieving book from context"
 
-		assert.Equal(expectedResponse, rr.Body.String())
+		assert.Equal(expectedResponse, httpError.Error())
 	})
 }
 
@@ -527,9 +499,8 @@ func TestDelete(t *testing.T) {
 
 		bookHandler.Interactor = interactor
 
-		handler := http.HandlerFunc(bookHandler.Delete)
-
-		handler.ServeHTTP(rr, req)
+		httpError := bookHandler.Delete(rr, req)
+		assert.Nil(httpError)
 
 		require.Equal(http.StatusNoContent, rr.Code)
 	})
@@ -547,14 +518,14 @@ func TestDelete(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 
-		handler := http.HandlerFunc(bookHandler.Delete)
+		handler := bookHandler.Delete
+		httpError := handler(rr, req)
 
-		handler.ServeHTTP(rr, req)
-		expectedResponse := "Internal server error:error retrieving book from context" + "\n"
+		expectedResponse := "HTTP 500: error retrieving book from context"
 
-		require.Equal(http.StatusInternalServerError, rr.Code)
+		require.Equal(http.StatusInternalServerError, httpError.Code())
 
-		assert.Equal(expectedResponse, rr.Body.String())
+		assert.Equal(expectedResponse, httpError.Error())
 	})
 	t.Run("Error deleting book", func(t *testing.T) {
 		bookHandler := handler.BookHandler{}
@@ -581,10 +552,11 @@ func TestDelete(t *testing.T) {
 		rr := httptest.NewRecorder()
 		interactor.On("Delete", book).Return(errors.New("Error while deleting book"))
 		bookHandler.Interactor = interactor
-		handler := http.HandlerFunc(bookHandler.Delete)
 
-		handler.ServeHTTP(rr, req)
-		expectedResponse := "Error while deleting book" + "\n"
-		assert.Equal(expectedResponse, rr.Body.String())
+		httpError := bookHandler.Delete(rr, req)
+
+		expectedResponse := "HTTP 500: Error while deleting book"
+		assert.Equal(expectedResponse, httpError.Error())
+		assert.Equal(http.StatusInternalServerError, httpError.Code())
 	})
 }
