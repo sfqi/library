@@ -34,7 +34,7 @@ func TestError(t *testing.T) {
 				internal: errors.New("Some error occured with code 400"),
 				context:  "with some context",
 			},
-			message: "HTTP 400: with some context Some error occured with code 400",
+			message: "HTTP 400: with some context: Some error occured with code 400",
 		},
 		{
 			name: "Status code 500 with no context",
@@ -52,7 +52,7 @@ func TestError(t *testing.T) {
 				internal: errors.New("Some error occured with code 500"),
 				context:  "with some context",
 			},
-			message: "HTTP 500: with some context Some error occured with code 500",
+			message: "HTTP 500: with some context: Some error occured with code 500",
 		},
 	}
 	for _, tt := range tests {
@@ -76,7 +76,7 @@ func internalServerErrorHandler(w http.ResponseWriter, r *http.Request) *HTTPErr
 		context:  "",
 	}
 }
-func badRequest(w http.ResponseWriter, r *http.Request) *HTTPError {
+func badRequestHandler(w http.ResponseWriter, r *http.Request) *HTTPError {
 	return &HTTPError{
 		code:     400,
 		internal: errors.New("error with status code 400"),
@@ -112,10 +112,10 @@ func TestWrap(t *testing.T) {
 		require.NoError(err)
 		logger := logrus.New()
 		rr := httptest.NewRecorder()
-		(&ErrorHandler{logger}).Wrap(badRequest).ServeHTTP(rr, req)
+		(&ErrorHandler{logger}).Wrap(badRequestHandler).ServeHTTP(rr, req)
 
 		assert.Equal(http.StatusBadRequest, rr.Code)
-		expected := "HTTP 400: with some context error with status code 400\n"
+		expected := "HTTP 400: with some context: error with status code 400\n"
 		assert.Equal(expected, rr.Body.String())
 	})
 
