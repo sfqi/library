@@ -50,7 +50,7 @@ func (eh *ErrorHandler) Wrap(handler customHandler) http.Handler {
 		if err != nil {
 			eh.Logger.Error(err)
 
-			if err.code < 500 {
+			if err.code < http.StatusInternalServerError {
 				errorMsg = err.Error()
 			}
 

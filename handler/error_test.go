@@ -2,13 +2,13 @@ package handler
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestError(t *testing.T) {
@@ -64,67 +64,58 @@ func TestError(t *testing.T) {
 
 }
 
-func testHandler(w http.ResponseWriter, r *http.Request) *HTTPError {
+func okHandler(w http.ResponseWriter, r *http.Request) *HTTPError {
 	w.WriteHeader(http.StatusOK)
 	return nil
 }
 
-func testHandler2(w http.ResponseWriter, r *http.Request) *HTTPError {
+func internalServerErrorHandler(w http.ResponseWriter, r *http.Request) *HTTPError {
 	return &HTTPError{
 		code:     500,
 		internal: errors.New("error with status code 500"),
 		context:  "",
 	}
 }
-func testHandler3(w http.ResponseWriter, r *http.Request) *HTTPError {
+func badRequest(w http.ResponseWriter, r *http.Request) *HTTPError {
 	return &HTTPError{
 		code:     400,
 		internal: errors.New("error with status code 400"),
-		context:  " with some context",
+		context:  "with some context",
 	}
 }
 
 func TestWrap(t *testing.T) {
 	assert := assert.New(t)
+	require := require.New(t)
 	t.Run("Test Wrap", func(t *testing.T) {
-		req, err := http.NewRequest("GET", "/testerrorhandler", nil)
-		if err != nil {
-			t.Fatal(err)
-		}
+		req, err := http.NewRequest("GET", "/", nil)
+		require.NoError(err)
 		logger := logrus.New()
 		rr := httptest.NewRecorder()
-		errHandler := ErrorHandler{logger}
-		newHandler := errHandler.Wrap(testHandler)
-		newHandler.ServeHTTP(rr, req)
+		(&ErrorHandler{logger}).Wrap(okHandler).ServeHTTP(rr, req)
+
 		assert.Equal(http.StatusOK, rr.Code)
-		fmt.Println(rr.Code)
 	})
 	t.Run("Status code 500", func(t *testing.T) {
-		req, err := http.NewRequest("GET", "/testerrorhandler2", nil)
-		if err != nil {
-			t.Fatal(err)
-		}
+		req, err := http.NewRequest("GET", "/", nil)
+		require.NoError(err)
 		logger := logrus.New()
 		rr := httptest.NewRecorder()
-		errHandler := ErrorHandler{logger}
-		newHandler := errHandler.Wrap(testHandler2)
-		newHandler.ServeHTTP(rr, req)
+		(&ErrorHandler{logger}).Wrap(internalServerErrorHandler).ServeHTTP(rr, req)
+
 		assert.Equal(http.StatusInternalServerError, rr.Code)
 		expected := "\n"
 		assert.Equal(expected, rr.Body.String())
 	})
-	t.Run("Status code 500", func(t *testing.T) {
-		req, err := http.NewRequest("GET", "/testerrorhandler3", nil)
-		if err != nil {
-			t.Fatal(err)
-		}
+	t.Run("Status code 400", func(t *testing.T) {
+		req, err := http.NewRequest("GET", "/", nil)
+		require.NoError(err)
 		logger := logrus.New()
 		rr := httptest.NewRecorder()
-		errHandler := ErrorHandler{logger}
-		newHandler := errHandler.Wrap(testHandler3)
-		newHandler.ServeHTTP(rr, req)
+		(&ErrorHandler{logger}).Wrap(badRequest).ServeHTTP(rr, req)
+
 		assert.Equal(http.StatusBadRequest, rr.Code)
-		expected := "HTTP 400:  with some context error with status code 400\n"
+		expected := "HTTP 400: with some context error with status code 400\n"
 		assert.Equal(expected, rr.Body.String())
 	})
 
