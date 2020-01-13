@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/joho/godotenv"
-	"github.com/sfqi/library/interactor"
-	"github.com/sfqi/library/repository/postgres"
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/joho/godotenv"
+	"github.com/sfqi/library/interactor"
+	"github.com/sfqi/library/repository/postgres"
 
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/sfqi/library/log"
@@ -47,12 +48,13 @@ func main() {
 	bookHandler := &handler.BookHandler{
 		Interactor: bookInteractor,
 	}
+	logger := log.New()
 
 	bodyDump := middleware.BodyDump{
-		Logger: log.New(),
+		Logger: logger,
 	}
 
-	handleFunc := handler.ErrorHandler{Logger: log.New()}
+	handleFunc := handler.ErrorHandler{Logger: logger}.Wrap
 
 	bookLoad := middleware.BookLoader{
 		Interactor: bookInteractor,
@@ -60,11 +62,11 @@ func main() {
 	r := mux.NewRouter()
 	s := r.PathPrefix("/books").Subrouter()
 
-	r.Handle("/books", handleFunc.Wrap(bookHandler.Index)).Methods("GET")
-	r.Handle("/books", handleFunc.Wrap(bookHandler.Create)).Methods("POST")
-	s.Handle("/{id}", handleFunc.Wrap(bookHandler.Update)).Methods("PUT")
-	s.Handle("/{id}", handleFunc.Wrap(bookHandler.Get)).Methods("GET")
-	s.Handle("/{id}", handleFunc.Wrap(bookHandler.Delete)).Methods("DELETE")
+	r.Handle("/books", handleFunc(bookHandler.Index)).Methods("GET")
+	r.Handle("/books", handleFunc(bookHandler.Create)).Methods("POST")
+	s.Handle("/{id}", handleFunc(bookHandler.Update)).Methods("PUT")
+	s.Handle("/{id}", handleFunc(bookHandler.Get)).Methods("GET")
+	s.Handle("/{id}", handleFunc(bookHandler.Delete)).Methods("DELETE")
 	r.Use(bodyDump.Dump)
 	s.Use(bookLoad.GetBook)
 
