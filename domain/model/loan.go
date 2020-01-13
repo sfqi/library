@@ -1,44 +1,43 @@
 package model
 
 import (
-	"fmt"
 	"github.com/google/uuid"
 	"time"
 )
 
 type loanType int
-const(
+
+const (
 	borrowed loanType = 0
 	returned loanType = 1
 )
 
-type Loan struct{
-	Id int
+type Loan struct {
+	ID            int
 	TransactionID string
-	UserID int
-	BookID int
-	Type loanType
-	CreatedAt time.Time
+	UserID        int
+	BookID        int
+	Type          loanType
+	CreatedAt     time.Time
 }
 
-func NewLoan(userId int, bookId int, state loanType) *Loan{
-	uuid ,err := uuid.NewUUID()
-	if err != nil{
-		fmt.Println(err)
+func NewLoan(userId int, bookId int, state loanType) (*Loan, error) {
+	uuid, err := uuid.NewUUID()
+	if err != nil {
+		return nil, err
 	}
 	return &Loan{
 		TransactionID: uuid.String(),
-		UserID:userId,
-		BookID:bookId,
-		Type:state,
-		CreatedAt : time.Now(),
-	}
+		UserID:        userId,
+		BookID:        bookId,
+		Type:          state,
+	}, nil
 }
 
-func ReturnedLoan(userid int, bookid int) *Loan{
+func ReturnedLoan(userid int, bookid int) (*Loan, error) {
 	return NewLoan(userid, bookid, returned)
 }
 
-func BorrowedLoan(userid int, bookid int) *Loan{
-	 return NewLoan(userid, bookid, borrowed)
+func BorrowedLoan(userid int, bookid int) (*Loan, error) {
+	return NewLoan(userid, bookid, borrowed)
 }
