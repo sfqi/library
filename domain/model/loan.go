@@ -31,7 +31,6 @@ func NewLoan(userId int, bookId int, state loanType) (*Loan, error) {
 		UserID:        userId,
 		BookID:        bookId,
 		Type:          state,
-		CreatedAt:     time.Now(),
 	}, nil
 }
 
