@@ -46,13 +46,11 @@ func (eh *ErrorHandler) Wrap(handler customHandler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var errorMsg string
 		err := handler(w, r)
-		eh.Logger.Error(err)
 
 		if err != nil {
-			switch err.code {
-			case http.StatusInternalServerError:
+			eh.Logger.Error(err)
 
-			default:
+			if err.code < 500 {
 				errorMsg = err.Error()
 			}
 

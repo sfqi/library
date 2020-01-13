@@ -2,8 +2,12 @@ package handler
 
 import (
 	"errors"
-	"github.com/stretchr/testify/assert"
+	"net/http"
+	"net/http/httptest"
 	"testing"
+
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestError(t *testing.T) {
@@ -56,5 +60,29 @@ func TestError(t *testing.T) {
 			assert.Equal(tt.message, errMsg)
 		})
 	}
+
+}
+
+func testHandler(w http.ResponseWriter, r *http.Request) *HTTPError {
+	w.WriteHeader(http.StatusOK)
+	return nil
+}
+
+func TestWrap(t *testing.T) {
+	assert := assert.New(t)
+	t.Run("Test Wrap", func(t *testing.T) {
+		req, err := http.NewRequest("GET", "/testerrorhandler", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		handler := testHandler
+		logger := logrus.New()
+		rr := httptest.NewRecorder()
+		errHandler := ErrorHandler{logger}
+		newHandler := errHandler.Wrap(handler)
+		newHandler.ServeHTTP(rr, req)
+		assert.Equal(http.StatusOK, rr.Code)
+
+	})
 
 }
