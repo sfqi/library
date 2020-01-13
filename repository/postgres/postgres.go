@@ -69,3 +69,43 @@ func (store *Store) FindAllBooks() ([]*model.Book, error) {
 func (store *Store) DeleteBook(book *model.Book) error {
 	return store.db.Where("id = ?", book.Id).Delete(&model.Book{}).Error
 }
+
+func (store *Store) CreateLoan(loan *model.Loan) error {
+	return store.db.Create(&loan).Error
+}
+
+func (store *Store) FindLoanByID(id int) (*model.Loan, error) {
+	loan := model.Loan{}
+	if err := store.db.First(&loan, id).Error; err != nil {
+		return nil, err
+	}
+	return &loan, nil
+}
+
+func (store *Store) FindAllLoans() ([]*model.Loan, error) {
+	loans := []*model.Loan{}
+	if err := store.db.Find(&loans).Error; err != nil {
+		return nil, err
+	}
+	return loans, nil
+}
+
+func (store *Store) FindLoanByBookID(bookID int) (*model.Loan, error) {
+	loan := &model.Loan{}
+	stmt := `SELECT * FROM loans WHERE book_id = $1`
+	err := store.db.Raw(stmt, bookID).Scan(&loan).Error
+	if err != nil {
+		return nil, err
+	}
+	return loan, nil
+}
+
+func (store *Store) FindLoanByUserID(userID int) (*model.Loan, error) {
+	loan := &model.Loan{}
+	stmt := `SELECT * FROM loans WHERE user_id = $1`
+	err := store.db.Raw(stmt, userID).Scan(&loan).Error
+	if err != nil {
+		return nil, err
+	}
+	return loan, nil
+}
