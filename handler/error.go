@@ -42,7 +42,7 @@ type ErrorHandler struct {
 	Logger *logrus.Logger
 }
 
-func (eh *ErrorHandler) Wrap(handler customHandler) http.Handler {
+func (eh ErrorHandler) Wrap(handler customHandler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var errorMsg string
 		err := handler(w, r)

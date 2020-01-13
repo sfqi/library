@@ -54,7 +54,7 @@ func main() {
 		Logger: logger,
 	}
 
-	handleFunc := (&handler.ErrorHandler{Logger: logger}).Wrap
+	handleFunc := handler.ErrorHandler{Logger: logger}.Wrap
 
 	bookLoad := middleware.BookLoader{
 		Interactor: bookInteractor,

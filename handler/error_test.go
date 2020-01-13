@@ -92,7 +92,7 @@ func TestWrap(t *testing.T) {
 		require.NoError(err)
 		logger := logrus.New()
 		rr := httptest.NewRecorder()
-		(&ErrorHandler{logger}).Wrap(okHandler).ServeHTTP(rr, req)
+		ErrorHandler{logger}.Wrap(okHandler).ServeHTTP(rr, req)
 
 		assert.Equal(http.StatusOK, rr.Code)
 	})
@@ -101,7 +101,7 @@ func TestWrap(t *testing.T) {
 		require.NoError(err)
 		logger := logrus.New()
 		rr := httptest.NewRecorder()
-		(&ErrorHandler{logger}).Wrap(internalServerErrorHandler).ServeHTTP(rr, req)
+		ErrorHandler{logger}.Wrap(internalServerErrorHandler).ServeHTTP(rr, req)
 
 		assert.Equal(http.StatusInternalServerError, rr.Code)
 		expected := "\n"
@@ -112,7 +112,7 @@ func TestWrap(t *testing.T) {
 		require.NoError(err)
 		logger := logrus.New()
 		rr := httptest.NewRecorder()
-		(&ErrorHandler{logger}).Wrap(badRequestHandler).ServeHTTP(rr, req)
+		ErrorHandler{logger}.Wrap(badRequestHandler).ServeHTTP(rr, req)
 
 		assert.Equal(http.StatusBadRequest, rr.Code)
 		expected := "HTTP 400: with some context: error with status code 400\n"
