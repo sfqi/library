@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -68,6 +69,21 @@ func testHandler(w http.ResponseWriter, r *http.Request) *HTTPError {
 	return nil
 }
 
+func testHandler2(w http.ResponseWriter, r *http.Request) *HTTPError {
+	return &HTTPError{
+		code:     500,
+		internal: errors.New("error with status code 500"),
+		context:  "",
+	}
+}
+func testHandler3(w http.ResponseWriter, r *http.Request) *HTTPError {
+	return &HTTPError{
+		code:     400,
+		internal: errors.New("error with status code 400"),
+		context:  " with some context",
+	}
+}
+
 func TestWrap(t *testing.T) {
 	assert := assert.New(t)
 	t.Run("Test Wrap", func(t *testing.T) {
@@ -75,14 +91,41 @@ func TestWrap(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		handler := testHandler
 		logger := logrus.New()
 		rr := httptest.NewRecorder()
 		errHandler := ErrorHandler{logger}
-		newHandler := errHandler.Wrap(handler)
+		newHandler := errHandler.Wrap(testHandler)
 		newHandler.ServeHTTP(rr, req)
 		assert.Equal(http.StatusOK, rr.Code)
-
+		fmt.Println(rr.Code)
+	})
+	t.Run("Status code 500", func(t *testing.T) {
+		req, err := http.NewRequest("GET", "/testerrorhandler2", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		logger := logrus.New()
+		rr := httptest.NewRecorder()
+		errHandler := ErrorHandler{logger}
+		newHandler := errHandler.Wrap(testHandler2)
+		newHandler.ServeHTTP(rr, req)
+		assert.Equal(http.StatusInternalServerError, rr.Code)
+		expected := "\n"
+		assert.Equal(expected, rr.Body.String())
+	})
+	t.Run("Status code 500", func(t *testing.T) {
+		req, err := http.NewRequest("GET", "/testerrorhandler3", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		logger := logrus.New()
+		rr := httptest.NewRecorder()
+		errHandler := ErrorHandler{logger}
+		newHandler := errHandler.Wrap(testHandler3)
+		newHandler.ServeHTTP(rr, req)
+		assert.Equal(http.StatusBadRequest, rr.Code)
+		expected := "HTTP 400:  with some context error with status code 400\n"
+		assert.Equal(expected, rr.Body.String())
 	})
 
 }
