@@ -30,3 +30,11 @@ func (l *Loan) FindAll() ([]*model.Loan, error) {
 
 	return l.loansStore.FindAllLoans()
 }
+
+func (l *Loan) FindByBookID(ID int) ([]*model.Loan, error) {
+	return l.loansStore.FindLoansByBookID(ID)
+}
+
+func (l *Loan) FindByUserID(ID int) ([]*model.Loan, error) {
+	return l.loansStore.FindLoansByUserID(ID)
+}
