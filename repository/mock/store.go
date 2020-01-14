@@ -9,7 +9,7 @@ type Store struct {
 	mock.Mock
 }
 
-func (s *Store) FindBookById(id int)(*model.Book, error) {
+func (s *Store) FindBookById(id int) (*model.Book, error) {
 	args := s.Called(id)
 	if args.Get(0) != nil {
 		return args.Get(0).(*model.Book), nil
@@ -47,4 +47,32 @@ func (s *Store) DeleteBook(book *model.Book) error {
 		return args.Error(0)
 	}
 	return nil
+}
+
+func (s *Store) CreateLoan(loan *model.Loan) error {
+	return nil
+}
+
+func (s *Store) FindLoanByID(id int) (*model.Loan, error) {
+	return nil, nil
+}
+
+func (s *Store) FindAllLoans() ([]*model.Loan, error) {
+	return nil, nil
+}
+
+func (s *Store) FindLoansByBookID(bookID int) ([]*model.Loan, error) {
+	args := s.Called(bookID)
+	if args.Get(0) != nil {
+		return args.Get(0).([]*model.Loan), nil
+	}
+	return nil, args.Error(1)
+}
+
+func (s *Store) FindLoansByUserID(userID int) ([]*model.Loan, error) {
+	args := s.Called(userID)
+	if args.Get(0) != nil {
+		return args.Get(0).([]*model.Loan), nil
+	}
+	return nil, args.Error(1)
 }
