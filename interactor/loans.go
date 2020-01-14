@@ -12,13 +12,19 @@ type loansStore interface {
 	CreateLoan(*model.Loan) error
 }
 
-type Loan struct {
-	loansStore loansStore
+type loansGenerator interface {
+	GenerateUUID() (string, error)
 }
 
-func NewLoan(loansStore loansStore) *Loan {
+type Loan struct {
+	loansStore loansStore
+	generator  loansGenerator
+}
+
+func NewLoan(loansStore loansStore, generator loansGenerator) *Loan {
 	return &Loan{
 		loansStore: loansStore,
+		generator:  generator,
 	}
 }
 
@@ -34,8 +40,10 @@ func (l *Loan) FindAll() ([]*model.Loan, error) {
 
 func (l *Loan) CreateLoan(userID int, bookID int, state model.LoanType) error {
 	loan, err := model.NewLoan(userID, bookID, state)
+	uuid, err := l.generator.GenerateUUID()
 	if err != nil {
 		return err
 	}
+	loan.TransactionID = uuid
 	return l.loansStore.CreateLoan(loan)
 }
