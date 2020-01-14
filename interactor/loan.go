@@ -12,21 +12,19 @@ type loansStore interface {
 }
 
 type Loan struct {
-	loansStore loansStore
+	loanStore loansStore
 }
 
 func NewLoan(loansStore loansStore) *Loan {
 	return &Loan{
-		loansStore: loansStore,
+		loanStore: loansStore,
 	}
 }
 
 func (l *Loan) FindByID(ID int) (*model.Loan, error) {
-
-	return l.loansStore.FindLoanByID(ID)
+	return l.loanStore.FindLoanByID(ID)
 }
 
 func (l *Loan) FindAll() ([]*model.Loan, error) {
-
-	return l.loansStore.FindAllLoans()
+	return l.loanStore.FindAllLoans()
 }
