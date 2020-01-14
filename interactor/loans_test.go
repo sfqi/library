@@ -141,6 +141,23 @@ func TestLoan_Create(t *testing.T) {
 		assert.NoError(err)
 
 	})
+
+	t.Run("Error creating loan in database", func(t *testing.T) {
+		store := &repomock.Store{}
+		generator := &mock.Generator{}
+
+		loan, err := model.BorrowedLoan(1, 1)
+		loan.TransactionID = "gen123-gen321"
+
+		l := interactor.NewLoan(store, generator)
+		storeError := errors.New("Error saving loan in database")
+
+		generator.On("GenerateUUID").Return("gen123-gen321", nil)
+		store.On("CreateLoan", loan).Return(storeError)
+
+		err = l.CreateLoan(loan.UserID, loan.BookID, loan.Type)
+		assert.Equal(err, storeError)
+	})
 }
 
 func TestFindByUserID(t *testing.T) {
