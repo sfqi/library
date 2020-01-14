@@ -21,9 +21,9 @@ func NewLoan(loansStore loansStore) *Loan {
 	}
 }
 
-func (l *Loan) FindByID(ID int) ([]*model.Loan, error) {
+func (l *Loan) FindByID(ID int) (*model.Loan, error) {
 
-	return l.loansStore.FindLoansByBookID(ID)
+	return l.loansStore.FindLoanByID(ID)
 }
 
 func (l *Loan) FindAll() ([]*model.Loan, error) {
