@@ -73,7 +73,7 @@ var users = []model.User{
 
 var loans = []*model.Loan{
 	&model.Loan{
-		Id:            1,
+		ID:            1,
 		TransactionID: "211231",
 		UserID:        1,
 		BookID:        1,
@@ -81,7 +81,7 @@ var loans = []*model.Loan{
 		CreatedAt:     time.Now(),
 	},
 	&model.Loan{
-		Id:            2,
+		ID:            2,
 		TransactionID: "42423123",
 		UserID:        2,
 		BookID:        2,
