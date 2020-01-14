@@ -24,3 +24,11 @@ func (l *Loans) FindAll() ([]*model.Loan, error) {
 	}
 	return nil, args.Error(1)
 }
+
+func (l *Loans) CreateLoan(userId int, bookId int, state model.LoanType) error {
+	args := l.Called(userId, bookId, state)
+	if args.Get(0) != nil {
+		return args.Error(0)
+	}
+	return nil
+}

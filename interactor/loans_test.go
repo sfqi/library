@@ -2,6 +2,7 @@ package interactor_test
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -121,6 +122,22 @@ func TestFindAllLoans(t *testing.T) {
 		assert.Equal(err, storeError)
 	})
 
+}
+
+func TestLoan_Create(t *testing.T) {
+	assert := assert.New(t)
+	t.Run("Loan successfully saved in database", func(t *testing.T) {
+		store := &repomock.Store{}
+		l := interactor.NewLoan(store)
+
+		loan, err := model.BorrowedLoan(1, 1)
+		fmt.Println(loan)
+		store.On("CreateLoan", loan).Return(nil)
+
+		err = l.CreateLoan(loan.UserID, loan.BookID, loan.Type)
+		assert.NoError(err)
+
+	})
 }
 
 func TestFindByUserID(t *testing.T) {

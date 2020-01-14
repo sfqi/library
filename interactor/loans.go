@@ -9,6 +9,7 @@ type loansStore interface {
 	FindAllLoans() ([]*model.Loan, error)
 	FindLoansByBookID(int) ([]*model.Loan, error)
 	FindLoansByUserID(int) ([]*model.Loan, error)
+	CreateLoan(*model.Loan) error
 }
 
 type Loan struct {
@@ -29,4 +30,12 @@ func (l *Loan) FindByID(ID int) (*model.Loan, error) {
 func (l *Loan) FindAll() ([]*model.Loan, error) {
 
 	return l.loansStore.FindAllLoans()
+}
+
+func (l *Loan) CreateLoan(userID int, bookID int, state model.LoanType) error {
+	loan, err := model.NewLoan(userID, bookID, state)
+	if err != nil {
+		return err
+	}
+	return l.loansStore.CreateLoan(loan)
 }

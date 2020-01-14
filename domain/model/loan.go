@@ -5,11 +5,11 @@ import (
 	"time"
 )
 
-type loanType int
+type LoanType int
 
 const (
-	borrowed loanType = 0
-	returned loanType = 1
+	borrowed LoanType = 0
+	returned LoanType = 1
 )
 
 type Loan struct {
@@ -17,15 +17,16 @@ type Loan struct {
 	TransactionID string
 	UserID        int
 	BookID        int
-	Type          loanType
+	Type          LoanType
 	CreatedAt     time.Time
 }
 
-func NewLoan(userId int, bookId int, state loanType) (*Loan, error) {
+func NewLoan(userId int, bookId int, state LoanType) (*Loan, error) {
 	uuid, err := uuid.NewUUID()
 	if err != nil {
 		return nil, err
 	}
+
 	return &Loan{
 		TransactionID: uuid.String(),
 		UserID:        userId,
