@@ -9,7 +9,7 @@ type Generator struct {
 	mock.Mock
 }
 
-func (g *Generator) GenerateUUID() (string, error) {
+func (g *Generator) Do() (string, error) {
 	args := g.Called()
 	if args.Get(0) != "" {
 		return fmt.Sprintf("%v", args.Get(0)), nil

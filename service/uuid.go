@@ -1,11 +1,10 @@
-package interactor
+package service
 
 import "github.com/google/uuid"
 
-type generator struct {
-}
+type Generator struct{}
 
-func (g *generator) GenerateUUID() (string, error) {
+func (g *Generator) Do() (string, error) {
 	uuid, err := uuid.NewUUID()
 	if err != nil {
 		return "", err

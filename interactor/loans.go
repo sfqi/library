@@ -12,16 +12,16 @@ type loansStore interface {
 	CreateLoan(*model.Loan) error
 }
 
-type loansGenerator interface {
-	GenerateUUID() (string, error)
+type uuidGenerator interface {
+	Do() (string, error)
 }
 
 type Loan struct {
 	loansStore loansStore
-	generator  loansGenerator
+	generator  uuidGenerator
 }
 
-func NewLoan(loansStore loansStore, generator loansGenerator) *Loan {
+func NewLoan(loansStore loansStore, generator uuidGenerator) *Loan {
 	return &Loan{
 		loansStore: loansStore,
 		generator:  generator,
@@ -38,12 +38,11 @@ func (l *Loan) FindAll() ([]*model.Loan, error) {
 	return l.loansStore.FindAllLoans()
 }
 
-func (l *Loan) CreateLoan(userID int, bookID int, state model.LoanType) error {
-	loan, err := model.NewLoan(userID, bookID, state)
-	uuid, err := l.generator.GenerateUUID()
+func (l *Loan) CreateLoan(userID int, bookID int, loanType model.LoanType) error {
+	uuid, err := l.generator.Do()
 	if err != nil {
 		return err
 	}
-	loan.TransactionID = uuid
+	loan, err := model.NewLoan(userID, bookID, uuid, loanType)
 	return l.loansStore.CreateLoan(loan)
 }
