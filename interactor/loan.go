@@ -4,7 +4,7 @@ import (
 	"github.com/sfqi/library/domain/model"
 )
 
-type loansStore interface {
+type loanStore interface {
 	FindLoanByID(int) (*model.Loan, error)
 	FindAllLoans() ([]*model.Loan, error)
 	FindLoansByBookID(int) ([]*model.Loan, error)
@@ -12,29 +12,27 @@ type loansStore interface {
 }
 
 type Loan struct {
-	loansStore loansStore
+	store loanStore
 }
 
-func NewLoan(loansStore loansStore) *Loan {
+func NewLoan(loanStore loanStore) *Loan {
 	return &Loan{
-		loansStore: loansStore,
+		store: loanStore,
 	}
 }
 
-func (l *Loan) FindByID(ID int) ([]*model.Loan, error) {
-
-	return l.loansStore.FindLoansByBookID(ID)
+func (l *Loan) FindByID(ID int) (*model.Loan, error) {
+	return l.store.FindLoanByID(ID)
 }
 
 func (l *Loan) FindAll() ([]*model.Loan, error) {
-
-	return l.loansStore.FindAllLoans()
+	return l.store.FindAllLoans()
 }
 
 func (l *Loan) FindByUserID(id int) ([]*model.Loan, error) {
-	return l.loansStore.FindLoansByUserID(id)
+	return l.store.FindLoansByUserID(id)
 }
 
 func (l *Loan) FindByBookID(id int) ([]*model.Loan, error) {
-	return l.loansStore.FindLoansByBookID(id)
+	return l.store.FindLoansByBookID(id)
 }
