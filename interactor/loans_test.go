@@ -143,15 +143,14 @@ func TestLoan_Create(t *testing.T) {
 
 	t.Run("Error creating loan in database", func(t *testing.T) {
 		store := &repomock.Store{}
-		generator := &mock.Generator{}
+		generator := &uuid.Generator{}
 
-		loan, err := model.BorrowedLoan(1, 1)
-		loan.TransactionID = "gen123-gen321"
+		loan, err := model.BorrowedLoan(1, 1, "gen123-gen321")
 
 		l := interactor.NewLoan(store, generator)
 		storeError := errors.New("Error saving loan in database")
 
-		generator.On("GenerateUUID").Return("gen123-gen321", nil)
+		generator.On("Do").Return("gen123-gen321", nil)
 		store.On("CreateLoan", loan).Return(storeError)
 
 		err = l.CreateLoan(loan.UserID, loan.BookID, loan.Type)
