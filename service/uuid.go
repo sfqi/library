@@ -9,5 +9,6 @@ func (g *Generator) Do() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return uuid.String(), nil
 }

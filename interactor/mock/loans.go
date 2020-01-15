@@ -14,6 +14,7 @@ func (l *Loans) FindByID(ID int) ([]*model.Loan, error) {
 	if args.Get(0) != nil {
 		return args.Get(0).([]*model.Loan), nil
 	}
+
 	return nil, args.Error(1)
 }
 
@@ -22,6 +23,7 @@ func (l *Loans) FindAll() ([]*model.Loan, error) {
 	if args.Get(0) != nil {
 		return args.Get(0).([]*model.Loan), nil
 	}
+
 	return nil, args.Error(1)
 }
 
@@ -30,5 +32,6 @@ func (l *Loans) CreateLoan(userId int, bookId int, state model.LoanType) error {
 	if args.Get(0) != nil {
 		return args.Error(0)
 	}
+
 	return nil
 }

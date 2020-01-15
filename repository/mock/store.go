@@ -78,5 +78,6 @@ func (s *Store) CreateLoan(loan *model.Loan) error {
 	if args.Get(0) != nil {
 		return args.Error(0)
 	}
+
 	return nil
 }
