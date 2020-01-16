@@ -124,9 +124,9 @@ func TestFindAllLoans(t *testing.T) {
 
 }
 
-func TestLoan_Create(t *testing.T) {
+func TestBorrow(t *testing.T) {
 	assert := assert.New(t)
-	t.Run("Loan successfully saved in database", func(t *testing.T) {
+	t.Run("Borrow loan successfully saved in database", func(t *testing.T) {
 		store := &repomock.Store{}
 		generator := &uuid.Generator{}
 
@@ -136,24 +136,57 @@ func TestLoan_Create(t *testing.T) {
 
 		store.On("CreateLoan", loan).Return(nil)
 		l := interactor.NewLoan(store, generator)
-		err = l.CreateLoan(loan.UserID, loan.BookID, loan.Type)
+		err = l.Borrow(loan.UserID, loan.BookID)
 		assert.NoError(err)
 
 	})
 
-	t.Run("Error creating loan in database", func(t *testing.T) {
+	t.Run("Error creating borrow loan in database", func(t *testing.T) {
 		store := &repomock.Store{}
 		generator := &uuid.Generator{}
 
 		loan, err := model.BorrowedLoan(1, 1, "gen123-gen321")
 
 		l := interactor.NewLoan(store, generator)
-		storeError := errors.New("Error saving loan in database")
+		storeError := errors.New("Error saving borrow loan in database")
 
 		generator.On("Do").Return("gen123-gen321", nil)
 		store.On("CreateLoan", loan).Return(storeError)
 
-		err = l.CreateLoan(loan.UserID, loan.BookID, loan.Type)
+		err = l.Borrow(loan.UserID, loan.BookID)
+		assert.Equal(err, storeError)
+	})
+}
+
+func TestReturn(t *testing.T) {
+	assert := assert.New(t)
+	t.Run("Return loan successfully saved in database", func(t *testing.T) {
+		store := &repomock.Store{}
+		generator := &uuid.Generator{}
+
+		loan, err := model.ReturnedLoan(1, 1, "")
+
+		generator.On("Do").Return("", nil)
+
+		store.On("CreateLoan", loan).Return(nil)
+		l := interactor.NewLoan(store, generator)
+		err = l.Return(loan.UserID, loan.BookID)
+		assert.NoError(err)
+
+	})
+	t.Run("Error creating return loan in database", func(t *testing.T) {
+		store := &repomock.Store{}
+		generator := &uuid.Generator{}
+
+		loan, err := model.ReturnedLoan(0, 0, "")
+
+		l := interactor.NewLoan(store, generator)
+		storeError := errors.New("Error saving return loan in database")
+
+		generator.On("Do").Return("", nil)
+		store.On("CreateLoan", loan).Return(storeError)
+
+		err = l.Return(loan.UserID, loan.BookID)
 		assert.Equal(err, storeError)
 	})
 }

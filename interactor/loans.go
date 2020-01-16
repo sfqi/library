@@ -38,11 +38,20 @@ func (l *Loan) FindAll() ([]*model.Loan, error) {
 	return l.loansStore.FindAllLoans()
 }
 
-func (l *Loan) CreateLoan(userID int, bookID int, loanType model.LoanType) error {
+func (l *Loan) Borrow(userID int, bookID int) error {
 	uuid, err := l.generator.Do()
 	if err != nil {
 		return err
 	}
-	loan, err := model.NewLoan(userID, bookID, uuid, loanType)
+	loan, err := model.BorrowedLoan(userID, bookID, uuid)
+	return l.loansStore.CreateLoan(loan)
+}
+
+func (l *Loan) Return(userID int, bookID int) error {
+	uuid, err := l.generator.Do()
+	if err != nil {
+		return err
+	}
+	loan, err := model.ReturnedLoan(userID, bookID, uuid)
 	return l.loansStore.CreateLoan(loan)
 }
