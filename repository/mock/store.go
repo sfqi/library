@@ -49,10 +49,6 @@ func (s *Store) DeleteBook(book *model.Book) error {
 	return nil
 }
 
-func (s *Store) CreateLoan(loan *model.Loan) error {
-	return nil
-}
-
 func (s *Store) FindLoansByBookID(bookID int) ([]*model.Loan, error) {
 	args := s.Called(bookID)
 	if args.Get(0) != nil {

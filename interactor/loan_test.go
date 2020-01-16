@@ -194,7 +194,7 @@ func TestFindByUserID(t *testing.T) {
 	t.Run("Successfully retrieved loans by user id", func(t *testing.T) {
 		store := &repomock.Store{}
 
-		l := interactor.NewLoan(store)
+		l := interactor.NewLoan(store, nil)
 
 		store.On("FindLoansByUserID", 1).Return([]*model.Loan{
 			{
@@ -227,7 +227,7 @@ func TestFindByUserID(t *testing.T) {
 		store := &repomock.Store{}
 		storeError := errors.New("Error finding loans with given user ID from database")
 
-		l := interactor.NewLoan(store)
+		l := interactor.NewLoan(store, nil)
 
 		store.On("FindLoansByUserID", 10).Return(nil, storeError)
 
@@ -243,7 +243,7 @@ func TestFindByBookID(t *testing.T) {
 	t.Run("Successfully retrieved loans by book id", func(t *testing.T) {
 		store := &repomock.Store{}
 
-		l := interactor.NewLoan(store)
+		l := interactor.NewLoan(store, nil)
 
 		store.On("FindLoansByBookID", 1).Return([]*model.Loan{
 			{
@@ -276,7 +276,7 @@ func TestFindByBookID(t *testing.T) {
 		store := &repomock.Store{}
 		storeError := errors.New("Error finding loans with given book ID from database")
 
-		l := interactor.NewLoan(store)
+		l := interactor.NewLoan(store, nil)
 
 		store.On("FindLoansByBookID", 10).Return(nil, storeError)
 
