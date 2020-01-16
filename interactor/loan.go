@@ -54,4 +54,11 @@ func (l *Loan) Return(userID int, bookID int) error {
 
 	loan := model.ReturnedLoan(userID, bookID, uuid)
 	return l.store.CreateLoan(loan)
+func (l *Loan) FindByUserID(id int) ([]*model.Loan, error) {
+	return l.store.FindLoansByUserID(id)
+}
+
+func (l *Loan) FindByBookID(id int) ([]*model.Loan, error) {
+	return l.store.FindLoansByBookID(id)
+
 }
