@@ -9,7 +9,7 @@ type Loan struct {
 	mock.Mock
 }
 
-func (l *Loan) FindByUserID(id int) ([]*model.Loan, error) {
+func (l *Loan) FindByUserID(ID int) ([]*model.Loan, error) {
 	args := l.Called()
 	if args.Get(0) != nil {
 		return args.Get(0).([]*model.Loan), nil
@@ -26,7 +26,7 @@ func (l *Loan) FindByID(ID int) ([]*model.Loan, error) {
 	return nil, args.Error(1)
 }
 
-func (l *Loan) FindByBookID(id int) ([]*model.Loan, error) {
+func (l *Loan) FindByBookID(ID int) ([]*model.Loan, error) {
 	args := l.Called()
 	if args.Get(0) != nil {
 		return args.Get(0).([]*model.Loan), nil
@@ -43,8 +43,8 @@ func (l *Loan) FindAll() ([]*model.Loan, error) {
 	return nil, args.Error(1)
 }
 
-func (l *Loan) CreateLoan(userId int, bookId int) error {
-	args := l.Called(userId, bookId)
+func (l *Loan) CreateLoan(userID int, bookID int) error {
+	args := l.Called(userID, bookID)
 	if args.Get(0) != nil {
 		return args.Error(0)
 	}
