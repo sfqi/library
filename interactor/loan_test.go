@@ -104,8 +104,9 @@ func TestFindAllLoans(t *testing.T) {
 		}
 
 		loans, err := l.FindAll()
-		assert.Equal(loans, expectedLoans)
 		assert.NoError(err)
+		assert.Equal(expectedLoans, loans)
+
 	})
 
 	t.Run("Error retrieving loans", func(t *testing.T) {
@@ -113,11 +114,9 @@ func TestFindAllLoans(t *testing.T) {
 		storeError := errors.New("Error finding loans")
 
 		l := interactor.NewLoan(store, nil)
-
 		store.On("FindAllLoans").Return(nil, storeError)
 
 		loans, err := l.FindAll()
-
 		assert.Nil(loans)
 		assert.Equal(err, storeError)
 	})

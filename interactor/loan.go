@@ -4,7 +4,7 @@ import (
 	"github.com/sfqi/library/domain/model"
 )
 
-type loansStore interface {
+type loanStore interface {
 	FindLoanByID(int) (*model.Loan, error)
 	FindAllLoans() ([]*model.Loan, error)
 	FindLoansByBookID(int) ([]*model.Loan, error)
@@ -17,25 +17,23 @@ type uuidGenerator interface {
 }
 
 type Loan struct {
-	loansStore loansStore
-	generator  uuidGenerator
+	store     loanStore
+	generator uuidGenerator
 }
 
-func NewLoan(loansStore loansStore, generator uuidGenerator) *Loan {
+func NewLoan(loanStore loanStore, generator uuidGenerator) *Loan {
 	return &Loan{
-		loansStore: loansStore,
-		generator:  generator,
+		store:     loanStore,
+		generator: generator,
 	}
 }
 
 func (l *Loan) FindByID(ID int) (*model.Loan, error) {
-
-	return l.loansStore.FindLoanByID(ID)
+	return l.store.FindLoanByID(ID)
 }
 
 func (l *Loan) FindAll() ([]*model.Loan, error) {
-
-	return l.loansStore.FindAllLoans()
+	return l.store.FindAllLoans()
 }
 
 func (l *Loan) Borrow(userID int, bookID int) error {
@@ -45,7 +43,7 @@ func (l *Loan) Borrow(userID int, bookID int) error {
 	}
 
 	loan := model.BorrowedLoan(userID, bookID, uuid)
-	return l.loansStore.CreateLoan(loan)
+	return l.store.CreateLoan(loan)
 }
 
 func (l *Loan) Return(userID int, bookID int) error {
@@ -55,5 +53,5 @@ func (l *Loan) Return(userID int, bookID int) error {
 	}
 
 	loan := model.ReturnedLoan(userID, bookID, uuid)
-	return l.loansStore.CreateLoan(loan)
+	return l.store.CreateLoan(loan)
 }
