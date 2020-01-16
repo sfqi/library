@@ -130,22 +130,21 @@ func TestBorrow(t *testing.T) {
 		store := &repomock.Store{}
 		generator := &uuid.Generator{}
 
-		loan, err := model.BorrowedLoan(1, 1, "gen123-gen321")
+		loan := model.BorrowedLoan(1, 1, "gen123-gen321")
 
 		generator.On("Do").Return("gen123-gen321", nil)
 
 		store.On("CreateLoan", loan).Return(nil)
 		l := interactor.NewLoan(store, generator)
-		err = l.Borrow(loan.UserID, loan.BookID)
+		err := l.Borrow(loan.UserID, loan.BookID)
 		assert.NoError(err)
-
 	})
 
 	t.Run("Error creating borrow loan in database", func(t *testing.T) {
 		store := &repomock.Store{}
 		generator := &uuid.Generator{}
 
-		loan, err := model.BorrowedLoan(1, 1, "gen123-gen321")
+		loan := model.BorrowedLoan(1, 1, "gen123-gen321")
 
 		l := interactor.NewLoan(store, generator)
 		storeError := errors.New("Error saving borrow loan in database")
@@ -153,7 +152,7 @@ func TestBorrow(t *testing.T) {
 		generator.On("Do").Return("gen123-gen321", nil)
 		store.On("CreateLoan", loan).Return(storeError)
 
-		err = l.Borrow(loan.UserID, loan.BookID)
+		err := l.Borrow(loan.UserID, loan.BookID)
 		assert.Equal(err, storeError)
 	})
 }
@@ -164,13 +163,13 @@ func TestReturn(t *testing.T) {
 		store := &repomock.Store{}
 		generator := &uuid.Generator{}
 
-		loan, err := model.ReturnedLoan(1, 1, "")
+		loan := model.ReturnedLoan(1, 1, "")
 
 		generator.On("Do").Return("", nil)
 
 		store.On("CreateLoan", loan).Return(nil)
 		l := interactor.NewLoan(store, generator)
-		err = l.Return(loan.UserID, loan.BookID)
+		err := l.Return(loan.UserID, loan.BookID)
 		assert.NoError(err)
 
 	})
@@ -178,7 +177,7 @@ func TestReturn(t *testing.T) {
 		store := &repomock.Store{}
 		generator := &uuid.Generator{}
 
-		loan, err := model.ReturnedLoan(0, 0, "")
+		loan := model.ReturnedLoan(0, 0, "")
 
 		l := interactor.NewLoan(store, generator)
 		storeError := errors.New("Error saving return loan in database")
@@ -186,7 +185,7 @@ func TestReturn(t *testing.T) {
 		generator.On("Do").Return("", nil)
 		store.On("CreateLoan", loan).Return(storeError)
 
-		err = l.Return(loan.UserID, loan.BookID)
+		err := l.Return(loan.UserID, loan.BookID)
 		assert.Equal(err, storeError)
 	})
 }

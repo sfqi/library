@@ -43,7 +43,8 @@ func (l *Loan) Borrow(userID int, bookID int) error {
 	if err != nil {
 		return err
 	}
-	loan, err := model.BorrowedLoan(userID, bookID, uuid)
+
+	loan := model.BorrowedLoan(userID, bookID, uuid)
 	return l.loansStore.CreateLoan(loan)
 }
 
@@ -52,6 +53,7 @@ func (l *Loan) Return(userID int, bookID int) error {
 	if err != nil {
 		return err
 	}
-	loan, err := model.ReturnedLoan(userID, bookID, uuid)
+
+	loan := model.ReturnedLoan(userID, bookID, uuid)
 	return l.loansStore.CreateLoan(loan)
 }

@@ -20,19 +20,19 @@ type Loan struct {
 	CreatedAt     time.Time
 }
 
-func NewLoan(userId int, bookId int, uuid string, loanType loanType) (*Loan, error) {
+func newLoan(userId int, bookId int, uuid string, loanType loanType) *Loan {
 	return &Loan{
 		UserID:        userId,
 		BookID:        bookId,
 		TransactionID: uuid,
 		Type:          loanType,
-	}, nil
+	}
 }
 
-func ReturnedLoan(userid int, bookid int, uuid string) (*Loan, error) {
-	return NewLoan(userid, bookid, uuid, returned)
+func ReturnedLoan(userid int, bookid int, uuid string) *Loan {
+	return newLoan(userid, bookid, uuid, returned)
 }
 
-func BorrowedLoan(userid int, bookid int, uuid string) (*Loan, error) {
-	return NewLoan(userid, bookid, uuid, borrowed)
+func BorrowedLoan(userid int, bookid int, uuid string) *Loan {
+	return newLoan(userid, bookid, uuid, borrowed)
 }
