@@ -1,7 +1,6 @@
 package model
 
 import (
-	"github.com/google/uuid"
 	"time"
 )
 
@@ -21,23 +20,19 @@ type Loan struct {
 	CreatedAt     time.Time
 }
 
-func NewLoan(userId int, bookId int, state loanType) (*Loan, error) {
-	uuid, err := uuid.NewUUID()
-	if err != nil {
-		return nil, err
-	}
+func newLoan(userId int, bookId int, uuid string, loanType loanType) *Loan {
 	return &Loan{
-		TransactionID: uuid.String(),
 		UserID:        userId,
 		BookID:        bookId,
-		Type:          state,
-	}, nil
+		TransactionID: uuid,
+		Type:          loanType,
+	}
 }
 
-func ReturnedLoan(userid int, bookid int) (*Loan, error) {
-	return NewLoan(userid, bookid, returned)
+func ReturnedLoan(userid int, bookid int, uuid string) *Loan {
+	return newLoan(userid, bookid, uuid, returned)
 }
 
-func BorrowedLoan(userid int, bookid int) (*Loan, error) {
-	return NewLoan(userid, bookid, borrowed)
+func BorrowedLoan(userid int, bookid int, uuid string) *Loan {
+	return newLoan(userid, bookid, uuid, borrowed)
 }

@@ -84,3 +84,12 @@ func (s *Store) FindLoansByUserID(userID int) ([]*model.Loan, error) {
 	}
 	return nil, args.Error(1)
 }
+
+func (s *Store) CreateLoan(loan *model.Loan) error {
+	args := s.Called(loan)
+	if args.Get(0) != nil {
+		return args.Error(0)
+	}
+
+	return nil
+}
