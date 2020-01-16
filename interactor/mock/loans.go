@@ -43,8 +43,8 @@ func (l *Loan) FindAll() ([]*model.Loan, error) {
 	return nil, args.Error(1)
 }
 
-func (l *Loans) CreateLoan(userId int, bookId int, state model.LoanType) error {
-	args := l.Called(userId, bookId, state)
+func (l *Loan) CreateLoan(userId int, bookId int) error {
+	args := l.Called(userId, bookId)
 	if args.Get(0) != nil {
 		return args.Error(0)
 	}
