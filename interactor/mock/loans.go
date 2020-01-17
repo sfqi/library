@@ -10,24 +10,24 @@ type Loan struct {
 }
 
 func (l *Loan) FindByUserID(ID int) ([]*model.Loan, error) {
-	args := l.Called()
+	args := l.Called(ID)
 	if args.Get(0) != nil {
 		return args.Get(0).([]*model.Loan), nil
 	}
 	return nil, args.Error(1)
 }
 
-func (l *Loan) FindByID(ID int) ([]*model.Loan, error) {
+func (l *Loan) FindByID(ID int) (*model.Loan, error) {
 	args := l.Called(ID)
 	if args.Get(0) != nil {
-		return args.Get(0).([]*model.Loan), nil
+		return args.Get(0).(*model.Loan), nil
 	}
 
 	return nil, args.Error(1)
 }
 
 func (l *Loan) FindByBookID(ID int) ([]*model.Loan, error) {
-	args := l.Called()
+	args := l.Called(ID)
 	if args.Get(0) != nil {
 		return args.Get(0).([]*model.Loan), nil
 	}
