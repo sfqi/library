@@ -57,7 +57,7 @@ func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) *HTTPError {
 
 	err = json.NewEncoder(w).Encode(bookResponses)
 	if err != nil {
-		return newHTTPError(http.StatusBadRequest, err)
+		return newHTTPError(http.StatusInternalServerError, err)
 	}
 	return nil
 }
