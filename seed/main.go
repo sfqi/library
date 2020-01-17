@@ -32,6 +32,33 @@ var books = []*model.Book{
 	},
 }
 
+var users = []*model.User{
+	{
+		Id:        1,
+		Email:     "joe@doe.com",
+		Name:      "Joe",
+		LastName:  "Doe",
+		CreatedAt: time.Time{},
+		UpdatedAt: time.Time{},
+	},
+	{
+		Id:        2,
+		Email:     "jane@doe.com",
+		Name:      "Jane",
+		LastName:  "Doe",
+		CreatedAt: time.Time{},
+		UpdatedAt: time.Time{},
+	},
+	{
+		Id:        3,
+		Email:     "john@smith.com",
+		Name:      "John",
+		LastName:  "Smith",
+		CreatedAt: time.Time{},
+		UpdatedAt: time.Time{},
+	},
+}
+
 func main() {
 
 	config := postgres.PostgresConfig{
@@ -49,6 +76,12 @@ func main() {
 	defer store.Close()
 	for _, book := range books {
 		if err := store.CreateBook(book); err != nil {
+			panic(err)
+		}
+	}
+
+	for _, user := range users {
+		if err := store.CreateUser(user); err != nil {
 			panic(err)
 		}
 	}

@@ -29,6 +29,17 @@ func newLoan(userId int, bookId int, uuid string, loanType loanType) *Loan {
 	}
 }
 
+func (l *Loan) PrintType() string {
+	switch l.Type {
+	case 0:
+		return "borrowed"
+	case 1:
+		return "returned"
+	default:
+		return "unknown"
+	}
+}
+
 func ReturnedLoan(userid int, bookid int, uuid string) *Loan {
 	return newLoan(userid, bookid, uuid, returned)
 }

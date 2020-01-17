@@ -107,3 +107,8 @@ func (store *Store) FindLoansByUserID(userID int) ([]*model.Loan, error) {
 	}
 	return loans, nil
 }
+
+func (store *Store) CreateUser(user *model.User) error {
+	return store.db.Create(&user).Error
+
+}

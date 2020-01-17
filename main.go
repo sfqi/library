@@ -9,6 +9,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/sfqi/library/interactor"
 	"github.com/sfqi/library/repository/postgres"
+	"github.com/sfqi/library/service"
 
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/sfqi/library/log"
@@ -59,6 +60,13 @@ func main() {
 	bookLoad := middleware.BookLoader{
 		Interactor: bookInteractor,
 	}
+
+	uuidGenerator := &service.Generator{}
+	loanInteractor := interactor.NewLoan(store, uuidGenerator)
+	loanHandler := &handler.LoanHandler{
+		Interactor: loanInteractor,
+	}
+
 	r := mux.NewRouter()
 	s := r.PathPrefix("/books").Subrouter()
 
@@ -67,6 +75,9 @@ func main() {
 	s.Handle("/{id}", handleFunc(bookHandler.Update)).Methods("PUT")
 	s.Handle("/{id}", handleFunc(bookHandler.Get)).Methods("GET")
 	s.Handle("/{id}", handleFunc(bookHandler.Delete)).Methods("DELETE")
+
+	r.Handle("/users/{user_id}/loans", handleFunc(loanHandler.FindLoansByUserID)).Methods("GET")
+
 	r.Use(bodyDump.Dump)
 	s.Use(bookLoad.GetBook)
 
