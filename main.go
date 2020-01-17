@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/sfqi/library/service"
 	"net/http"
 	"os"
 	"strconv"
@@ -48,6 +49,13 @@ func main() {
 	bookHandler := &handler.BookHandler{
 		Interactor: bookInteractor,
 	}
+
+	uuidGenerator := &service.Generator{}
+	loanInteractor := interactor.NewLoan(store, uuidGenerator)
+	loanHandler := &handler.LoanHandler{
+		Interactor: loanInteractor,
+	}
+
 	logger := log.New()
 
 	bodyDump := middleware.BodyDump{
@@ -67,6 +75,10 @@ func main() {
 	s.Handle("/{id}", handleFunc(bookHandler.Update)).Methods("PUT")
 	s.Handle("/{id}", handleFunc(bookHandler.Get)).Methods("GET")
 	s.Handle("/{id}", handleFunc(bookHandler.Delete)).Methods("DELETE")
+
+	//loans endpoints
+	r.Handle("/books/{book_id}/loans", handleFunc(loanHandler.FindLoansByBookID)).Methods("GET")
+
 	r.Use(bodyDump.Dump)
 	s.Use(bookLoad.GetBook)
 
