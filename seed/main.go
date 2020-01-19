@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/google/uuid"
 	"time"
 
 	"github.com/sfqi/library/domain/model"
@@ -35,21 +36,21 @@ var books = []*model.Book{
 var loans = []*model.Loan{
 	{
 		ID:            1,
-		TransactionID: "asdwd212 asdad2d12",
+		TransactionID: uuid.New().String(),
 		UserID:        1,
 		BookID:        2,
 		Type:          1,
 	},
 	{
 		ID:            2,
-		TransactionID: "xzxc2cxcc",
+		TransactionID: uuid.New().String(),
 		UserID:        2,
 		BookID:        1,
 		Type:          0,
 	},
 	{
 		ID:            3,
-		TransactionID: "cccscscscs2131",
+		TransactionID: uuid.New().String(),
 		UserID:        1,
 		BookID:        1,
 		Type:          1,

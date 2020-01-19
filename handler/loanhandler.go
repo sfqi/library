@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/gorilla/mux"
 	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/handler/dto"
@@ -24,14 +23,15 @@ type loanInteractor interface {
 func (l *LoanHandler) FindLoansByBookID(w http.ResponseWriter, r *http.Request) *HTTPError {
 	id, err := strconv.Atoi(mux.Vars(r)["book_id"])
 	if err != nil {
-		return newHTTPError(http.StatusBadRequest, err)
+		return newHTTPError(http.StatusNotFound, err)
 	}
+
 	loans, err := l.Interactor.FindByBookID(id)
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
 	if len(loans) == 0 {
-		return newHTTPError(http.StatusNotFound, errors.New("No loans for given book id can be found"))
+		err = json.NewEncoder(w).Encode(loans)
 	}
 	var loanResponses []*dto.LoanResponse
 	for _, loan := range loans {
@@ -39,7 +39,7 @@ func (l *LoanHandler) FindLoansByBookID(w http.ResponseWriter, r *http.Request) 
 	}
 	err = json.NewEncoder(w).Encode(loanResponses)
 	if err != nil {
-		return newHTTPError(http.StatusBadRequest, err)
+		return newHTTPError(http.StatusInternalServerError, err)
 	}
 
 	return nil

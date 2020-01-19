@@ -79,7 +79,7 @@ func TestLoanHandler_FindLoansByBookID(t *testing.T) {
 	t.Run("error converting book id to integer", func(t *testing.T) {
 		interactor := &imock.Loan{}
 
-		expectedError := "HTTP 400: strconv.Atoi: parsing \"ww\": invalid syntax"
+		expectedError := "HTTP 404: strconv.Atoi: parsing \"ww\": invalid syntax"
 
 		req, err := http.NewRequest("GET", "/books/ww/loans", nil)
 		require.NoError(err)
@@ -93,17 +93,15 @@ func TestLoanHandler_FindLoansByBookID(t *testing.T) {
 		httpError := loanHandler.FindLoansByBookID(rr, req)
 		assert.NotNil(httpError)
 
-		assert.Equal(http.StatusBadRequest, httpError.Code())
+		assert.Equal(http.StatusNotFound, httpError.Code())
 
 		assert.NoError(err)
 
 		assert.Equal(expectedError, httpError.Error())
 
 	})
-	t.Run("error returning loans for given id", func(t *testing.T) {
+	t.Run("Book is not loaned yet", func(t *testing.T) {
 		interactor := &imock.Loan{}
-
-		expectedError := "HTTP 404: No loans for given book id can be found"
 
 		req, err := http.NewRequest("GET", "/books/12/loans", nil)
 		require.NoError(err)
@@ -112,18 +110,16 @@ func TestLoanHandler_FindLoansByBookID(t *testing.T) {
 		req = mux.SetURLVars(req, params)
 
 		rr := httptest.NewRecorder()
+		expected := []*model.Loan{}
 
-		interactor.On("FindByBookID", 12).Return([]*model.Loan{}, errors.New("No loans for given book id can be found"))
+		interactor.On("FindByBookID", 12).Return([]*model.Loan{}, nil)
 		loanHandler := handler.LoanHandler{Interactor: interactor}
 		httpError := loanHandler.FindLoansByBookID(rr, req)
-		assert.NotNil(httpError)
+		assert.Nil(httpError)
+		var response []*model.Loan
+		err = json.NewDecoder(rr.Body).Decode(&response)
 
-		assert.Equal(http.StatusNotFound, httpError.Code())
-
-		assert.NoError(err)
-
-		assert.Equal(expectedError, httpError.Error())
-
+		assert.Equal(expected, response)
 	})
 	t.Run("error for given id returned from database", func(t *testing.T) {
 		interactor := &imock.Loan{}
