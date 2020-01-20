@@ -31,7 +31,8 @@ func (l *LoanHandler) FindLoansByBookID(w http.ResponseWriter, r *http.Request) 
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
 	if len(loans) == 0 {
-		err = json.NewEncoder(w).Encode(loans)
+		w.Write([]byte("No loans for given book, yet"))
+		return nil
 	}
 	var loanResponses []*dto.LoanResponse
 	for _, loan := range loans {
