@@ -10,22 +10,24 @@ import (
 type customHandler func(http.ResponseWriter, *http.Request) *HTTPError
 
 type HTTPError struct {
-	code     int
-	internal error
-	context  string
+	code      int
+	internal  error
+	context   string
+	publicMsg string
 }
 
 func (h HTTPError) Error() string {
 	if h.context != "" {
-		return fmt.Sprintf("HTTP %d: %s: %s", h.code, h.context, h.internal)
+		return fmt.Sprintf("HTTP %d: %s: %s: %s", h.code, h.context, h.internal, h.publicMsg)
 	}
-	return fmt.Sprintf("HTTP %d: %s", h.code, h.internal)
+	return fmt.Sprintf("HTTP %d: %s: %s", h.code, h.internal, h.publicMsg)
 }
 
-func newHTTPError(code int, err error) *HTTPError {
+func newHTTPError(code int, err error, msg string) *HTTPError {
 	return &HTTPError{
-		code:     code,
-		internal: err,
+		code:      code,
+		internal:  err,
+		publicMsg: msg,
 	}
 }
 
@@ -51,7 +53,7 @@ func (eh ErrorHandler) Wrap(handler customHandler) http.Handler {
 			eh.Logger.Error(err)
 
 			if err.code < http.StatusInternalServerError {
-				errorMsg = err.Error()
+				errorMsg = err.publicMsg
 			}
 
 			http.Error(w, errorMsg, err.code)
