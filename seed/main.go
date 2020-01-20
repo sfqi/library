@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/sfqi/library/domain/model"
@@ -47,10 +48,19 @@ func main() {
 		panic(err)
 	}
 	defer store.Close()
-	for _, book := range books {
-		if err := store.CreateBook(book); err != nil {
-			panic(err)
+
+	db := store.GetDB()
+
+	bookList := []model.Book{}
+	var num int
+	db.Model(&bookList).Count(&num)
+
+	if num < 0 {
+		for _, book := range books {
+			if err := store.CreateBook(book); err != nil {
+				panic(err)
+			}
 		}
 	}
-
+	fmt.Println("Tables are not empty")
 }

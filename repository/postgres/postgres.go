@@ -24,6 +24,10 @@ func NewStore(db *gorm.DB) *Store {
 	return &Store{db: db}
 }
 
+func (s *Store) GetDB() *gorm.DB {
+	return s.db
+}
+
 func Open(config PostgresConfig) (*Store, error) {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		config.Host, config.Port, config.User, config.Password, config.Name)
