@@ -55,7 +55,7 @@ func main() {
 	var num int
 	db.Model(&bookList).Count(&num)
 
-	if num < 0 {
+	if num == 0 {
 		for _, book := range books {
 			if err := store.CreateBook(book); err != nil {
 				panic(err)
