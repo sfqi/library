@@ -21,7 +21,7 @@ type loanInteractor interface {
 }
 
 func (l *LoanHandler) FindLoansByBookID(w http.ResponseWriter, r *http.Request) *HTTPError {
-	id, err := strconv.Atoi(mux.Vars(r)["book_id"])
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		return newHTTPError(http.StatusNotFound, err)
 	}

@@ -77,7 +77,7 @@ func main() {
 	s.Handle("/{id}", handleFunc(bookHandler.Delete)).Methods("DELETE")
 
 	//loans endpoints
-	r.Handle("/books/{book_id}/loans", handleFunc(loanHandler.FindLoansByBookID)).Methods("GET")
+	s.Handle("/{id}/loans", handleFunc(loanHandler.FindLoansByBookID)).Methods("GET")
 
 	r.Use(bodyDump.Dump)
 	s.Use(bookLoad.GetBook)
