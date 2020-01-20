@@ -100,25 +100,6 @@ func TestLoanHandler_FindLoansByBookID(t *testing.T) {
 		assert.Equal(expectedError, httpError.Error())
 
 	})
-	t.Run("Book is not loaned yet", func(t *testing.T) {
-		interactor := &imock.Loan{}
-
-		req, err := http.NewRequest("GET", "/books/12/loans", nil)
-		require.NoError(err)
-
-		params := map[string]string{"book_id": "12"}
-		req = mux.SetURLVars(req, params)
-
-		rr := httptest.NewRecorder()
-		expected := "No loans for given book, yet"
-
-		interactor.On("FindByBookID", 12).Return([]*model.Loan{}, nil)
-		loanHandler := handler.LoanHandler{Interactor: interactor}
-		httpError := loanHandler.FindLoansByBookID(rr, req)
-		assert.Nil(httpError)
-
-		assert.Equal(expected, rr.Body.String())
-	})
 	t.Run("error for given id returned from database", func(t *testing.T) {
 		interactor := &imock.Loan{}
 

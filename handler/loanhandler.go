@@ -30,11 +30,8 @@ func (l *LoanHandler) FindLoansByBookID(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
-	if len(loans) == 0 {
-		w.Write([]byte("No loans for given book, yet"))
-		return nil
-	}
-	var loanResponses []*dto.LoanResponse
+
+	loanResponses := []*dto.LoanResponse{}
 	for _, loan := range loans {
 		loanResponses = append(loanResponses, toLoanResponse(*loan))
 	}
