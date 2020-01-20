@@ -22,7 +22,7 @@ type loanInteractor interface {
 }
 
 func (l *LoanHandler) FindLoansByUserID(w http.ResponseWriter, r *http.Request) *HTTPError {
-	id, err := strconv.Atoi(mux.Vars(r)["user_id"])
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		return newHTTPError(http.StatusNotFound, err)
 	}
@@ -31,11 +31,8 @@ func (l *LoanHandler) FindLoansByUserID(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
-	if len(loans) == 0 {
-		json.NewEncoder(w).Encode(loans)
-	}
 
-	var loanResponses []*dto.LoanResponse
+	loanResponses := []*dto.LoanResponse{}
 
 	for _, loan := range loans {
 		loans, err := toLoanResponse(loan)

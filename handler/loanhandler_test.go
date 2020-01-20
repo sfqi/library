@@ -11,6 +11,7 @@ import (
 	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/handler"
 	"github.com/sfqi/library/handler/dto"
+
 	imock "github.com/sfqi/library/interactor/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -42,7 +43,7 @@ func TestLoanHandler_FindLoansByUserID(t *testing.T) {
 		req, err := http.NewRequest("GET", "/users/1/loans", nil)
 		require.NoError(err)
 
-		params := map[string]string{"user_id": "2"}
+		params := map[string]string{"id": "2"}
 		req = mux.SetURLVars(req, params)
 
 		rr := httptest.NewRecorder()
@@ -77,44 +78,19 @@ func TestLoanHandler_FindLoansByUserID(t *testing.T) {
 		assert.Equal(loanResponses, expectedLoans)
 
 	})
-
 	t.Run("error converting user id to integer", func(t *testing.T) {
 		interactor := &imock.Loan{}
 
-		expectedError := "HTTP 400: strconv.Atoi: parsing \"ww\": invalid syntax"
+		expectedError := "HTTP 404: strconv.Atoi: parsing \"ww\": invalid syntax"
 
 		req, err := http.NewRequest("GET", "/users/ww/loans", nil)
 		require.NoError(err)
 
-		params := map[string]string{"user_id": "ww"}
+		params := map[string]string{"id": "ww"}
 		req = mux.SetURLVars(req, params)
 
 		rr := httptest.NewRecorder()
 
-		loanHandler := handler.LoanHandler{Interactor: interactor}
-		httpError := loanHandler.FindLoansByUserID(rr, req)
-		assert.NotNil(httpError)
-
-		assert.Equal(http.StatusBadRequest, httpError.Code())
-		assert.NoError(err)
-
-		assert.Equal(expectedError, httpError.Error())
-	})
-
-	t.Run("error returning loans for given id", func(t *testing.T) {
-		interactor := &imock.Loan{}
-
-		expectedError := "HTTP 404: No loans for given user id can be found"
-
-		req, err := http.NewRequest("GET", "/users/12/loans", nil)
-		require.NoError(err)
-
-		params := map[string]string{"user_id": "12"}
-		req = mux.SetURLVars(req, params)
-
-		rr := httptest.NewRecorder()
-
-		interactor.On("FindByUserID", 12).Return([]*model.Loan{}, errors.New("No loans for given user id can be found"))
 		loanHandler := handler.LoanHandler{Interactor: interactor}
 		httpError := loanHandler.FindLoansByUserID(rr, req)
 		assert.NotNil(httpError)
@@ -124,7 +100,28 @@ func TestLoanHandler_FindLoansByUserID(t *testing.T) {
 
 		assert.Equal(expectedError, httpError.Error())
 	})
+	t.Run("user has no loans yet", func(t *testing.T) {
+		interactor := &imock.Loan{}
 
+		req, err := http.NewRequest("GET", "/users/12/loans", nil)
+		require.NoError(err)
+
+		params := map[string]string{"id": "12"}
+		req = mux.SetURLVars(req, params)
+
+		rr := httptest.NewRecorder()
+		expected := []*model.Loan{}
+
+		interactor.On("FindByUserID", 12).Return([]*model.Loan{}, nil)
+		loanHandler := handler.LoanHandler{Interactor: interactor}
+		httpError := loanHandler.FindLoansByUserID(rr, req)
+
+		assert.Nil(httpError)
+		var response []*model.Loan
+		err = json.NewDecoder(rr.Body).Decode(&response)
+
+		assert.Equal(expected, response)
+	})
 	t.Run("error for given id returned from database", func(t *testing.T) {
 		interactor := &imock.Loan{}
 
@@ -133,7 +130,7 @@ func TestLoanHandler_FindLoansByUserID(t *testing.T) {
 		req, err := http.NewRequest("GET", "/users/12/loans", nil)
 		require.NoError(err)
 
-		params := map[string]string{"user_id": "-2"}
+		params := map[string]string{"id": "-2"}
 		req = mux.SetURLVars(req, params)
 
 		rr := httptest.NewRecorder()
