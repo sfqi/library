@@ -42,7 +42,7 @@ func TestLoanHandler_FindLoansByBookID(t *testing.T) {
 		req, err := http.NewRequest("GET", "/books/2/loans", nil)
 		require.NoError(err)
 
-		params := map[string]string{"book_id": "2"}
+		params := map[string]string{"id": "2"}
 		req = mux.SetURLVars(req, params)
 
 		rr := httptest.NewRecorder()
@@ -84,7 +84,7 @@ func TestLoanHandler_FindLoansByBookID(t *testing.T) {
 		req, err := http.NewRequest("GET", "/books/ww/loans", nil)
 		require.NoError(err)
 
-		params := map[string]string{"book_id": "ww"}
+		params := map[string]string{"id": "ww"}
 		req = mux.SetURLVars(req, params)
 
 		rr := httptest.NewRecorder()
@@ -108,7 +108,7 @@ func TestLoanHandler_FindLoansByBookID(t *testing.T) {
 		req, err := http.NewRequest("GET", "/books/12/loans", nil)
 		require.NoError(err)
 
-		params := map[string]string{"book_id": "-2"}
+		params := map[string]string{"id": "-2"}
 		req = mux.SetURLVars(req, params)
 
 		rr := httptest.NewRecorder()
