@@ -8,12 +8,12 @@ type LoanResponse struct {
 	Type          string `json:"loan_type"`
 }
 
-func CreateLoanResponse(id int, transactionID string, userID int, bookID int, loanType string) *LoanResponse {
+func CreateLoanResponse(id int, transactionID string, userID int, bookID int, loanType string) (*LoanResponse, error) {
 	return &LoanResponse{
 		ID:            id,
 		TransactionID: transactionID,
 		UserID:        userID,
 		BookID:        bookID,
 		Type:          loanType,
-	}
+	}, nil
 }

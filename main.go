@@ -45,7 +45,9 @@ func main() {
 	}
 	defer store.Close()
 	fmt.Println("Successfully connected")
+
 	bookInteractor := interactor.NewBook(store, olc)
+	userInteractor := interactor.NewUser(store)
 	bookHandler := &handler.BookHandler{
 		Interactor: bookInteractor,
 	}
@@ -67,8 +69,14 @@ func main() {
 	bookLoad := middleware.BookLoader{
 		Interactor: bookInteractor,
 	}
+
+	userLoad := middleware.UserLoader{
+		Interactor: userInteractor,
+	}
+
 	r := mux.NewRouter()
 	s := r.PathPrefix("/books").Subrouter()
+	u := r.PathPrefix("/users").Subrouter()
 
 	r.Handle("/books", handleFunc(bookHandler.Index)).Methods("GET")
 	r.Handle("/books", handleFunc(bookHandler.Create)).Methods("POST")
@@ -76,11 +84,13 @@ func main() {
 	s.Handle("/{id}", handleFunc(bookHandler.Get)).Methods("GET")
 	s.Handle("/{id}", handleFunc(bookHandler.Delete)).Methods("DELETE")
 
-	//loans endpoints
+	u.Handle("/{id}/loans", handleFunc(loanHandler.FindLoansByUserID)).Methods("GET")
+
 	s.Handle("/{id}/loans", handleFunc(loanHandler.FindLoansByBookID)).Methods("GET")
 
 	r.Use(bodyDump.Dump)
 	s.Use(bookLoad.GetBook)
+	u.Use(userLoad.GetUser)
 
 	http.ListenAndServe(":8080", r)
 }

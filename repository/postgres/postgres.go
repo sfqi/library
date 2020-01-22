@@ -107,3 +107,16 @@ func (store *Store) FindLoansByUserID(userID int) ([]*model.Loan, error) {
 	}
 	return loans, nil
 }
+
+func (store *Store) CreateUser(user *model.User) error {
+	return store.db.Create(&user).Error
+
+}
+
+func (store *Store) FindUserByID(id int) (*model.User, error) {
+	user := &model.User{}
+	if err := store.db.First(&user, id).Error; err != nil {
+		return nil, err
+	}
+	return user, nil
+}
