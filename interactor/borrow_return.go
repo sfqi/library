@@ -33,5 +33,11 @@ func (l *BookLoan) Borrow(userID int, bookID int) error {
 }
 
 func (l *BookLoan) Return(userID int, bookID int) error {
-	return nil
+	uuid, err := l.generator.Do()
+	if err != nil {
+		return err
+	}
+
+	loan := model.ReturnedLoan(userID, bookID, uuid)
+	return l.store.CreateLoan(loan)
 }

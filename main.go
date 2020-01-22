@@ -83,6 +83,8 @@ func main() {
 	s.Handle("/{id}/loans", handleFunc(loanHandler.FindLoansByBookID)).Methods("GET")
 	s.Handle("/{id}/borrow", handleFunc(borrowReturnHandler.BorrowBook)).Methods("GET")
 
+	s.Handle("/{id}/return", handleFunc(borrowReturnHandler.ReturnBook)).Methods("GET")
+
 	r.Use(bodyDump.Dump)
 	s.Use(bookLoad.GetBook)
 

@@ -42,7 +42,11 @@ func (l *LoanHandler) FindLoansByBookID(w http.ResponseWriter, r *http.Request) 
 
 	loanResponses := []*dto.LoanResponse{}
 	for _, loan := range loans {
-		loanResponses = append(loanResponses, toLoanResponse(*loan))
+		loans, err := toLoanResponse(loan)
+		if err != nil {
+			return newHTTPError(http.StatusNotFound, err)
+		}
+		loanResponses = append(loanResponses, loans)
 	}
 	err = json.NewEncoder(w).Encode(loanResponses)
 	if err != nil {
@@ -65,6 +69,29 @@ func (b *BorrowReturnHandler) BorrowBook(w http.ResponseWriter, r *http.Request)
 	return nil
 }
 
-func toLoanResponse(b model.Loan) *dto.LoanResponse {
-	return dto.CreateLoanResponse(b.ID, b.TransactionID, b.UserID, b.BookID, b.PrintType())
+func (b *BorrowReturnHandler) ReturnBook(w http.ResponseWriter, r *http.Request) *HTTPError {
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		return newHTTPError(http.StatusNotFound, err)
+	}
+	err = b.Interactor.Return(10, id)
+	if err != nil {
+		return newHTTPError(http.StatusInternalServerError, err)
+	}
+	w.Write([]byte("Loan successfully createad"))
+	return nil
+}
+
+func toLoanResponse(l *model.Loan) (*dto.LoanResponse, *HTTPError) {
+	loanType, err := l.PrintType()
+	if err != nil {
+		return nil, newHTTPError(http.StatusNotFound, err)
+	}
+
+	loanResponse, err := dto.CreateLoanResponse(l.ID, l.TransactionID, l.UserID, l.BookID, loanType)
+	if err != nil {
+		return nil, newHTTPError(http.StatusNotFound, err)
+	}
+
+	return loanResponse, nil
 }
