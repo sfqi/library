@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/google/uuid"
 	"time"
 
 	"github.com/sfqi/library/domain/model"
@@ -59,6 +60,30 @@ var users = []*model.User{
 	},
 }
 
+var loans = []*model.Loan{
+	{
+		ID:            1,
+		TransactionID: uuid.New().String(),
+		UserID:        1,
+		BookID:        2,
+		Type:          1,
+	},
+	{
+		ID:            2,
+		TransactionID: uuid.New().String(),
+		UserID:        2,
+		BookID:        1,
+		Type:          0,
+	},
+	{
+		ID:            3,
+		TransactionID: uuid.New().String(),
+		UserID:        1,
+		BookID:        1,
+		Type:          1,
+	},
+}
+
 func main() {
 
 	config := postgres.PostgresConfig{
@@ -76,6 +101,11 @@ func main() {
 	defer store.Close()
 	for _, book := range books {
 		if err := store.CreateBook(book); err != nil {
+			panic(err)
+		}
+	}
+	for _, loan := range loans {
+		if err := store.CreateLoan(loan); err != nil {
 			panic(err)
 		}
 	}

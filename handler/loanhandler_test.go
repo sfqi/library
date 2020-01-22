@@ -3,6 +3,7 @@ package handler_test
 import (
 	"encoding/json"
 	"errors"
+
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -16,6 +17,117 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestLoanHandler_FindLoansByBookID(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+	t.Run("Successfully returned loans for given book id", func(t *testing.T) {
+		interactor := &imock.Loan{}
+
+		expectedLoans := []*dto.LoanResponse{
+			{
+				ID:            1,
+				TransactionID: "asddsa12",
+				UserID:        1,
+				BookID:        2,
+				Type:          "returned",
+			},
+			{
+				ID:            2,
+				TransactionID: "dddccf12dc13",
+				UserID:        2,
+				BookID:        2,
+				Type:          "borrowed",
+			},
+		}
+
+		req, err := http.NewRequest("GET", "/books/2/loans", nil)
+		require.NoError(err)
+
+		params := map[string]string{"id": "2"}
+		req = mux.SetURLVars(req, params)
+
+		rr := httptest.NewRecorder()
+
+		interactor.On("FindByBookID", 2).Return([]*model.Loan{
+			{
+				ID:            1,
+				TransactionID: "asddsa12",
+				UserID:        1,
+				BookID:        2,
+				Type:          1,
+			},
+			{
+				ID:            2,
+				TransactionID: "dddccf12dc13",
+				UserID:        2,
+				BookID:        2,
+				Type:          0,
+			},
+		}, nil)
+		loanHandler := handler.LoanHandler{Interactor: interactor}
+		httpError := loanHandler.FindLoansByBookID(rr, req)
+		assert.Nil(httpError)
+
+		assert.Equal(http.StatusOK, rr.Code)
+
+		var loanResponses []*dto.LoanResponse
+		err = json.NewDecoder(rr.Body).Decode(&loanResponses)
+		assert.NoError(err)
+
+		assert.Equal(loanResponses, expectedLoans)
+
+	})
+	t.Run("error converting book id to integer", func(t *testing.T) {
+		interactor := &imock.Loan{}
+
+		expectedError := "HTTP 404: strconv.Atoi: parsing \"ww\": invalid syntax"
+
+		req, err := http.NewRequest("GET", "/books/ww/loans", nil)
+		require.NoError(err)
+
+		params := map[string]string{"id": "ww"}
+		req = mux.SetURLVars(req, params)
+
+		rr := httptest.NewRecorder()
+
+		loanHandler := handler.LoanHandler{Interactor: interactor}
+		httpError := loanHandler.FindLoansByBookID(rr, req)
+		assert.NotNil(httpError)
+
+		assert.Equal(http.StatusNotFound, httpError.Code())
+
+		assert.NoError(err)
+
+		assert.Equal(expectedError, httpError.Error())
+
+	})
+	t.Run("error for given id returned from database", func(t *testing.T) {
+		interactor := &imock.Loan{}
+
+		expectedError := "HTTP 500: Internal server error"
+
+		req, err := http.NewRequest("GET", "/books/12/loans", nil)
+		require.NoError(err)
+
+		params := map[string]string{"id": "-2"}
+		req = mux.SetURLVars(req, params)
+
+		rr := httptest.NewRecorder()
+
+		interactor.On("FindByBookID", -2).Return(nil, errors.New("Internal server error"))
+		loanHandler := handler.LoanHandler{Interactor: interactor}
+		httpError := loanHandler.FindLoansByBookID(rr, req)
+		assert.NotNil(httpError)
+
+		assert.Equal(http.StatusInternalServerError, httpError.Code())
+
+		assert.NoError(err)
+
+		assert.Equal(expectedError, httpError.Error())
+
+	})
+}
 
 func TestLoanHandler_FindLoansByUserID(t *testing.T) {
 	assert := assert.New(t)

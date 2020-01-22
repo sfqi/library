@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/sfqi/library/service"
 	"net/http"
 	"os"
 	"strconv"
@@ -9,7 +10,6 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/sfqi/library/interactor"
 	"github.com/sfqi/library/repository/postgres"
-	"github.com/sfqi/library/service"
 
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/sfqi/library/log"
@@ -51,6 +51,13 @@ func main() {
 	bookHandler := &handler.BookHandler{
 		Interactor: bookInteractor,
 	}
+
+	uuidGenerator := &service.Generator{}
+	loanInteractor := interactor.NewLoan(store, uuidGenerator)
+	loanHandler := &handler.LoanHandler{
+		Interactor: loanInteractor,
+	}
+
 	logger := log.New()
 
 	bodyDump := middleware.BodyDump{
@@ -67,12 +74,6 @@ func main() {
 		Interactor: userInteractor,
 	}
 
-	uuidGenerator := &service.Generator{}
-	loanInteractor := interactor.NewLoan(store, uuidGenerator)
-	loanHandler := &handler.LoanHandler{
-		Interactor: loanInteractor,
-	}
-
 	r := mux.NewRouter()
 	s := r.PathPrefix("/books").Subrouter()
 	u := r.PathPrefix("/users").Subrouter()
@@ -84,6 +85,8 @@ func main() {
 	s.Handle("/{id}", handleFunc(bookHandler.Delete)).Methods("DELETE")
 
 	u.Handle("/{id}/loans", handleFunc(loanHandler.FindLoansByUserID)).Methods("GET")
+
+	s.Handle("/{id}/loans", handleFunc(loanHandler.FindLoansByBookID)).Methods("GET")
 
 	r.Use(bodyDump.Dump)
 	s.Use(bookLoad.GetBook)
