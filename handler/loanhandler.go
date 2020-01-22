@@ -20,6 +20,15 @@ type loanInteractor interface {
 	FindByBookID(id int) ([]*model.Loan, error)
 }
 
+type BorrowReturnHandler struct {
+	Interactor bookLoanInteractor
+}
+
+type bookLoanInteractor interface {
+	Borrow(userID int, bookID int) error
+	Return(userID int, bookID int) error
+}
+
 func (l *LoanHandler) FindLoansByBookID(w http.ResponseWriter, r *http.Request) *HTTPError {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
@@ -40,6 +49,19 @@ func (l *LoanHandler) FindLoansByBookID(w http.ResponseWriter, r *http.Request) 
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
 
+	return nil
+}
+
+func (b *BorrowReturnHandler) BorrowBook(w http.ResponseWriter, r *http.Request) *HTTPError {
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		return newHTTPError(http.StatusNotFound, err)
+	}
+	err = b.Interactor.Borrow(10, id)
+	if err != nil {
+		return newHTTPError(http.StatusInternalServerError, err)
+	}
+	w.Write([]byte("Loan successfully createad"))
 	return nil
 }
 

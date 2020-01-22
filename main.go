@@ -51,10 +51,13 @@ func main() {
 	}
 
 	uuidGenerator := &service.Generator{}
-	loanInteractor := interactor.NewLoan(store, uuidGenerator)
+	loanInteractor := interactor.NewLoan(store)
 	loanHandler := &handler.LoanHandler{
 		Interactor: loanInteractor,
 	}
+
+	bookLoanInteractor := interactor.NewBookLoan(store, uuidGenerator)
+	borrowReturnHandler := &handler.BorrowReturnHandler{Interactor: bookLoanInteractor}
 
 	logger := log.New()
 
@@ -78,6 +81,7 @@ func main() {
 
 	//loans endpoints
 	s.Handle("/{id}/loans", handleFunc(loanHandler.FindLoansByBookID)).Methods("GET")
+	s.Handle("/{id}/borrow", handleFunc(borrowReturnHandler.BorrowBook)).Methods("GET")
 
 	r.Use(bodyDump.Dump)
 	s.Use(bookLoad.GetBook)
