@@ -126,3 +126,143 @@ func TestLoanHandler_FindLoansByBookID(t *testing.T) {
 
 	})
 }
+
+func TestBorrowReturnHandler_BorrowBook(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+	t.Run("Successfully borrowed book", func(t *testing.T) {
+		interactor := &imock.BookLoan{}
+
+		expectedResponse := "Loan successfully createad"
+
+		req, err := http.NewRequest("GET", "/books/5/borrow", nil)
+		require.NoError(err)
+
+		params := map[string]string{"id": "5"}
+		req = mux.SetURLVars(req, params)
+
+		rr := httptest.NewRecorder()
+
+		interactor.On("Borrow", 10, 5).Return(nil)
+		bookLoanHandler := handler.BorrowReturnHandler{Interactor: interactor}
+		httpError := bookLoanHandler.BorrowBook(rr, req)
+		assert.Nil(httpError)
+
+		assert.Equal(http.StatusOK, rr.Code)
+
+		assert.Equal(expectedResponse, rr.Body.String())
+	})
+	t.Run("error converting id to integer", func(t *testing.T) {
+
+		expectedError := "HTTP 404: strconv.Atoi: parsing \"ww\": invalid syntax"
+
+		req, err := http.NewRequest("GET", "/books/ww/borrow", nil)
+		require.NoError(err)
+
+		params := map[string]string{"id": "ww"}
+		req = mux.SetURLVars(req, params)
+
+		rr := httptest.NewRecorder()
+
+		bookLoanHandler := handler.BorrowReturnHandler{Interactor: nil}
+		httpError := bookLoanHandler.BorrowBook(rr, req)
+		assert.NotNil(httpError)
+
+		assert.Equal(http.StatusNotFound, httpError.Code())
+
+		assert.Equal(expectedError, httpError.Error())
+	})
+	t.Run("error borrowing book in database", func(t *testing.T) {
+		interactor := &imock.BookLoan{}
+		expectedError := "HTTP 500: Error borrowing book"
+
+		req, err := http.NewRequest("GET", "/books/-4/borrow", nil)
+		require.NoError(err)
+
+		params := map[string]string{"id": "-4"}
+		req = mux.SetURLVars(req, params)
+
+		rr := httptest.NewRecorder()
+
+		interactor.On("Borrow", 10, -4).Return(errors.New("Error borrowing book"))
+		bookLoanHandler := handler.BorrowReturnHandler{Interactor: interactor}
+		httpError := bookLoanHandler.BorrowBook(rr, req)
+		assert.NotNil(httpError)
+
+		assert.Equal(http.StatusInternalServerError, httpError.Code())
+
+		assert.Equal(expectedError, httpError.Error())
+	})
+}
+
+func TestBorrowReturnHandler_ReturnBook(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+
+	t.Run("Successfully returned book", func(t *testing.T) {
+		interactor := &imock.BookLoan{}
+
+		expectedResponse := "Loan successfully createad"
+
+		req, err := http.NewRequest("GET", "/books/5/return", nil)
+		require.NoError(err)
+
+		params := map[string]string{"id": "5"}
+		req = mux.SetURLVars(req, params)
+
+		rr := httptest.NewRecorder()
+
+		interactor.On("Return", 10, 5).Return(nil)
+		bookLoanHandler := handler.BorrowReturnHandler{Interactor: interactor}
+		httpError := bookLoanHandler.ReturnBook(rr, req)
+		assert.Nil(httpError)
+
+		assert.Equal(http.StatusOK, rr.Code)
+
+		assert.Equal(expectedResponse, rr.Body.String())
+	})
+
+	t.Run("error converting id to integer", func(t *testing.T) {
+
+		expectedError := "HTTP 404: strconv.Atoi: parsing \"ww\": invalid syntax"
+
+		req, err := http.NewRequest("GET", "/books/ww/return", nil)
+		require.NoError(err)
+
+		params := map[string]string{"id": "ww"}
+		req = mux.SetURLVars(req, params)
+
+		rr := httptest.NewRecorder()
+
+		bookLoanHandler := handler.BorrowReturnHandler{Interactor: nil}
+		httpError := bookLoanHandler.ReturnBook(rr, req)
+		assert.NotNil(httpError)
+
+		assert.Equal(http.StatusNotFound, httpError.Code())
+
+		assert.Equal(expectedError, httpError.Error())
+	})
+
+	t.Run("error returning book in database", func(t *testing.T) {
+		interactor := &imock.BookLoan{}
+		expectedError := "HTTP 500: Error returning book"
+
+		req, err := http.NewRequest("GET", "/books/-4/return", nil)
+		require.NoError(err)
+
+		params := map[string]string{"id": "-4"}
+		req = mux.SetURLVars(req, params)
+
+		rr := httptest.NewRecorder()
+
+		interactor.On("Return", 10, -4).Return(errors.New("Error returning book"))
+		bookLoanHandler := handler.BorrowReturnHandler{Interactor: interactor}
+		httpError := bookLoanHandler.ReturnBook(rr, req)
+		assert.NotNil(httpError)
+
+		assert.Equal(http.StatusInternalServerError, httpError.Code())
+
+		assert.Equal(expectedError, httpError.Error())
+	})
+
+}

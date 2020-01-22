@@ -8,7 +8,6 @@ import (
 	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/interactor"
 	repomock "github.com/sfqi/library/repository/mock"
-	uuid "github.com/sfqi/library/service/mock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +16,7 @@ func TestFindByID(t *testing.T) {
 	t.Run("Successfully retrieved loan", func(t *testing.T) {
 		store := &repomock.Store{}
 
-		l := interactor.NewLoan(store, nil)
+		l := interactor.NewLoan(store)
 
 		store.On("FindLoanByID", 1).Return(&model.Loan{
 			ID:            1,
@@ -48,7 +47,7 @@ func TestFindByID(t *testing.T) {
 		store := &repomock.Store{}
 		storeError := errors.New("Error finding loan ID from database")
 
-		l := interactor.NewLoan(store, nil)
+		l := interactor.NewLoan(store)
 
 		store.On("FindLoanByID", 12).Return(nil, storeError)
 
@@ -64,7 +63,7 @@ func TestFindAllLoans(t *testing.T) {
 	t.Run("Successfully returned loans", func(t *testing.T) {
 		store := &repomock.Store{}
 
-		l := interactor.NewLoan(store, nil)
+		l := interactor.NewLoan(store)
 
 		store.On("FindAllLoans").Return([]*model.Loan{
 			{
@@ -113,7 +112,7 @@ func TestFindAllLoans(t *testing.T) {
 		store := &repomock.Store{}
 		storeError := errors.New("Error finding loans")
 
-		l := interactor.NewLoan(store, nil)
+		l := interactor.NewLoan(store)
 		store.On("FindAllLoans").Return(nil, storeError)
 
 		loans, err := l.FindAll()
@@ -123,78 +122,12 @@ func TestFindAllLoans(t *testing.T) {
 
 }
 
-func TestBorrow(t *testing.T) {
-	assert := assert.New(t)
-	t.Run("Borrow loan successfully saved in database", func(t *testing.T) {
-		store := &repomock.Store{}
-		generator := &uuid.Generator{}
-
-		loan := model.BorrowedLoan(1, 1, "gen123-gen321")
-
-		generator.On("Do").Return("gen123-gen321", nil)
-
-		store.On("CreateLoan", loan).Return(nil)
-		l := interactor.NewLoan(store, generator)
-		err := l.Borrow(loan.UserID, loan.BookID)
-		assert.NoError(err)
-	})
-
-	t.Run("Error creating borrow loan in database", func(t *testing.T) {
-		store := &repomock.Store{}
-		generator := &uuid.Generator{}
-
-		loan := model.BorrowedLoan(1, 1, "gen123-gen321")
-
-		l := interactor.NewLoan(store, generator)
-		storeError := errors.New("Error saving borrow loan in database")
-
-		generator.On("Do").Return("gen123-gen321", nil)
-		store.On("CreateLoan", loan).Return(storeError)
-
-		err := l.Borrow(loan.UserID, loan.BookID)
-		assert.Equal(err, storeError)
-	})
-}
-
-func TestReturn(t *testing.T) {
-	assert := assert.New(t)
-	t.Run("Return loan successfully saved in database", func(t *testing.T) {
-		store := &repomock.Store{}
-		generator := &uuid.Generator{}
-
-		loan := model.ReturnedLoan(1, 1, "")
-
-		generator.On("Do").Return("", nil)
-
-		store.On("CreateLoan", loan).Return(nil)
-		l := interactor.NewLoan(store, generator)
-		err := l.Return(loan.UserID, loan.BookID)
-		assert.NoError(err)
-
-	})
-	t.Run("Error creating return loan in database", func(t *testing.T) {
-		store := &repomock.Store{}
-		generator := &uuid.Generator{}
-
-		loan := model.ReturnedLoan(0, 0, "")
-
-		l := interactor.NewLoan(store, generator)
-		storeError := errors.New("Error saving return loan in database")
-
-		generator.On("Do").Return("", nil)
-		store.On("CreateLoan", loan).Return(storeError)
-
-		err := l.Return(loan.UserID, loan.BookID)
-		assert.Equal(err, storeError)
-	})
-}
-
 func TestFindByUserID(t *testing.T) {
 	assert := assert.New(t)
 	t.Run("Successfully retrieved loans by user id", func(t *testing.T) {
 		store := &repomock.Store{}
 
-		l := interactor.NewLoan(store, nil)
+		l := interactor.NewLoan(store)
 
 		store.On("FindLoansByUserID", 1).Return([]*model.Loan{
 			{
@@ -227,7 +160,7 @@ func TestFindByUserID(t *testing.T) {
 		store := &repomock.Store{}
 		storeError := errors.New("Error finding loans with given user ID from database")
 
-		l := interactor.NewLoan(store, nil)
+		l := interactor.NewLoan(store)
 
 		store.On("FindLoansByUserID", 10).Return(nil, storeError)
 
@@ -243,7 +176,7 @@ func TestFindByBookID(t *testing.T) {
 	t.Run("Successfully retrieved loans by book id", func(t *testing.T) {
 		store := &repomock.Store{}
 
-		l := interactor.NewLoan(store, nil)
+		l := interactor.NewLoan(store)
 
 		store.On("FindLoansByBookID", 1).Return([]*model.Loan{
 			{
@@ -276,7 +209,7 @@ func TestFindByBookID(t *testing.T) {
 		store := &repomock.Store{}
 		storeError := errors.New("Error finding loans with given book ID from database")
 
-		l := interactor.NewLoan(store, nil)
+		l := interactor.NewLoan(store)
 
 		store.On("FindLoansByBookID", 10).Return(nil, storeError)
 
