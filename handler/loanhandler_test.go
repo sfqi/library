@@ -73,7 +73,7 @@ func TestLoanHandler_FindLoansByUserID(t *testing.T) {
 
 		var loanResponses []*dto.LoanResponse
 		err = json.NewDecoder(rr.Body).Decode(&loanResponses)
-		assert.NoError(err)
+		require.NoError(err)
 
 		assert.Equal(loanResponses, expectedLoans)
 
@@ -96,7 +96,6 @@ func TestLoanHandler_FindLoansByUserID(t *testing.T) {
 		assert.NotNil(httpError)
 
 		assert.Equal(http.StatusNotFound, httpError.Code())
-		assert.NoError(err)
 
 		assert.Equal(expectedError, httpError.Error())
 	})
@@ -119,6 +118,7 @@ func TestLoanHandler_FindLoansByUserID(t *testing.T) {
 		assert.Nil(httpError)
 		var response []*model.Loan
 		err = json.NewDecoder(rr.Body).Decode(&response)
+		require.NoError(err)
 
 		assert.Equal(expected, response)
 	})
@@ -141,7 +141,6 @@ func TestLoanHandler_FindLoansByUserID(t *testing.T) {
 		assert.NotNil(httpError)
 
 		assert.Equal(http.StatusInternalServerError, httpError.Code())
-		assert.NoError(err)
 
 		assert.Equal(expectedError, httpError.Error())
 	})

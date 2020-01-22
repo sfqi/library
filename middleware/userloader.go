@@ -25,27 +25,19 @@ func (ul UserLoader) GetUser(next http.Handler) http.Handler {
 		vars := mux.Vars(r)
 		id, err := strconv.Atoi(vars["id"])
 		if err != nil {
-			errorConvertingUserID(w, err)
+			fmt.Println("Error while converting ID to integer ", err)
+			http.Error(w, "Error while converting url parameter into integer", http.StatusBadRequest)
 			return
 		}
 
 		user, err := ul.Interactor.FindByID(id)
 		if err != nil {
-			errorFindingUser(w, err)
+			fmt.Println("Cannot find user with given ID ", err)
+			http.Error(w, "User with given ID can not be found", http.StatusBadRequest)
 			return
 		}
 
 		ctx := context.WithValue(r.Context(), "user", user)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
-}
-
-func errorConvertingUserID(w http.ResponseWriter, err error) {
-	fmt.Println("Error while converting ID to integer ", err)
-	http.Error(w, "Error while converting url parameter into integer", http.StatusBadRequest)
-}
-
-func errorFindingUser(w http.ResponseWriter, err error) {
-	fmt.Println("Cannot find user with given ID ", err)
-	http.Error(w, "User with given ID can not be found", http.StatusBadRequest)
 }
