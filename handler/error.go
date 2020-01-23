@@ -18,16 +18,16 @@ type HTTPError struct {
 
 func (h HTTPError) Error() string {
 	if h.context != "" {
-		return fmt.Sprintf("HTTP %d: %s: %s: %s", h.code, h.context, h.internal, h.publicMsg)
+		return fmt.Sprintf("HTTP %d: %s: %s", h.code, h.context, h.internal)
 	}
+
 	return fmt.Sprintf("HTTP %d: %s: %s", h.code, h.internal, h.publicMsg)
 }
 
-func newHTTPError(code int, err error, msg string) *HTTPError {
+func newHTTPError(code int, err error) *HTTPError {
 	return &HTTPError{
-		code:      code,
-		internal:  err,
-		publicMsg: msg,
+		code:     code,
+		internal: err,
 	}
 }
 
@@ -38,6 +38,19 @@ func (e *HTTPError) Wrap(ctx string) *HTTPError {
 
 func (e *HTTPError) Code() int {
 	return e.code
+}
+
+func (e *HTTPError) PublicErrMsg(msg string) *HTTPError {
+	e.publicMsg = msg
+	return e
+}
+
+func (h HTTPError) publicError() string {
+	if h.publicMsg != "" {
+		return h.publicMsg
+	}
+
+	return h.Error()
 }
 
 type ErrorHandler struct {
@@ -53,7 +66,7 @@ func (eh ErrorHandler) Wrap(handler customHandler) http.Handler {
 			eh.Logger.Error(err)
 
 			if err.code < http.StatusInternalServerError {
-				errorMsg = err.publicMsg
+				errorMsg = err.publicError()
 			}
 
 			http.Error(w, errorMsg, err.code)
