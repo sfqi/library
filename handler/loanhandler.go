@@ -10,21 +10,21 @@ import (
 )
 
 type LoanHandler struct {
-	Interactor loanInteractor
+	Interactor loanReader
 }
 
-type loanInteractor interface {
+type loanReader interface {
 	FindByID(ID int) (*model.Loan, error)
 	FindAll() ([]*model.Loan, error)
 	FindByUserID(id int) ([]*model.Loan, error)
 	FindByBookID(id int) ([]*model.Loan, error)
 }
 
-type BorrowReturnHandler struct {
-	Interactor bookLoanInteractor
+type NewLoanHandler struct {
+	Interactor loanWriter
 }
 
-type bookLoanInteractor interface {
+type loanWriter interface {
 	Borrow(userID int, bookID int) error
 	Return(userID int, bookID int) error
 }
@@ -56,12 +56,12 @@ func (l *LoanHandler) FindLoansByBookID(w http.ResponseWriter, r *http.Request) 
 	return nil
 }
 
-func (b *BorrowReturnHandler) BorrowBook(w http.ResponseWriter, r *http.Request) *HTTPError {
+func (n *NewLoanHandler) BorrowBook(w http.ResponseWriter, r *http.Request) *HTTPError {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		return newHTTPError(http.StatusNotFound, err)
 	}
-	err = b.Interactor.Borrow(10, id)
+	err = n.Interactor.Borrow(10, id)
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
@@ -69,12 +69,12 @@ func (b *BorrowReturnHandler) BorrowBook(w http.ResponseWriter, r *http.Request)
 	return nil
 }
 
-func (b *BorrowReturnHandler) ReturnBook(w http.ResponseWriter, r *http.Request) *HTTPError {
+func (n *NewLoanHandler) ReturnBook(w http.ResponseWriter, r *http.Request) *HTTPError {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		return newHTTPError(http.StatusNotFound, err)
 	}
-	err = b.Interactor.Return(10, id)
+	err = n.Interactor.Return(10, id)
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
@@ -85,13 +85,12 @@ func (b *BorrowReturnHandler) ReturnBook(w http.ResponseWriter, r *http.Request)
 func toLoanResponse(l *model.Loan) (*dto.LoanResponse, *HTTPError) {
 	loanType, err := l.PrintType()
 	if err != nil {
-		return nil, newHTTPError(http.StatusNotFound, err)
+		return nil, newHTTPError(http.StatusInternalServerError, err)
 	}
 
-	loanResponse, err := dto.CreateLoanResponse(l.ID, l.TransactionID, l.UserID, l.BookID, loanType)
+	loanResponse := dto.CreateLoanResponse(l, loanType)
 	if err != nil {
 		return nil, newHTTPError(http.StatusNotFound, err)
 	}
-
 	return loanResponse, nil
 }

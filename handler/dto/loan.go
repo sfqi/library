@@ -1,5 +1,7 @@
 package dto
 
+import "github.com/sfqi/library/domain/model"
+
 type LoanResponse struct {
 	ID            int    `json:"id"`
 	TransactionID string `json:"transaction_id"`
@@ -8,12 +10,12 @@ type LoanResponse struct {
 	Type          string `json:"loan_type"`
 }
 
-func CreateLoanResponse(id int, transactionID string, userID int, bookID int, loanType string) (*LoanResponse, error) {
+func CreateLoanResponse(l *model.Loan, loanType string) *LoanResponse {
 	return &LoanResponse{
-		ID:            id,
-		TransactionID: transactionID,
-		UserID:        userID,
-		BookID:        bookID,
+		ID:            l.ID,
+		TransactionID: l.TransactionID,
+		UserID:        l.UserID,
+		BookID:        l.BookID,
 		Type:          loanType,
-	}, nil
+	}
 }

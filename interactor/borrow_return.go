@@ -2,12 +2,12 @@ package interactor
 
 import "github.com/sfqi/library/domain/model"
 
-type borrowReturn interface {
+type newLoan interface {
 	CreateLoan(*model.Loan) error
 }
 
-type BookLoan struct {
-	store     borrowReturn
+type LoanWriter struct {
+	store     newLoan
 	generator uuidGenerator
 }
 
@@ -15,14 +15,14 @@ type uuidGenerator interface {
 	Do() (string, error)
 }
 
-func NewBookLoan(borrowReturn borrowReturn, generator uuidGenerator) *BookLoan {
-	return &BookLoan{
+func NewBookLoan(borrowReturn newLoan, generator uuidGenerator) *LoanWriter {
+	return &LoanWriter{
 		store:     borrowReturn,
 		generator: generator,
 	}
 }
 
-func (l *BookLoan) Borrow(userID int, bookID int) error {
+func (l *LoanWriter) Borrow(userID int, bookID int) error {
 	uuid, err := l.generator.Do()
 	if err != nil {
 		return err
@@ -32,7 +32,7 @@ func (l *BookLoan) Borrow(userID int, bookID int) error {
 	return l.store.CreateLoan(loan)
 }
 
-func (l *BookLoan) Return(userID int, bookID int) error {
+func (l *LoanWriter) Return(userID int, bookID int) error {
 	uuid, err := l.generator.Do()
 	if err != nil {
 		return err
