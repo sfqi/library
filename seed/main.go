@@ -33,6 +33,33 @@ var books = []*model.Book{
 	},
 }
 
+var users = []*model.User{
+	{
+		Id:        1,
+		Email:     "joe@doe.com",
+		Name:      "Joe",
+		LastName:  "Doe",
+		CreatedAt: time.Time{},
+		UpdatedAt: time.Time{},
+	},
+	{
+		Id:        2,
+		Email:     "jane@doe.com",
+		Name:      "Jane",
+		LastName:  "Doe",
+		CreatedAt: time.Time{},
+		UpdatedAt: time.Time{},
+	},
+	{
+		Id:        3,
+		Email:     "john@smith.com",
+		Name:      "John",
+		LastName:  "Smith",
+		CreatedAt: time.Time{},
+		UpdatedAt: time.Time{},
+	},
+}
+
 var loans = []*model.Loan{
 	{
 		ID:            1,
@@ -79,6 +106,12 @@ func main() {
 	}
 	for _, loan := range loans {
 		if err := store.CreateLoan(loan); err != nil {
+			panic(err)
+		}
+	}
+
+	for _, user := range users {
+		if err := store.CreateUser(user); err != nil {
 			panic(err)
 		}
 	}

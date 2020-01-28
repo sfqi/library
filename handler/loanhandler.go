@@ -2,11 +2,12 @@ package handler
 
 import (
 	"encoding/json"
+	"net/http"
+	"strconv"
+
 	"github.com/gorilla/mux"
 	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/handler/dto"
-	"net/http"
-	"strconv"
 )
 
 type ReadLoanHandler struct {
@@ -41,6 +42,7 @@ func (rl *ReadLoanHandler) FindLoansByBookID(w http.ResponseWriter, r *http.Requ
 	}
 
 	loanResponses := []*dto.LoanResponse{}
+
 	for _, l := range loans {
 		loan, err := toLoanResponse(l)
 		if err != nil {
@@ -48,11 +50,39 @@ func (rl *ReadLoanHandler) FindLoansByBookID(w http.ResponseWriter, r *http.Requ
 		}
 		loanResponses = append(loanResponses, loan)
 	}
+
 	err = json.NewEncoder(w).Encode(loanResponses)
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
+	return nil
+}
 
+func (rl *ReadLoanHandler) FindLoansByUserID(w http.ResponseWriter, r *http.Request) *HTTPError {
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		return newHTTPError(http.StatusNotFound, err)
+	}
+
+	loans, err := rl.Interactor.FindByUserID(id)
+	if err != nil {
+		return newHTTPError(http.StatusInternalServerError, err)
+	}
+
+	loanResponses := []*dto.LoanResponse{}
+
+	for _, l := range loans {
+		loan, err := toLoanResponse(l)
+		if err != nil {
+			return newHTTPError(http.StatusInternalServerError, err)
+		}
+		loanResponses = append(loanResponses, loan)
+	}
+
+	err = json.NewEncoder(w).Encode(loanResponses)
+	if err != nil {
+		return newHTTPError(http.StatusInternalServerError, err)
+	}
 	return nil
 }
 
@@ -95,4 +125,5 @@ func toLoanResponse(l *model.Loan) (*dto.LoanResponse, error) {
 		BookID:        l.BookID,
 		Type:          loanType,
 	}, nil
+
 }
