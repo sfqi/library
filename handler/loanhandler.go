@@ -41,12 +41,12 @@ func (l *LoanHandler) FindLoansByBookID(w http.ResponseWriter, r *http.Request) 
 	}
 
 	loanResponses := []*dto.LoanResponse{}
-	for _, loan := range loans {
-		loans, err := toLoanResponse(loan)
+	for _, l := range loans {
+		loan, err := toLoanResponse(l)
 		if err != nil {
-			return newHTTPError(http.StatusNotFound, err)
+			return newHTTPError(http.StatusInternalServerError, err)
 		}
-		loanResponses = append(loanResponses, loans)
+		loanResponses = append(loanResponses, loan)
 	}
 	err = json.NewEncoder(w).Encode(loanResponses)
 	if err != nil {
@@ -82,15 +82,17 @@ func (n *NewLoanHandler) ReturnBook(w http.ResponseWriter, r *http.Request) *HTT
 	return nil
 }
 
-func toLoanResponse(l *model.Loan) (*dto.LoanResponse, *HTTPError) {
+func toLoanResponse(l *model.Loan) (*dto.LoanResponse, error) {
 	loanType, err := l.PrintType()
 	if err != nil {
-		return nil, newHTTPError(http.StatusInternalServerError, err)
+		return nil, err
 	}
 
-	loanResponse := dto.CreateLoanResponse(l, loanType)
-	if err != nil {
-		return nil, newHTTPError(http.StatusNotFound, err)
-	}
-	return loanResponse, nil
+	return &dto.LoanResponse{
+		ID:            l.ID,
+		TransactionID: l.TransactionID,
+		UserID:        l.UserID,
+		BookID:        l.BookID,
+		Type:          loanType,
+	}, nil
 }
