@@ -52,12 +52,12 @@ func main() {
 
 	uuidGenerator := &service.Generator{}
 	loanInteractor := interactor.NewLoan(store)
-	loanHandler := &handler.LoanHandler{
+	readLoanHandler := &handler.ReadLoanHandler{
 		Interactor: loanInteractor,
 	}
 
 	bookLoanInteractor := interactor.NewBookLoan(store, uuidGenerator)
-	newLoanHandler := &handler.NewLoanHandler{Interactor: bookLoanInteractor}
+	writeLoanHandler := &handler.WriteLoanHandler{Interactor: bookLoanInteractor}
 
 	logger := log.New()
 
@@ -80,10 +80,10 @@ func main() {
 	s.Handle("/{id}", handleFunc(bookHandler.Delete)).Methods("DELETE")
 
 	//loans endpoints
-	s.Handle("/{id}/loans", handleFunc(loanHandler.FindLoansByBookID)).Methods("GET")
-	s.Handle("/{id}/borrow", handleFunc(newLoanHandler.BorrowBook)).Methods("GET")
+	s.Handle("/{id}/loans", handleFunc(readLoanHandler.FindLoansByBookID)).Methods("GET")
+	s.Handle("/{id}/borrow", handleFunc(writeLoanHandler.BorrowBook)).Methods("POST")
 
-	s.Handle("/{id}/return", handleFunc(newLoanHandler.ReturnBook)).Methods("GET")
+	s.Handle("/{id}/return", handleFunc(writeLoanHandler.ReturnBook)).Methods("POST")
 
 	r.Use(bodyDump.Dump)
 	s.Use(bookLoad.GetBook)

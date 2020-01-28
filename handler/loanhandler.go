@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-type LoanHandler struct {
+type ReadLoanHandler struct {
 	Interactor loanReader
 }
 
@@ -20,7 +20,7 @@ type loanReader interface {
 	FindByBookID(id int) ([]*model.Loan, error)
 }
 
-type NewLoanHandler struct {
+type WriteLoanHandler struct {
 	Interactor loanWriter
 }
 
@@ -29,13 +29,13 @@ type loanWriter interface {
 	Return(userID int, bookID int) error
 }
 
-func (l *LoanHandler) FindLoansByBookID(w http.ResponseWriter, r *http.Request) *HTTPError {
+func (rl *ReadLoanHandler) FindLoansByBookID(w http.ResponseWriter, r *http.Request) *HTTPError {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		return newHTTPError(http.StatusNotFound, err)
 	}
 
-	loans, err := l.Interactor.FindByBookID(id)
+	loans, err := rl.Interactor.FindByBookID(id)
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
@@ -56,12 +56,12 @@ func (l *LoanHandler) FindLoansByBookID(w http.ResponseWriter, r *http.Request) 
 	return nil
 }
 
-func (n *NewLoanHandler) BorrowBook(w http.ResponseWriter, r *http.Request) *HTTPError {
+func (wl *WriteLoanHandler) BorrowBook(w http.ResponseWriter, r *http.Request) *HTTPError {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		return newHTTPError(http.StatusNotFound, err)
 	}
-	err = n.Interactor.Borrow(10, id)
+	err = wl.Interactor.Borrow(10, id)
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
@@ -69,12 +69,12 @@ func (n *NewLoanHandler) BorrowBook(w http.ResponseWriter, r *http.Request) *HTT
 	return nil
 }
 
-func (n *NewLoanHandler) ReturnBook(w http.ResponseWriter, r *http.Request) *HTTPError {
+func (wl *WriteLoanHandler) ReturnBook(w http.ResponseWriter, r *http.Request) *HTTPError {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
 		return newHTTPError(http.StatusNotFound, err)
 	}
-	err = n.Interactor.Return(10, id)
+	err = wl.Interactor.Return(10, id)
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}

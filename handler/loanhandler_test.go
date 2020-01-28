@@ -63,7 +63,7 @@ func TestLoanHandler_FindLoansByBookID(t *testing.T) {
 				Type:          0,
 			},
 		}, nil)
-		loanHandler := handler.LoanHandler{Interactor: interactor}
+		loanHandler := handler.ReadLoanHandler{Interactor: interactor}
 		httpError := loanHandler.FindLoansByBookID(rr, req)
 		assert.Nil(httpError)
 
@@ -89,7 +89,7 @@ func TestLoanHandler_FindLoansByBookID(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 
-		loanHandler := handler.LoanHandler{Interactor: interactor}
+		loanHandler := handler.ReadLoanHandler{Interactor: interactor}
 		httpError := loanHandler.FindLoansByBookID(rr, req)
 		assert.NotNil(httpError)
 
@@ -114,7 +114,7 @@ func TestLoanHandler_FindLoansByBookID(t *testing.T) {
 		rr := httptest.NewRecorder()
 
 		interactor.On("FindByBookID", -2).Return(nil, errors.New("Internal server error"))
-		loanHandler := handler.LoanHandler{Interactor: interactor}
+		loanHandler := handler.ReadLoanHandler{Interactor: interactor}
 		httpError := loanHandler.FindLoansByBookID(rr, req)
 		assert.NotNil(httpError)
 
@@ -144,7 +144,7 @@ func TestBorrowReturnHandler_BorrowBook(t *testing.T) {
 		rr := httptest.NewRecorder()
 
 		interactor.On("Borrow", 10, 5).Return(nil)
-		bookLoanHandler := handler.NewLoanHandler{Interactor: interactor}
+		bookLoanHandler := handler.WriteLoanHandler{Interactor: interactor}
 		httpError := bookLoanHandler.BorrowBook(rr, req)
 		assert.Nil(httpError)
 
@@ -164,7 +164,7 @@ func TestBorrowReturnHandler_BorrowBook(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 
-		bookLoanHandler := handler.NewLoanHandler{Interactor: nil}
+		bookLoanHandler := handler.WriteLoanHandler{Interactor: nil}
 		httpError := bookLoanHandler.BorrowBook(rr, req)
 		assert.NotNil(httpError)
 
@@ -185,7 +185,7 @@ func TestBorrowReturnHandler_BorrowBook(t *testing.T) {
 		rr := httptest.NewRecorder()
 
 		interactor.On("Borrow", 10, -4).Return(errors.New("Error borrowing book"))
-		bookLoanHandler := handler.NewLoanHandler{Interactor: interactor}
+		bookLoanHandler := handler.WriteLoanHandler{Interactor: interactor}
 		httpError := bookLoanHandler.BorrowBook(rr, req)
 		assert.NotNil(httpError)
 
@@ -213,7 +213,7 @@ func TestBorrowReturnHandler_ReturnBook(t *testing.T) {
 		rr := httptest.NewRecorder()
 
 		interactor.On("Return", 10, 5).Return(nil)
-		bookLoanHandler := handler.NewLoanHandler{Interactor: interactor}
+		bookLoanHandler := handler.WriteLoanHandler{Interactor: interactor}
 		httpError := bookLoanHandler.ReturnBook(rr, req)
 		assert.Nil(httpError)
 
@@ -234,7 +234,7 @@ func TestBorrowReturnHandler_ReturnBook(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 
-		bookLoanHandler := handler.NewLoanHandler{Interactor: nil}
+		bookLoanHandler := handler.WriteLoanHandler{Interactor: nil}
 		httpError := bookLoanHandler.ReturnBook(rr, req)
 		assert.NotNil(httpError)
 
@@ -256,7 +256,7 @@ func TestBorrowReturnHandler_ReturnBook(t *testing.T) {
 		rr := httptest.NewRecorder()
 
 		interactor.On("Return", 10, -4).Return(errors.New("Error returning book"))
-		bookLoanHandler := handler.NewLoanHandler{Interactor: interactor}
+		bookLoanHandler := handler.WriteLoanHandler{Interactor: interactor}
 		httpError := bookLoanHandler.ReturnBook(rr, req)
 		assert.NotNil(httpError)
 
