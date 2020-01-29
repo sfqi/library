@@ -30,6 +30,20 @@ type loanWriter interface {
 	Return(userID int, bookID int) error
 }
 
+func (rl *ReadLoanHandler) Index(w http.ResponseWriter, r *http.Request) *HTTPError {
+	w.Header().Set("Content-Type", "application/json")
+	loans, err := rl.Interactor.FindAll()
+	if err != nil {
+		return newHTTPError(http.StatusInternalServerError, err)
+	}
+
+	err = json.NewEncoder(w).Encode(loans)
+	if err != nil {
+		return newHTTPError(http.StatusInternalServerError, err)
+	}
+	return nil
+}
+
 func (rl *ReadLoanHandler) FindLoansByBookID(w http.ResponseWriter, r *http.Request) *HTTPError {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
