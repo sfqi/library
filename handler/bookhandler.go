@@ -73,7 +73,6 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) *HTTPError 
 
 	fmt.Println(createBook.ISBN)
 	book, err := b.Interactor.Create(createBook)
-
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}

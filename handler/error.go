@@ -10,16 +10,18 @@ import (
 type customHandler func(http.ResponseWriter, *http.Request) *HTTPError
 
 type HTTPError struct {
-	code     int
-	internal error
-	context  string
+	code      int
+	internal  error
+	context   string
+	publicMsg string
 }
 
 func (h HTTPError) Error() string {
 	if h.context != "" {
 		return fmt.Sprintf("HTTP %d: %s: %s", h.code, h.context, h.internal)
 	}
-	return fmt.Sprintf("HTTP %d: %s", h.code, h.internal)
+
+	return fmt.Sprintf("HTTP %d: %s: %s", h.code, h.internal, h.publicMsg)
 }
 
 func newHTTPError(code int, err error) *HTTPError {
@@ -38,6 +40,19 @@ func (e *HTTPError) Code() int {
 	return e.code
 }
 
+func (e *HTTPError) PublicErrMsg(msg string) *HTTPError {
+	e.publicMsg = msg
+	return e
+}
+
+func (h HTTPError) publicError() string {
+	if h.publicMsg != "" {
+		return h.publicMsg
+	}
+
+	return h.Error()
+}
+
 type ErrorHandler struct {
 	Logger *logrus.Logger
 }
@@ -51,7 +66,7 @@ func (eh ErrorHandler) Wrap(handler customHandler) http.Handler {
 			eh.Logger.Error(err)
 
 			if err.code < http.StatusInternalServerError {
-				errorMsg = err.Error()
+				errorMsg = err.publicError()
 			}
 
 			http.Error(w, errorMsg, err.code)
