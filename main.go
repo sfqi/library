@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/sfqi/library/service"
 	"net/http"
 	"os"
 	"strconv"
@@ -44,10 +45,22 @@ func main() {
 	}
 	defer store.Close()
 	fmt.Println("Successfully connected")
+
 	bookInteractor := interactor.NewBook(store, olc)
+	userInteractor := interactor.NewUser(store)
 	bookHandler := &handler.BookHandler{
 		Interactor: bookInteractor,
 	}
+
+	uuidGenerator := &service.Generator{}
+	loanInteractor := interactor.NewLoan(store)
+	readLoanHandler := &handler.ReadLoanHandler{
+		Interactor: loanInteractor,
+	}
+
+	bookLoanInteractor := interactor.NewBookLoan(store, uuidGenerator)
+	writeLoanHandler := &handler.WriteLoanHandler{Interactor: bookLoanInteractor}
+
 	logger := log.New()
 
 	bodyDump := middleware.BodyDump{
@@ -59,16 +72,32 @@ func main() {
 	bookLoad := middleware.BookLoader{
 		Interactor: bookInteractor,
 	}
+
+	userLoad := middleware.UserLoader{
+		Interactor: userInteractor,
+	}
+
 	r := mux.NewRouter()
 	s := r.PathPrefix("/books").Subrouter()
+	u := r.PathPrefix("/users").Subrouter()
 
 	r.Handle("/books", handleFunc(bookHandler.Index)).Methods("GET")
 	r.Handle("/books", handleFunc(bookHandler.Create)).Methods("POST")
 	s.Handle("/{id}", handleFunc(bookHandler.Update)).Methods("PUT")
 	s.Handle("/{id}", handleFunc(bookHandler.Get)).Methods("GET")
 	s.Handle("/{id}", handleFunc(bookHandler.Delete)).Methods("DELETE")
+
+	//loans endpoints
+	s.Handle("/{id}/loans", handleFunc(readLoanHandler.FindLoansByBookID)).Methods("GET")
+	s.Handle("/{id}/borrow", handleFunc(writeLoanHandler.BorrowBook)).Methods("POST")
+
+	s.Handle("/{id}/return", handleFunc(writeLoanHandler.ReturnBook)).Methods("POST")
+
+	u.Handle("/{id}/loans", handleFunc(readLoanHandler.FindLoansByUserID)).Methods("GET")
+
 	r.Use(bodyDump.Dump)
 	s.Use(bookLoad.GetBook)
+	u.Use(userLoad.GetUser)
 
 	http.ListenAndServe(":8080", r)
 }

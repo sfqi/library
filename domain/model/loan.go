@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"time"
 )
 
@@ -26,6 +27,17 @@ func newLoan(userId int, bookId int, uuid string, loanType loanType) *Loan {
 		BookID:        bookId,
 		TransactionID: uuid,
 		Type:          loanType,
+	}
+}
+
+func (l *Loan) PrintType() (string, error) {
+	switch l.Type {
+	case 0:
+		return "borrowed", nil
+	case 1:
+		return "returned", nil
+	default:
+		return "", errors.New("unknown loan type")
 	}
 }
 
