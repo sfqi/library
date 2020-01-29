@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"reflect"
 	"time"
 
 	"github.com/sfqi/library/domain/model"
@@ -33,6 +34,10 @@ var books = []*model.Book{
 	},
 }
 
+func checkIfEmpty(books []*model.Book) bool {
+	return reflect.DeepEqual(nil, books)
+}
+
 func main() {
 
 	config := postgres.PostgresConfig{
@@ -55,7 +60,7 @@ func main() {
 	var num int
 	db.Model(&bookList).Count(&num)
 
-	if num == 0 {
+	if checkIfEmpty(books) {
 		for _, book := range books {
 			if err := store.CreateBook(book); err != nil {
 				panic(err)
