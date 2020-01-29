@@ -47,51 +47,38 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer store.Close()
 
-	err = CreateBooks(store.GetDB(), books)
+	tx := store.DB().Begin()
+	defer func() {
+		store.Close()
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	err = CreateBooks(tx, books)
 	if err != nil {
 		panic(err)
 	}
 
+	tx.Commit()
+
 }
 
-func CreateBooks(db *gorm.DB, books []*model.Book) error {
-	tx := db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
-	if err := tx.Error; err != nil {
-		return err
-	}
+func CreateBooks(tx *gorm.DB, books []*model.Book) error {
 	for _, book := range books {
 		if err := tx.Create(book).Error; err != nil {
-			tx.Rollback()
 			return err
 		}
 	}
-	return tx.Commit().Error
+	return nil
 }
 
-func CreateLoans(db *gorm.DB, loans []*model.Loan) error {
-	tx := db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
-	if err := tx.Error; err != nil {
-		return err
-	}
+func CreateLoans(tx *gorm.DB, loans []*model.Loan) error {
 	for _, loan := range loans {
 		if err := tx.Create(loan).Error; err != nil {
-			tx.Rollback()
 			return err
 		}
 	}
-	return tx.Commit().Error
+	return nil
 }
