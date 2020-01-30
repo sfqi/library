@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/jinzhu/gorm"
 	"time"
 
 	"github.com/sfqi/library/domain/model"
@@ -49,6 +48,7 @@ func main() {
 	}
 
 	tx := store.DB().Begin()
+
 	defer func() {
 		store.Close()
 		if r := recover(); r != nil {
@@ -56,29 +56,18 @@ func main() {
 		}
 	}()
 
-	err = CreateBooks(tx, books)
-	if err != nil {
-		panic(err)
+	for _, book := range books {
+		if err := tx.Create(book).Error; err != nil {
+			panic(err)
+		}
 	}
+
+	//for _, loan := range loans {
+	//	if err := tx.Create(loan).Error; err != nil {
+	//		panic(err)
+	//	}
+	//}
 
 	tx.Commit()
 
-}
-
-func CreateBooks(tx *gorm.DB, books []*model.Book) error {
-	for _, book := range books {
-		if err := tx.Create(book).Error; err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func CreateLoans(tx *gorm.DB, loans []*model.Loan) error {
-	for _, loan := range loans {
-		if err := tx.Create(loan).Error; err != nil {
-			return err
-		}
-	}
-	return nil
 }
