@@ -1,6 +1,7 @@
 package handler_test
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"time"
@@ -347,18 +348,20 @@ func TestBorrowReturnHandler_BorrowBook(t *testing.T) {
 	require := require.New(t)
 	t.Run("Successfully borrowed book", func(t *testing.T) {
 		interactor := &imock.BookLoan{}
-
+		book := &model.Book{Id: 5, Available: true}
 		expectedResponse := "Loan successfully createad"
 
 		req, err := http.NewRequest("GET", "/books/5/borrow", nil)
 		require.NoError(err)
 
+		ctx := context.WithValue(req.Context(), "book", book)
+		req = req.WithContext(ctx)
 		params := map[string]string{"id": "5"}
 		req = mux.SetURLVars(req, params)
 
 		rr := httptest.NewRecorder()
 
-		interactor.On("Borrow", 10, 5).Return(nil)
+		interactor.On("Borrow", 10, book).Return(nil)
 		bookLoanHandler := handler.WriteLoanHandler{Interactor: interactor}
 		httpError := bookLoanHandler.BorrowBook(rr, req)
 		assert.Nil(httpError)
@@ -367,14 +370,16 @@ func TestBorrowReturnHandler_BorrowBook(t *testing.T) {
 
 		assert.Equal(expectedResponse, rr.Body.String())
 	})
-	t.Run("error converting id to integer", func(t *testing.T) {
+	t.Run("Book from context in nil", func(t *testing.T) {
 
-		expectedError := "HTTP 404: strconv.Atoi: parsing \"ww\": invalid syntax"
+		expectedError := "HTTP 404: Book is not found: "
 
-		req, err := http.NewRequest("GET", "/books/ww/borrow", nil)
+		req, err := http.NewRequest("GET", "/books/7/borrow", nil)
 		require.NoError(err)
+		ctx := context.WithValue(req.Context(), "book", nil)
+		req = req.WithContext(ctx)
 
-		params := map[string]string{"id": "ww"}
+		params := map[string]string{"id": "7"}
 		req = mux.SetURLVars(req, params)
 
 		rr := httptest.NewRecorder()
@@ -389,17 +394,19 @@ func TestBorrowReturnHandler_BorrowBook(t *testing.T) {
 	})
 	t.Run("error borrowing book in database", func(t *testing.T) {
 		interactor := &imock.BookLoan{}
-		expectedError := "HTTP 500: Error borrowing book"
-
-		req, err := http.NewRequest("GET", "/books/-4/borrow", nil)
+		expectedError := "HTTP 500: Error borrowing book: "
+		book := &model.Book{Id: 5, Available: true}
+		req, err := http.NewRequest("GET", "/books/5/borrow", nil)
 		require.NoError(err)
 
-		params := map[string]string{"id": "-4"}
+		params := map[string]string{"id": "5"}
 		req = mux.SetURLVars(req, params)
+		ctx := context.WithValue(req.Context(), "book", book)
+		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
 
-		interactor.On("Borrow", 10, -4).Return(errors.New("Error borrowing book"))
+		interactor.On("Borrow", 10, book).Return(errors.New("Error borrowing book"))
 		bookLoanHandler := handler.WriteLoanHandler{Interactor: interactor}
 		httpError := bookLoanHandler.BorrowBook(rr, req)
 		assert.NotNil(httpError)
@@ -416,6 +423,7 @@ func TestBorrowReturnHandler_ReturnBook(t *testing.T) {
 
 	t.Run("Successfully returned book", func(t *testing.T) {
 		interactor := &imock.BookLoan{}
+		book := &model.Book{Id: 5, Available: true}
 
 		expectedResponse := "Loan successfully createad"
 
@@ -424,10 +432,11 @@ func TestBorrowReturnHandler_ReturnBook(t *testing.T) {
 
 		params := map[string]string{"id": "5"}
 		req = mux.SetURLVars(req, params)
-
+		ctx := context.WithValue(req.Context(), "book", book)
+		req = req.WithContext(ctx)
 		rr := httptest.NewRecorder()
 
-		interactor.On("Return", 10, 5).Return(nil)
+		interactor.On("Return", 10, book).Return(nil)
 		bookLoanHandler := handler.WriteLoanHandler{Interactor: interactor}
 		httpError := bookLoanHandler.ReturnBook(rr, req)
 		assert.Nil(httpError)
@@ -437,15 +446,17 @@ func TestBorrowReturnHandler_ReturnBook(t *testing.T) {
 		assert.Equal(expectedResponse, rr.Body.String())
 	})
 
-	t.Run("error converting id to integer", func(t *testing.T) {
+	t.Run("Book from context is nil", func(t *testing.T) {
 
-		expectedError := "HTTP 404: strconv.Atoi: parsing \"ww\": invalid syntax"
+		expectedError := "HTTP 404: Book is not found: "
 
-		req, err := http.NewRequest("GET", "/books/ww/return", nil)
+		req, err := http.NewRequest("GET", "/books/10/return", nil)
 		require.NoError(err)
 
-		params := map[string]string{"id": "ww"}
+		params := map[string]string{"id": "10"}
 		req = mux.SetURLVars(req, params)
+		ctx := context.WithValue(req.Context(), "book", nil)
+		req = req.WithContext(ctx)
 
 		rr := httptest.NewRecorder()
 
@@ -460,17 +471,18 @@ func TestBorrowReturnHandler_ReturnBook(t *testing.T) {
 
 	t.Run("error returning book in database", func(t *testing.T) {
 		interactor := &imock.BookLoan{}
-		expectedError := "HTTP 500: Error returning book"
-
+		expectedError := "HTTP 500: Error returning book: "
+		book := &model.Book{Id: 5, Available: true}
 		req, err := http.NewRequest("GET", "/books/-4/return", nil)
 		require.NoError(err)
 
 		params := map[string]string{"id": "-4"}
 		req = mux.SetURLVars(req, params)
-
+		ctx := context.WithValue(req.Context(), "book", book)
+		req = req.WithContext(ctx)
 		rr := httptest.NewRecorder()
 
-		interactor.On("Return", 10, -4).Return(errors.New("Error returning book"))
+		interactor.On("Return", 10, book).Return(errors.New("Error returning book"))
 		bookLoanHandler := handler.WriteLoanHandler{Interactor: interactor}
 		httpError := bookLoanHandler.ReturnBook(rr, req)
 		assert.NotNil(httpError)

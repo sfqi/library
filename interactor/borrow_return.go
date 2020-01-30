@@ -7,7 +7,6 @@ import (
 
 type newLoan interface {
 	CreateLoan(*model.Loan) error
-	FindBookById(int) (*model.Book, error)
 	UpdateBook(*model.Book) error
 }
 
@@ -27,13 +26,12 @@ func NewBookLoan(borrowReturn newLoan, generator uuidGenerator) *LoanWriter {
 	}
 }
 
-func (l *LoanWriter) Borrow(userID int, bookID int) error {
+func (l *LoanWriter) Borrow(userID int, book *model.Book) error {
 	uuid, err := l.generator.Do()
 	if err != nil {
 		return err
 	}
 
-	book, err := l.store.FindBookById(bookID)
 	if book.Available != true {
 		return errors.New("Book is not available")
 	}
@@ -42,23 +40,23 @@ func (l *LoanWriter) Borrow(userID int, bookID int) error {
 	if err != nil {
 		return err
 	}
-	loan := model.BorrowedLoan(userID, bookID, uuid)
+	loan := model.BorrowedLoan(userID, book.Id, uuid)
 	return l.store.CreateLoan(loan)
 }
 
-func (l *LoanWriter) Return(userID int, bookID int) error {
+func (l *LoanWriter) Return(userID int, book *model.Book) error {
 	uuid, err := l.generator.Do()
 	if err != nil {
 		return err
 	}
 
-	book, err := l.store.FindBookById(bookID)
 	book.Available = true
 	err = l.store.UpdateBook(book)
 	if err != nil {
 		return err
 	}
 
-	loan := model.ReturnedLoan(userID, bookID, uuid)
+	loan := model.ReturnedLoan(userID, book.Id, uuid)
 	return l.store.CreateLoan(loan)
+
 }
