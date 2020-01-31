@@ -102,11 +102,11 @@ func (rl *ReadLoanHandler) FindLoansByUserID(w http.ResponseWriter, r *http.Requ
 }
 
 func (wl *WriteLoanHandler) BorrowBook(w http.ResponseWriter, r *http.Request) *HTTPError {
-	book := r.Context().Value("book")
-	if book == nil {
+	book, ok := r.Context().Value("book").(*model.Book)
+	if !ok {
 		return newHTTPError(http.StatusNotFound, errors.New("Book is not found"))
 	}
-	err := wl.Interactor.Borrow(10, book.(*model.Book))
+	err := wl.Interactor.Borrow(10, book)
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
@@ -115,11 +115,11 @@ func (wl *WriteLoanHandler) BorrowBook(w http.ResponseWriter, r *http.Request) *
 }
 
 func (wl *WriteLoanHandler) ReturnBook(w http.ResponseWriter, r *http.Request) *HTTPError {
-	book := r.Context().Value("book")
-	if book == nil {
+	book, ok := r.Context().Value("book").(*model.Book)
+	if !ok {
 		return newHTTPError(http.StatusNotFound, errors.New("Book is not found"))
 	}
-	err := wl.Interactor.Return(10, book.(*model.Book))
+	err := wl.Interactor.Return(10, book)
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
