@@ -17,9 +17,9 @@ func TestBorrow(t *testing.T) {
 		generator := &uuid.Generator{}
 
 		bookInUse := &model.Book{Id: 1, Available: true}
-
+		store.On("Transaction").Return(store)
 		store.On("UpdateBook", bookInUse).Return(nil)
-
+		store.On("Commit").Return(nil)
 		loan := model.BorrowedLoan(1, 1, "gen123-gen321")
 
 		generator.On("Do").Return("gen123-gen321", nil)

@@ -4,32 +4,33 @@ import (
 	"fmt"
 	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/handler/dto"
+	"github.com/sfqi/library/interfaces"
 	openlibrarydto "github.com/sfqi/library/openlibrary/dto"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
-type store interface {
-	FindBookById(int) (*model.Book, error)
-	CreateBook(*model.Book) error
-	UpdateBook(*model.Book) error
-	FindAllBooks() ([]*model.Book, error)
-	DeleteBook(*model.Book) error
-}
+//type store interface {
+//	FindBookById(int) (*model.Book, error)
+//	CreateBook(*model.Book) error
+//	UpdateBook(*model.Book) error
+//	FindAllBooks() ([]*model.Book, error)
+//	DeleteBook(*model.Book) error
+//}
 
 type openlibraryClient interface {
 	FetchBook(isbn string) (*openlibrarydto.Book, error)
 }
 
 type Book struct {
-	store   store
+	store   interfaces.Store
 	openlib openlibraryClient
 }
 
 var yearRgx = regexp.MustCompile(`[0-9]{4}`)
 
-func NewBook(store store, olc openlibraryClient) *Book {
+func NewBook(store interfaces.Store, olc openlibraryClient) *Book {
 	return &Book{
 		store:   store,
 		openlib: olc,

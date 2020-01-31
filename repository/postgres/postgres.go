@@ -6,6 +6,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/sfqi/library/domain/model"
+	i "github.com/sfqi/library/interfaces"
 )
 
 type PostgresConfig struct {
@@ -119,4 +120,17 @@ func (store *Store) FindUserByID(id int) (*model.User, error) {
 		return nil, err
 	}
 	return user, nil
+}
+
+func (store *Store) Transaction() i.Store {
+	tx := store.db.Begin()
+	return NewStore(tx)
+}
+
+func (store *Store) Commit() {
+	store.db.Commit()
+}
+
+func (store *Store) Rollback() {
+	store.db.Rollback()
 }
