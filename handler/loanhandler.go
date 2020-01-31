@@ -27,8 +27,8 @@ type WriteLoanHandler struct {
 }
 
 type loanWriter interface {
-	Borrow(userID int, book *model.Book) error
-	Return(userID int, book *model.Book) error
+	Borrow(userID int, book *model.Book) (*model.Loan, error)
+	Return(userID int, book *model.Book) (*model.Loan, error)
 }
 
 func (rl *ReadLoanHandler) Index(w http.ResponseWriter, r *http.Request) *HTTPError {
@@ -106,11 +106,16 @@ func (wl *WriteLoanHandler) BorrowBook(w http.ResponseWriter, r *http.Request) *
 	if !ok {
 		return newHTTPError(http.StatusNotFound, errors.New("Book is not found"))
 	}
-	err := wl.Interactor.Borrow(10, book)
+	loan, err := wl.Interactor.Borrow(10, book)
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
-	w.Write([]byte("Loan successfully createad"))
+	loanResponse, err := toLoanResponse(loan)
+	w.WriteHeader(http.StatusCreated)
+	err = json.NewEncoder(w).Encode(loanResponse)
+	if err != nil {
+		return newHTTPError(http.StatusInternalServerError, err)
+	}
 	return nil
 }
 
@@ -119,11 +124,16 @@ func (wl *WriteLoanHandler) ReturnBook(w http.ResponseWriter, r *http.Request) *
 	if !ok {
 		return newHTTPError(http.StatusNotFound, errors.New("Book is not found"))
 	}
-	err := wl.Interactor.Return(10, book)
+	loan, err := wl.Interactor.Return(10, book)
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
-	w.Write([]byte("Loan successfully createad"))
+	loanResponse, err := toLoanResponse(loan)
+	w.WriteHeader(http.StatusCreated)
+	err = json.NewEncoder(w).Encode(loanResponse)
+	if err != nil {
+		return newHTTPError(http.StatusInternalServerError, err)
+	}
 	return nil
 }
 

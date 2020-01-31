@@ -349,7 +349,8 @@ func TestBorrowReturnHandler_BorrowBook(t *testing.T) {
 	t.Run("Successfully borrowed book", func(t *testing.T) {
 		interactor := &imock.BookLoan{}
 		book := &model.Book{Id: 5, Available: true}
-		expectedResponse := "Loan successfully createad"
+		loan := &model.Loan{BookID: 5, UserID: 10, Type: 0}
+		expectedResponse := &dto.LoanResponse{UserID: 10, BookID: 5, Type: "borrowed"}
 
 		req, err := http.NewRequest("GET", "/books/5/borrow", nil)
 		require.NoError(err)
@@ -361,14 +362,17 @@ func TestBorrowReturnHandler_BorrowBook(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 
-		interactor.On("Borrow", 10, book).Return(nil)
+		interactor.On("Borrow", 10, book).Return(loan, nil)
 		bookLoanHandler := handler.WriteLoanHandler{Interactor: interactor}
 		httpError := bookLoanHandler.BorrowBook(rr, req)
+
 		assert.Nil(httpError)
+		loanResponse := &dto.LoanResponse{}
+		err = json.NewDecoder(rr.Body).Decode(&loanResponse)
+		assert.Nil(err)
+		assert.Equal(http.StatusCreated, rr.Code)
 
-		assert.Equal(http.StatusOK, rr.Code)
-
-		assert.Equal(expectedResponse, rr.Body.String())
+		assert.Equal(expectedResponse, loanResponse)
 	})
 	t.Run("Book from context in nil", func(t *testing.T) {
 
@@ -406,7 +410,7 @@ func TestBorrowReturnHandler_BorrowBook(t *testing.T) {
 
 		rr := httptest.NewRecorder()
 
-		interactor.On("Borrow", 10, book).Return(errors.New("Error borrowing book"))
+		interactor.On("Borrow", 10, book).Return(nil, errors.New("Error borrowing book"))
 		bookLoanHandler := handler.WriteLoanHandler{Interactor: interactor}
 		httpError := bookLoanHandler.BorrowBook(rr, req)
 		assert.NotNil(httpError)
@@ -423,9 +427,9 @@ func TestBorrowReturnHandler_ReturnBook(t *testing.T) {
 
 	t.Run("Successfully returned book", func(t *testing.T) {
 		interactor := &imock.BookLoan{}
-		book := &model.Book{Id: 5, Available: true}
-
-		expectedResponse := "Loan successfully createad"
+		book := &model.Book{Id: 5, Available: false}
+		loan := &model.Loan{BookID: 5, UserID: 10, Type: 1}
+		expectedResponse := &dto.LoanResponse{UserID: 10, BookID: 5, Type: "returned"}
 
 		req, err := http.NewRequest("GET", "/books/5/return", nil)
 		require.NoError(err)
@@ -436,14 +440,18 @@ func TestBorrowReturnHandler_ReturnBook(t *testing.T) {
 		req = req.WithContext(ctx)
 		rr := httptest.NewRecorder()
 
-		interactor.On("Return", 10, book).Return(nil)
+		interactor.On("Return", 10, book).Return(loan, nil)
 		bookLoanHandler := handler.WriteLoanHandler{Interactor: interactor}
 		httpError := bookLoanHandler.ReturnBook(rr, req)
 		assert.Nil(httpError)
 
-		assert.Equal(http.StatusOK, rr.Code)
+		loanResponse := &dto.LoanResponse{}
+		err = json.NewDecoder(rr.Body).Decode(&loanResponse)
+		assert.Nil(err)
+		assert.Equal(http.StatusCreated, rr.Code)
 
-		assert.Equal(expectedResponse, rr.Body.String())
+		assert.Equal(expectedResponse, loanResponse)
+
 	})
 
 	t.Run("Book from context is nil", func(t *testing.T) {
@@ -482,7 +490,7 @@ func TestBorrowReturnHandler_ReturnBook(t *testing.T) {
 		req = req.WithContext(ctx)
 		rr := httptest.NewRecorder()
 
-		interactor.On("Return", 10, book).Return(errors.New("Error returning book"))
+		interactor.On("Return", 10, book).Return(nil, errors.New("Error returning book"))
 		bookLoanHandler := handler.WriteLoanHandler{Interactor: interactor}
 		httpError := bookLoanHandler.ReturnBook(rr, req)
 		assert.NotNil(httpError)

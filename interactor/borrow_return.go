@@ -26,37 +26,36 @@ func NewBookLoan(borrowReturn newLoan, generator uuidGenerator) *LoanWriter {
 	}
 }
 
-func (l *LoanWriter) Borrow(userID int, book *model.Book) error {
+func (l *LoanWriter) Borrow(userID int, book *model.Book) (*model.Loan, error) {
 	uuid, err := l.generator.Do()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if book.Available != true {
-		return errors.New("Book is not available")
+		return nil, errors.New("Book is not available")
 	}
 	book.Available = false
 	err = l.store.UpdateBook(book)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	loan := model.BorrowedLoan(userID, book.Id, uuid)
-	return l.store.CreateLoan(loan)
+	return loan, l.store.CreateLoan(loan)
 }
 
-func (l *LoanWriter) Return(userID int, book *model.Book) error {
+func (l *LoanWriter) Return(userID int, book *model.Book) (*model.Loan, error) {
 	uuid, err := l.generator.Do()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	book.Available = true
 	err = l.store.UpdateBook(book)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	loan := model.ReturnedLoan(userID, book.Id, uuid)
-	return l.store.CreateLoan(loan)
-
+	return loan, l.store.CreateLoan(loan)
 }

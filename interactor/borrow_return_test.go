@@ -26,8 +26,9 @@ func TestBorrow(t *testing.T) {
 
 		store.On("CreateLoan", loan).Return(nil)
 		l := interactor.NewBookLoan(store, generator)
-		err := l.Borrow(loan.UserID, bookInUse)
+		loanB, err := l.Borrow(loan.UserID, bookInUse)
 		assert.NoError(err)
+		assert.Equal(loan, loanB)
 	})
 	t.Run("Book is already borrowed", func(t *testing.T) {
 		store := &repomock.Store{}
@@ -39,8 +40,9 @@ func TestBorrow(t *testing.T) {
 		generator.On("Do").Return("gen123-gen321", nil)
 
 		l := interactor.NewBookLoan(store, generator)
-		err := l.Borrow(1, bookInUse)
+		loan, err := l.Borrow(1, bookInUse)
 		assert.Equal(expectedError, err.Error())
+		assert.Nil(loan)
 	})
 
 	t.Run("Error creating borrow loan in database", func(t *testing.T) {
@@ -58,7 +60,7 @@ func TestBorrow(t *testing.T) {
 		generator.On("Do").Return("gen123-gen321", nil)
 		store.On("CreateLoan", loan).Return(storeError)
 
-		err := l.Borrow(loan.UserID, bookInUse)
+		loan, err := l.Borrow(loan.UserID, bookInUse)
 		assert.Equal(err, storeError)
 	})
 }
@@ -78,9 +80,9 @@ func TestReturn(t *testing.T) {
 
 		store.On("CreateLoan", loan).Return(nil)
 		l := interactor.NewBookLoan(store, generator)
-		err := l.Return(loan.UserID, bookInUse)
+		loanR, err := l.Return(loan.UserID, bookInUse)
 		assert.NoError(err)
-
+		assert.Equal(loan, loanR)
 	})
 	t.Run("Error creating return loan in database", func(t *testing.T) {
 		store := &repomock.Store{}
@@ -97,7 +99,8 @@ func TestReturn(t *testing.T) {
 		generator.On("Do").Return("", nil)
 		store.On("CreateLoan", loan).Return(storeError)
 
-		err := l.Return(loan.UserID, bookInUse)
+		loan, err := l.Return(loan.UserID, bookInUse)
 		assert.Equal(err, storeError)
+
 	})
 }
