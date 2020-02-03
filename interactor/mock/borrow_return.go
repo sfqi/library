@@ -9,8 +9,8 @@ type BookLoan struct {
 	mock.Mock
 }
 
-func (b *BookLoan) Borrow(userID int, book *model.Book) (*model.Loan, error) {
-	args := b.Called(userID, book)
+func (b *BookLoan) Borrow(userID int, bookID int) (*model.Loan, error) {
+	args := b.Called(userID, bookID)
 	if args.Get(0) != nil {
 		return args.Get(0).(*model.Loan), nil
 	}
@@ -18,8 +18,8 @@ func (b *BookLoan) Borrow(userID int, book *model.Book) (*model.Loan, error) {
 	return nil, args.Error(1)
 }
 
-func (b *BookLoan) Return(userID int, book *model.Book) (*model.Loan, error) {
-	args := b.Called(userID, book)
+func (b *BookLoan) Return(userID int, bookID int) (*model.Loan, error) {
+	args := b.Called(userID, bookID)
 	if args.Get(0) != nil {
 		return args.Get(0).(*model.Loan), nil
 	}
