@@ -3,11 +3,10 @@ package interactor
 import (
 	"errors"
 	"github.com/sfqi/library/domain/model"
-	"github.com/sfqi/library/interfaces"
 )
 
 type LoanWriter struct {
-	store     interfaces.Store
+	store     Store
 	generator uuidGenerator
 }
 
@@ -15,7 +14,7 @@ type uuidGenerator interface {
 	Do() (string, error)
 }
 
-func NewBookLoan(borrowReturn interfaces.Store, generator uuidGenerator) *LoanWriter {
+func NewBookLoan(borrowReturn Store, generator uuidGenerator) *LoanWriter {
 	return &LoanWriter{
 		store:     borrowReturn,
 		generator: generator,
@@ -47,7 +46,9 @@ func (l *LoanWriter) Borrow(userID int, book *model.Book) (*model.Loan, error) {
 		return nil, err
 	}
 
-	tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
 	return loan, nil
 }
 
@@ -72,6 +73,8 @@ func (l *LoanWriter) Return(userID int, book *model.Book) (*model.Loan, error) {
 		return nil, err
 	}
 
-	tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
 	return loan, nil
 }

@@ -2,21 +2,13 @@ package interactor
 
 import (
 	"github.com/sfqi/library/domain/model"
-	"github.com/sfqi/library/interfaces"
 )
 
-//type loanStore interface {
-//	FindLoanByID(int) (*model.Loan, error)
-//	FindAllLoans() ([]*model.Loan, error)
-//	FindLoansByBookID(int) ([]*model.Loan, error)
-//	FindLoansByUserID(int) ([]*model.Loan, error)
-//}
-
 type Loan struct {
-	store interfaces.Store
+	store Store
 }
 
-func NewLoan(loanStore interfaces.Store) *Loan {
+func NewLoan(loanStore Store) *Loan {
 	return &Loan{
 		store: loanStore,
 	}

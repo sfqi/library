@@ -1,4 +1,4 @@
-package interfaces
+package interactor
 
 import "github.com/sfqi/library/domain/model"
 
@@ -14,6 +14,6 @@ type Store interface {
 	FindLoansByBookID(int) ([]*model.Loan, error)
 	FindLoansByUserID(int) ([]*model.Loan, error)
 	Transaction() Store
-	Commit()
+	Commit() error
 	Rollback()
 }
