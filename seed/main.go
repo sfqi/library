@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"reflect"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/repository/postgres"
 )
@@ -34,8 +34,14 @@ var books = []*model.Book{
 	},
 }
 
-func checkIfEmpty(books []*model.Book) bool {
-	return reflect.DeepEqual(nil, books)
+func areTablesEmpty(db *gorm.DB) bool {
+	var num int
+	db.Model([]*model.Book{}).Count(&num)
+
+	if num > 1 {
+		return true
+	}
+	return false
 }
 
 func main() {
@@ -54,13 +60,7 @@ func main() {
 	}
 	defer store.Close()
 
-	db := store.GetDB()
-
-	bookList := []model.Book{}
-	var num int
-	db.Model(&bookList).Count(&num)
-
-	if checkIfEmpty(books) {
+	if !areTablesEmpty(store.GetDB()) {
 		for _, book := range books {
 			if err := store.CreateBook(book); err != nil {
 				panic(err)
