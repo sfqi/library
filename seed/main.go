@@ -1,14 +1,14 @@
 package main
 
 import (
-	"time"
-
+	"github.com/google/uuid"
 	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/repository/postgres"
 )
 
 var books = []*model.Book{
 	{
+		Id:            1,
 		Title:         "Information systems literacy.",
 		Author:        "Hossein Bidgoli",
 		Isbn:          "0023095334",
@@ -16,10 +16,9 @@ var books = []*model.Book{
 		OpenLibraryId: "OL1733511M",
 		Year:          1993,
 		Publisher:     "Maxwell Macmillan International",
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
 	},
 	{
+		Id:            2,
 		Title:         "Programming the World Wide Web",
 		Author:        "Robert W. Sebesta",
 		Isbn:          "0321303326",
@@ -27,8 +26,21 @@ var books = []*model.Book{
 		OpenLibraryId: "OL3393672M",
 		Year:          2005,
 		Publisher:     "Pearson/Addison-Wesley",
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
+	},
+}
+
+var loans = []*model.Loan{
+	{
+		TransactionID: uuid.New().String(),
+		UserID:        5,
+		BookID:        1,
+		Type:          1,
+	},
+	{
+		TransactionID: uuid.New().String(),
+		UserID:        10,
+		BookID:        2,
+		Type:          0,
 	},
 }
 
@@ -61,12 +73,11 @@ func main() {
 			panic(err)
 		}
 	}
-
-	//for _, loan := range loans {
-	//	if err := tx.Create(loan).Error; err != nil {
-	//		panic(err)
-	//	}
-	//}
+	for _, loan := range loans {
+		if err := tx.Create(loan).Error; err != nil {
+			panic(err)
+		}
+	}
 
 	tx.Commit()
 
