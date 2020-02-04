@@ -18,6 +18,7 @@ func TestBorrow(t *testing.T) {
 
 		bookInUse := &model.Book{Id: 1, Available: true}
 		store.On("Transaction").Return(store)
+		store.On("FindBookById", 1).Return(bookInUse, nil)
 		store.On("UpdateBook", bookInUse).Return(nil)
 		store.On("Commit").Return(nil)
 		loan := model.BorrowedLoan(1, 1, "gen123-gen321")
@@ -26,7 +27,9 @@ func TestBorrow(t *testing.T) {
 
 		store.On("CreateLoan", loan).Return(nil)
 		l := interactor.NewBookLoan(store, generator)
-		loanB, err := l.Borrow(loan.UserID, bookInUse)
+
+		loanB, err := l.Borrow(loan.UserID, loan.BookID)
+
 		assert.NoError(err)
 		assert.Equal(loan, loanB)
 	})
@@ -42,7 +45,9 @@ func TestBorrow(t *testing.T) {
 		generator.On("Do").Return("gen123-gen321", nil)
 
 		l := interactor.NewBookLoan(store, generator)
-		loan, err := l.Borrow(1, bookInUse)
+
+		loan, err := l.Borrow(1, 1)
+
 		assert.Equal(expectedError, err.Error())
 		assert.Nil(loan)
 	})
@@ -64,7 +69,8 @@ func TestBorrow(t *testing.T) {
 		generator.On("Do").Return("gen123-gen321", nil)
 		store.On("CreateLoan", loan).Return(storeError)
 
-		loan, err := l.Borrow(loan.UserID, bookInUse)
+		loan, err := l.Borrow(loan.UserID, loan.BookID)
+
 		assert.Equal(err, storeError)
 	})
 }
@@ -87,7 +93,9 @@ func TestReturn(t *testing.T) {
 
 		store.On("CreateLoan", loan).Return(nil)
 		l := interactor.NewBookLoan(store, generator)
-		loanR, err := l.Return(loan.UserID, bookInUse)
+
+		loanR, err := l.Return(loan.UserID, loan.BookID)
+
 		assert.NoError(err)
 		assert.Equal(loan, loanR)
 	})
@@ -109,7 +117,8 @@ func TestReturn(t *testing.T) {
 		generator.On("Do").Return("", nil)
 		store.On("CreateLoan", loan).Return(storeError)
 
-		loan, err := l.Return(loan.UserID, bookInUse)
+		loan, err := l.Return(loan.UserID, loan.BookID)
+
 		assert.Equal(err, storeError)
 
 	})

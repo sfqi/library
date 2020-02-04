@@ -5,6 +5,14 @@ import (
 	"github.com/sfqi/library/domain/model"
 )
 
+
+type newLoan interface {
+	CreateLoan(*model.Loan) error
+	FindBookById(int) (*model.Book, error)
+	UpdateBook(*model.Book) error
+}
+
+
 type LoanWriter struct {
 	store     Store
 	generator uuidGenerator
@@ -21,14 +29,15 @@ func NewBookLoan(borrowReturn Store, generator uuidGenerator) *LoanWriter {
 	}
 }
 
-func (l *LoanWriter) Borrow(userID int, book *model.Book) (*model.Loan, error) {
-	tx := l.store.Transaction()
+func (l *LoanWriter) Borrow(userID int, bookID int) (*model.Loan, error) {
+  tx := l.store.Transaction()
 	uuid, err := l.generator.Do()
 	if err != nil {
 		tx.Rollback()
 		return nil, err
 	}
 
+	book, err := l.store.FindBookById(bookID)
 	if book.Available != true {
 		tx.Rollback()
 		return nil, errors.New("Book is not available")
@@ -39,6 +48,7 @@ func (l *LoanWriter) Borrow(userID int, book *model.Book) (*model.Loan, error) {
 		tx.Rollback()
 		return nil, err
 	}
+
 	loan := model.BorrowedLoan(userID, book.Id, uuid)
 	err = tx.CreateLoan(loan)
 	if err != nil {
@@ -52,14 +62,15 @@ func (l *LoanWriter) Borrow(userID int, book *model.Book) (*model.Loan, error) {
 	return loan, nil
 }
 
-func (l *LoanWriter) Return(userID int, book *model.Book) (*model.Loan, error) {
-	tx := l.store.Transaction()
+func (l *LoanWriter) Return(userID int, bookID int) (*model.Loan, error) {
+  tx := l.store.Transaction()
 	uuid, err := l.generator.Do()
 	if err != nil {
 		tx.Rollback()
 		return nil, err
 	}
 
+	book, err := l.store.FindBookById(bookID)
 	book.Available = true
 	err = tx.UpdateBook(book)
 	if err != nil {
