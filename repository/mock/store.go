@@ -2,6 +2,7 @@ package mock
 
 import (
 	"github.com/sfqi/library/domain/model"
+	"github.com/sfqi/library/interactor"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -88,4 +89,24 @@ func (s *Store) CreateLoan(loan *model.Loan) error {
 	}
 
 	return nil
+}
+
+func (s *Store) Transaction() interactor.Store {
+	args := s.Called()
+	if args.Get(0) != nil {
+		return args.Get(0).(interactor.Store)
+	}
+	return nil
+}
+
+func (s *Store) Commit() error {
+	args := s.Called()
+	if args.Get(0) != nil {
+		return args.Error(0)
+	}
+	return nil
+}
+
+func (s *Store) Rollback() {
+	s.Called()
 }

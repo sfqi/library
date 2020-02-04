@@ -17,9 +17,10 @@ func TestBorrow(t *testing.T) {
 		generator := &uuid.Generator{}
 
 		bookInUse := &model.Book{Id: 1, Available: true}
+		store.On("Transaction").Return(store)
 		store.On("FindBookById", 1).Return(bookInUse, nil)
 		store.On("UpdateBook", bookInUse).Return(nil)
-
+		store.On("Commit").Return(nil)
 		loan := model.BorrowedLoan(1, 1, "gen123-gen321")
 
 		generator.On("Do").Return("gen123-gen321", nil)
@@ -37,8 +38,10 @@ func TestBorrow(t *testing.T) {
 		generator := &uuid.Generator{}
 		expectedError := "Book is not available"
 		bookInUse := &model.Book{Id: 1, Available: false}
-		store.On("FindBookById", 1).Return(bookInUse, nil)
 
+		store.On("Transaction").Return(store)
+		store.On("FindBookById", 1).Return(bookInUse, nil)
+		store.On("Rollback")
 		generator.On("Do").Return("gen123-gen321", nil)
 
 		l := interactor.NewBookLoan(store, generator)
@@ -53,9 +56,11 @@ func TestBorrow(t *testing.T) {
 		store := &repomock.Store{}
 		generator := &uuid.Generator{}
 		bookInUse := &model.Book{Id: 1, Available: true}
+
+		store.On("Transaction").Return(store)
 		store.On("FindBookById", 1).Return(bookInUse, nil)
 		store.On("UpdateBook", bookInUse).Return(nil)
-
+		store.On("Rollback")
 		loan := model.BorrowedLoan(1, 1, "gen123-gen321")
 
 		l := interactor.NewBookLoan(store, generator)
@@ -76,8 +81,11 @@ func TestReturn(t *testing.T) {
 		store := &repomock.Store{}
 		generator := &uuid.Generator{}
 		bookInUse := &model.Book{Id: 1, Available: false}
+
+		store.On("Transaction").Return(store)
 		store.On("FindBookById", 1).Return(bookInUse, nil)
 		store.On("UpdateBook", bookInUse).Return(nil)
+		store.On("Commit").Return(nil)
 
 		loan := model.ReturnedLoan(1, 1, "")
 
@@ -95,8 +103,11 @@ func TestReturn(t *testing.T) {
 		store := &repomock.Store{}
 		generator := &uuid.Generator{}
 		bookInUse := &model.Book{Id: 1, Available: false}
+
+		store.On("Transaction").Return(store)
 		store.On("FindBookById", 1).Return(bookInUse, nil)
 		store.On("UpdateBook", bookInUse).Return(nil)
+		store.On("Rollback")
 
 		loan := model.ReturnedLoan(0, 1, "")
 
