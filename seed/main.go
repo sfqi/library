@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -38,7 +37,7 @@ func areTablesEmpty(db *gorm.DB) bool {
 	var num int
 	db.Model([]*model.Book{}).Count(&num)
 
-	if num > 1 {
+	if num > 0 {
 		return true
 	}
 	return false
@@ -67,5 +66,5 @@ func main() {
 			}
 		}
 	}
-	fmt.Println("Tables are not empty")
+	panic("Tables are not empty")
 }
