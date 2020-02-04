@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"fmt"
+	"github.com/sfqi/library/interactor"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -119,4 +120,17 @@ func (store *Store) FindUserByID(id int) (*model.User, error) {
 		return nil, err
 	}
 	return user, nil
+}
+
+func (store *Store) Transaction() interactor.Store {
+	tx := store.db.Begin()
+	return NewStore(tx)
+}
+
+func (store *Store) Commit() error {
+	return store.db.Commit().Error
+}
+
+func (store *Store) Rollback() {
+	store.db.Rollback()
 }
