@@ -110,3 +110,12 @@ func (s *Store) Commit() error {
 func (s *Store) Rollback() {
 	s.Called()
 }
+
+func (s *Store) FindBookByIDForUpdate(id int) (*model.Book, error) {
+	args := s.Called(id)
+	if args.Get(0) != nil {
+		return args.Get(0).(*model.Book), nil
+	}
+
+	return nil, args.Error(1)
+}

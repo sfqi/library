@@ -5,12 +5,6 @@ import (
 	"github.com/sfqi/library/domain/model"
 )
 
-type newLoan interface {
-	CreateLoan(*model.Loan) error
-	FindBookById(int) (*model.Book, error)
-	UpdateBook(*model.Book) error
-}
-
 type LoanWriter struct {
 	store     Store
 	generator uuidGenerator
@@ -35,7 +29,7 @@ func (l *LoanWriter) Borrow(userID int, bookID int) (*model.Loan, error) {
 		return nil, err
 	}
 
-	book, err := l.store.FindByIdSelectUpdate(bookID)
+	book, err := l.store.FindBookByIDForUpdate(bookID)
 	if err != nil {
 		tx.Rollback()
 		return nil, errors.New("Error finding book")

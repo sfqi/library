@@ -18,7 +18,7 @@ func TestBorrow(t *testing.T) {
 
 		bookInUse := &model.Book{Id: 1, Available: true}
 		store.On("Transaction").Return(store)
-		store.On("FindBookById", 1).Return(bookInUse, nil)
+		store.On("FindBookByIDForUpdate", 1).Return(bookInUse, nil)
 		store.On("UpdateBook", bookInUse).Return(nil)
 		store.On("Commit").Return(nil)
 		loan := model.BorrowedLoan(1, 1, "gen123-gen321")
@@ -40,7 +40,7 @@ func TestBorrow(t *testing.T) {
 		bookInUse := &model.Book{Id: 1, Available: false}
 
 		store.On("Transaction").Return(store)
-		store.On("FindBookById", 1).Return(bookInUse, nil)
+		store.On("FindBookByIDForUpdate", 1).Return(bookInUse, nil)
 		store.On("Rollback")
 		generator.On("Do").Return("gen123-gen321", nil)
 
@@ -58,7 +58,7 @@ func TestBorrow(t *testing.T) {
 		bookInUse := &model.Book{Id: 1, Available: true}
 
 		store.On("Transaction").Return(store)
-		store.On("FindBookById", 1).Return(bookInUse, nil)
+		store.On("FindBookByIDForUpdate", 1).Return(bookInUse, nil)
 		store.On("UpdateBook", bookInUse).Return(nil)
 		store.On("Rollback")
 		loan := model.BorrowedLoan(1, 1, "gen123-gen321")
