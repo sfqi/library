@@ -25,14 +25,14 @@ func TestError(t *testing.T) {
 				internal: errors.New("Some error occured with code 400"),
 				context:  "",
 			},
-			message: "HTTP 400: Some error occured with code 400",
+			message: "HTTP 400: Some error occured with code 400 ",
 		},
 		{
 			name: "Status code 400 with context",
 			error: HTTPError{
 				code:     400,
 				internal: errors.New("Some error occured with code 400"),
-				context:  "with some context",
+				context:  "with some context:",
 			},
 			message: "HTTP 400: with some context: Some error occured with code 400",
 		},
@@ -43,14 +43,14 @@ func TestError(t *testing.T) {
 				internal: errors.New("Some error occured with code 500"),
 				context:  "",
 			},
-			message: "HTTP 500: Some error occured with code 500",
+			message: "HTTP 500: Some error occured with code 500 ",
 		},
 		{
 			name: "Status code 500 with context",
 			error: HTTPError{
 				code:     500,
 				internal: errors.New("Some error occured with code 500"),
-				context:  "with some context",
+				context:  "with some context:",
 			},
 			message: "HTTP 500: with some context: Some error occured with code 500",
 		},
@@ -80,7 +80,7 @@ func badRequestHandler(w http.ResponseWriter, r *http.Request) *HTTPError {
 	return &HTTPError{
 		code:     400,
 		internal: errors.New("error with status code 400"),
-		context:  "with some context",
+		context:  "with some context:",
 	}
 }
 

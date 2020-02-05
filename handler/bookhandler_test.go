@@ -105,7 +105,7 @@ func TestIndex(t *testing.T) {
 		handler := bookHandler.Index
 		httperror := handler(rr, req)
 
-		expectedResponse := "HTTP 500: Error finding books"
+		expectedResponse := "HTTP 500: Error finding books "
 		assert.Equal(expectedResponse, httperror.Error())
 
 		assert.Equal(http.StatusInternalServerError, httperror.Code())
@@ -133,7 +133,7 @@ func TestUpdate(t *testing.T) {
 
 		httpError := bookHandler.Update(rr, req)
 
-		expectedError := "HTTP 500: error retrieving book from context"
+		expectedError := "HTTP 500: error retrieving book from context "
 		assert.Equal(expectedError, httpError.Error())
 	})
 	t.Run("error updating book in database", func(t *testing.T) {
@@ -179,7 +179,7 @@ func TestUpdate(t *testing.T) {
 
 		assert.Equal(http.StatusInternalServerError, httpError.Code())
 
-		expectedError := "HTTP 500: error updating book"
+		expectedError := "HTTP 500: error updating book "
 		assert.Equal(expectedError, httpError.Error())
 	})
 	t.Run("assertion of expected response, and actual response", func(t *testing.T) {
@@ -277,7 +277,7 @@ func TestUpdate(t *testing.T) {
 
 		httpError := bookHandler.Update(rr, req)
 
-		expectedError := "HTTP 400: invalid character 'z' looking for beginning of value"
+		expectedError := "HTTP 400: invalid character 'z' looking for beginning of value "
 
 		assert.Equal(expectedError, httpError.Error())
 	})
@@ -300,7 +300,7 @@ func TestCreate(t *testing.T) {
 		rr := httptest.NewRecorder()
 
 		httpError := bookHandler.Create(rr, req)
-		expectedError := "HTTP 400: invalid character 'I' looking for beginning of object key string"
+		expectedError := "HTTP 400: invalid character 'I' looking for beginning of object key string "
 
 		assert.Equal(expectedError, httpError.Error())
 	})
@@ -341,7 +341,7 @@ func TestCreate(t *testing.T) {
 
 		httpError := bookHandler.Create(rr, req)
 
-		expectedResponse := "HTTP 500: Error creating book"
+		expectedResponse := "HTTP 500: Error creating book "
 		assert.Equal(expectedResponse, httpError.Error())
 		assert.Equal(http.StatusInternalServerError, httpError.Code())
 	})
@@ -461,7 +461,7 @@ func TestGet(t *testing.T) {
 		rr := httptest.NewRecorder()
 
 		httpError := bookHandler.Get(rr, req)
-		expectedResponse := "HTTP 500: error retrieving book from context"
+		expectedResponse := "HTTP 500: error retrieving book from context "
 
 		assert.Equal(expectedResponse, httpError.Error())
 	})
@@ -521,7 +521,7 @@ func TestDelete(t *testing.T) {
 		handler := bookHandler.Delete
 		httpError := handler(rr, req)
 
-		expectedResponse := "HTTP 500: error retrieving book from context"
+		expectedResponse := "HTTP 500: error retrieving book from context "
 
 		require.Equal(http.StatusInternalServerError, httpError.Code())
 
@@ -555,7 +555,7 @@ func TestDelete(t *testing.T) {
 
 		httpError := bookHandler.Delete(rr, req)
 
-		expectedResponse := "HTTP 500: Error while deleting book"
+		expectedResponse := "HTTP 500: Error while deleting book "
 		assert.Equal(expectedResponse, httpError.Error())
 		assert.Equal(http.StatusInternalServerError, httpError.Code())
 	})

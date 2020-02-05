@@ -18,10 +18,10 @@ type HTTPError struct {
 
 func (h HTTPError) Error() string {
 	if h.context != "" {
-		return fmt.Sprintf("HTTP %d: %s: %s", h.code, h.context, h.internal)
+		return fmt.Sprintf("HTTP %d: %s %s", h.code, h.context, h.internal)
 	}
 
-	return fmt.Sprintf("HTTP %d: %s: %s", h.code, h.internal, h.publicMsg)
+	return fmt.Sprintf("HTTP %d: %s %s", h.code, h.internal, h.publicMsg)
 }
 
 func newHTTPError(code int, err error) *HTTPError {
