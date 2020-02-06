@@ -2,9 +2,9 @@ package interactor
 
 import (
 	"errors"
+
 	"github.com/sfqi/library/domain/model"
 )
-
 
 type newLoan interface {
 	CreateLoan(*model.Loan) error
@@ -12,26 +12,25 @@ type newLoan interface {
 	UpdateBook(*model.Book) error
 }
 
-
 type LoanWriter struct {
-	store     Store
-	generator uuidGenerator
+	store         Store
+	uuidGenerator uuidGenerator
 }
 
 type uuidGenerator interface {
 	Do() (string, error)
 }
 
-func NewBookLoan(borrowReturn Store, generator uuidGenerator) *LoanWriter {
+func NewBookLoan(store Store, uuidGenerator uuidGenerator) *LoanWriter {
 	return &LoanWriter{
-		store:     borrowReturn,
-		generator: generator,
+		store:         store,
+		uuidGenerator: uuidGenerator,
 	}
 }
 
 func (l *LoanWriter) Borrow(userID int, bookID int) (*model.Loan, error) {
-  tx := l.store.Transaction()
-	uuid, err := l.generator.Do()
+	tx := l.store.Transaction()
+	uuid, err := l.uuidGenerator.Do()
 	if err != nil {
 		tx.Rollback()
 		return nil, err
@@ -63,8 +62,8 @@ func (l *LoanWriter) Borrow(userID int, bookID int) (*model.Loan, error) {
 }
 
 func (l *LoanWriter) Return(userID int, bookID int) (*model.Loan, error) {
-  tx := l.store.Transaction()
-	uuid, err := l.generator.Do()
+	tx := l.store.Transaction()
+	uuid, err := l.uuidGenerator.Do()
 	if err != nil {
 		tx.Rollback()
 		return nil, err
