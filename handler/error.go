@@ -21,7 +21,7 @@ func (h HTTPError) Error() string {
 		return fmt.Sprintf("HTTP %d: %s: %s", h.code, h.context, h.internal)
 	}
 
-	return fmt.Sprintf("HTTP %d: %s: %s", h.code, h.internal, h.publicMsg)
+	return fmt.Sprintf("HTTP %d: %s", h.code, h.internal)
 }
 
 func newHTTPError(code int, err error) *HTTPError {

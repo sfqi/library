@@ -374,7 +374,7 @@ func TestBorrowReturnHandler_BorrowBook(t *testing.T) {
 	})
 	t.Run("error converting id to integer", func(t *testing.T) {
 
-		expectedError := "HTTP 404: strconv.Atoi: parsing \"ww\": invalid syntax: "
+		expectedError := "HTTP 404: strconv.Atoi: parsing \"ww\": invalid syntax"
 
 		req, err := http.NewRequest("GET", "/books/ww/borrow", nil)
 		require.NoError(err)
@@ -394,7 +394,7 @@ func TestBorrowReturnHandler_BorrowBook(t *testing.T) {
 	})
 	t.Run("error borrowing book in database", func(t *testing.T) {
 		interactor := &imock.BookLoan{}
-		expectedError := "HTTP 500: Error borrowing book: "
+		expectedError := "HTTP 500: Error borrowing book"
 
 		req, err := http.NewRequest("GET", "/books/-4/borrow", nil)
 		require.NoError(err)
@@ -451,7 +451,7 @@ func TestBorrowReturnHandler_ReturnBook(t *testing.T) {
 
 	t.Run("error converting id to integer", func(t *testing.T) {
 
-		expectedError := "HTTP 404: strconv.Atoi: parsing \"ww\": invalid syntax: "
+		expectedError := "HTTP 404: strconv.Atoi: parsing \"ww\": invalid syntax"
 
 		req, err := http.NewRequest("GET", "/books/ww/return", nil)
 		require.NoError(err)
@@ -472,7 +472,7 @@ func TestBorrowReturnHandler_ReturnBook(t *testing.T) {
 
 	t.Run("error returning book in database", func(t *testing.T) {
 		interactor := &imock.BookLoan{}
-		expectedError := "HTTP 500: Error returning book: "
+		expectedError := "HTTP 500: Error returning book"
 
 		req, err := http.NewRequest("GET", "/books/-4/return", nil)
 		require.NoError(err)
