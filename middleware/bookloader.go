@@ -2,13 +2,12 @@ package middleware
 
 import (
 	"context"
-	"fmt"
+	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/sfqi/library/domain/model"
-
-	"net/http"
+	"github.com/sirupsen/logrus"
 )
 
 type bookInteractor interface {
@@ -17,35 +16,27 @@ type bookInteractor interface {
 
 type BookLoader struct {
 	Interactor bookInteractor
+	Logger     *logrus.Logger
 }
 
 func (bl BookLoader) GetBook(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		vars := mux.Vars(r)
 		id, err := strconv.Atoi(vars["id"])
 		if err != nil {
-			errorConvertingId(w, err)
+			bl.Logger.Error(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-
 		book, err := bl.Interactor.FindById(id)
 		if err != nil {
-			errorFindingBook(w, err)
+			bl.Logger.Error(err)
+			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		fmt.Println(book)
+
 		ctx := context.WithValue(r.Context(), "book", book)
 		next.ServeHTTP(w, r.WithContext(ctx))
+
 	})
-}
-
-func errorConvertingId(w http.ResponseWriter, err error) {
-	fmt.Println("Error while converting Id to integer ", err)
-	http.Error(w, "Error while converting url parameter into integer", http.StatusBadRequest)
-}
-
-func errorFindingBook(w http.ResponseWriter, err error) {
-	fmt.Println("Cannot find book with given Id ", err)
-	http.Error(w, "Book with given Id can not be found", http.StatusBadRequest)
 }
