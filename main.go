@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/sfqi/library/service"
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/sfqi/library/service"
 
 	"github.com/joho/godotenv"
 	"github.com/sfqi/library/interactor"
@@ -71,6 +72,7 @@ func main() {
 
 	bookLoad := middleware.BookLoader{
 		Interactor: bookInteractor,
+		Logger:     logger,
 	}
 
 	userLoad := middleware.UserLoader{
