@@ -11,7 +11,7 @@ import (
 )
 
 type ReadLoanHandler struct {
-	Interactor loanReader
+	interactor loanReader
 }
 
 type loanReader interface {
@@ -22,7 +22,14 @@ type loanReader interface {
 }
 
 type WriteLoanHandler struct {
-	Interactor loanWriter
+	interactor loanWriter
+}
+
+func NewWriteLoanHandler(interactor loanWriter) *WriteLoanHandler {
+	return &WriteLoanHandler{interactor}
+}
+func NewReadLoanHandler(interactor loanReader) *ReadLoanHandler {
+	return &ReadLoanHandler{interactor}
 }
 
 type loanWriter interface {
@@ -32,7 +39,7 @@ type loanWriter interface {
 
 func (rl *ReadLoanHandler) Index(w http.ResponseWriter, r *http.Request) *HTTPError {
 	w.Header().Set("Content-Type", "application/json")
-	loans, err := rl.Interactor.FindAll()
+	loans, err := rl.interactor.FindAll()
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
@@ -50,7 +57,7 @@ func (rl *ReadLoanHandler) FindLoansByBookID(w http.ResponseWriter, r *http.Requ
 		return newHTTPError(http.StatusNotFound, err)
 	}
 
-	loans, err := rl.Interactor.FindByBookID(id)
+	loans, err := rl.interactor.FindByBookID(id)
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
@@ -78,7 +85,7 @@ func (rl *ReadLoanHandler) FindLoansByUserID(w http.ResponseWriter, r *http.Requ
 		return newHTTPError(http.StatusNotFound, err)
 	}
 
-	loans, err := rl.Interactor.FindByUserID(id)
+	loans, err := rl.interactor.FindByUserID(id)
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
@@ -105,7 +112,7 @@ func (wl *WriteLoanHandler) BorrowBook(w http.ResponseWriter, r *http.Request) *
 	if err != nil {
 		return newHTTPError(http.StatusNotFound, err)
 	}
-	loan, err := wl.Interactor.Borrow(10, id)
+	loan, err := wl.interactor.Borrow(10, id)
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
@@ -124,7 +131,7 @@ func (wl *WriteLoanHandler) ReturnBook(w http.ResponseWriter, r *http.Request) *
 	if err != nil {
 		return newHTTPError(http.StatusNotFound, err)
 	}
-	loan, err := wl.Interactor.Return(10, id)
+	loan, err := wl.interactor.Return(10, id)
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}

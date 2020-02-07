@@ -54,7 +54,11 @@ func (h HTTPError) publicError() string {
 }
 
 type ErrorHandler struct {
-	Logger *logrus.Logger
+	logger *logrus.Logger
+}
+
+func NewErrorHandler(loger *logrus.Logger) *ErrorHandler {
+	return &ErrorHandler{loger}
 }
 
 func (eh ErrorHandler) Wrap(handler customHandler) http.Handler {
@@ -63,7 +67,7 @@ func (eh ErrorHandler) Wrap(handler customHandler) http.Handler {
 		err := handler(w, r)
 
 		if err != nil {
-			eh.Logger.Error(err)
+			eh.logger.Error(err)
 
 			if err.code < http.StatusInternalServerError {
 				errorMsg = err.publicError()
