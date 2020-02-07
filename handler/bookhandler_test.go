@@ -52,7 +52,7 @@ func TestIndex(t *testing.T) {
 
 		req, err := http.NewRequest("GET", "/books", nil)
 		if err != nil {
-			t.Fatal(err)
+			require.NoError(err)
 		}
 
 		rr := httptest.NewRecorder()
@@ -95,7 +95,7 @@ func TestIndex(t *testing.T) {
 
 		req, err := http.NewRequest("GET", "/books", nil)
 		if err != nil {
-			t.Fatal(err)
+			require.NoError(err)
 		}
 
 		rr := httptest.NewRecorder()

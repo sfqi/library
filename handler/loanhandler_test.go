@@ -46,7 +46,7 @@ func TestIndexLoan(t *testing.T) {
 
 		req, err := http.NewRequest("GET", "/loans", nil)
 		if err != nil {
-			t.Fatal(err)
+			require.NoError(err)
 		}
 
 		rr := httptest.NewRecorder()
@@ -85,7 +85,7 @@ func TestIndexLoan(t *testing.T) {
 
 		req, err := http.NewRequest("GET", "/loans", nil)
 		if err != nil {
-			t.Fatal(err)
+			require.NoError(err)
 		}
 
 		rr := httptest.NewRecorder()
