@@ -51,10 +51,10 @@ func TestGetBook(t *testing.T) {
 		bookHandler := &bookHandler{}
 
 		req, err := http.NewRequest("GET", "/{id}", nil)
+		require.NoError(err)
+
 		params := map[string]string{"id": "6"}
 		req = mux.SetURLVars(req, params)
-
-		require.NoError(err)
 
 		interactor.On("FindById", 6).Return(nil, errors.New("Book with given Id can not be found"))
 
@@ -73,9 +73,10 @@ func TestGetBook(t *testing.T) {
 		bookLoader := middleware.BookLoader{Logger: log.New()}
 
 		req, err := http.NewRequest("GET", "/{id}", nil)
+		require.NoError(err)
+
 		params := map[string]string{"id": "1"}
 		req = mux.SetURLVars(req, params)
-		require.NoError(err)
 
 		rr := httptest.NewRecorder()
 
