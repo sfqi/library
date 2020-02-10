@@ -45,9 +45,7 @@ func TestIndexLoan(t *testing.T) {
 		}
 
 		req, err := http.NewRequest("GET", "/loans", nil)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(err)
 
 		rr := httptest.NewRecorder()
 		interactor.On("FindAll").Return([]*model.Loan{
@@ -84,9 +82,7 @@ func TestIndexLoan(t *testing.T) {
 		loanHandler := handler.ReadLoanHandler{}
 
 		req, err := http.NewRequest("GET", "/loans", nil)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(err)
 
 		rr := httptest.NewRecorder()
 		interactor.On("FindAll").Return(nil, errors.New("Error finding loans"))
