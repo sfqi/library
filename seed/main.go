@@ -1,15 +1,20 @@
 package main
 
 import (
-	"time"
+	"errors"
+	"fmt"
 
 	"github.com/jinzhu/gorm"
+
+	"github.com/google/uuid"
+
 	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/repository/postgres"
 )
 
 var books = []*model.Book{
 	{
+		Id:            1,
 		Title:         "Information systems literacy.",
 		Author:        "Hossein Bidgoli",
 		Isbn:          "0023095334",
@@ -17,10 +22,9 @@ var books = []*model.Book{
 		OpenLibraryId: "OL1733511M",
 		Year:          1993,
 		Publisher:     "Maxwell Macmillan International",
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
 	},
 	{
+		Id:            2,
 		Title:         "Programming the World Wide Web",
 		Author:        "Robert W. Sebesta",
 		Isbn:          "0321303326",
@@ -28,19 +32,41 @@ var books = []*model.Book{
 		OpenLibraryId: "OL3393672M",
 		Year:          2005,
 		Publisher:     "Pearson/Addison-Wesley",
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
 	},
 }
 
-func areTablesEmpty(db *gorm.DB) bool {
-	var num int
-	db.Model([]*model.Book{}).Count(&num)
+var loans = []*model.Loan{
+	{
+		TransactionID: uuid.New().String(),
+		UserID:        5,
+		BookID:        1,
+		Type:          1,
+	},
+	{
+		TransactionID: uuid.New().String(),
+		UserID:        10,
+		BookID:        2,
+		Type:          0,
+	},
+}
 
-	if num > 0 {
-		return true
+func areTablesEmpty(db *gorm.DB) error {
+	var bookNum int
+	var loanNum int
+	if err := db.Model(&model.Book{}).Count(&bookNum).Error; err != nil {
+		return err
 	}
-	return false
+	if err := db.Model(&model.Loan{}).Count(&loanNum).Error; err != nil {
+		return err
+	}
+
+	if bookNum != 0 {
+		return errors.New("Table book is not empty!")
+	}
+	if loanNum != 0 {
+		return errors.New("Table loan is not empty!")
+	}
+	return nil
 }
 
 func main() {
@@ -59,12 +85,36 @@ func main() {
 	}
 	defer store.Close()
 
-	if !areTablesEmpty(store.GetDB()) {
-		for _, book := range books {
-			if err := store.CreateBook(book); err != nil {
-				panic(err)
-			}
+	tx := store.DB().Begin()
+
+	defer func() {
+		store.Close()
+		if r := recover(); r != nil {
+			fmt.Println(r.(error))
+			tx.Rollback()
+		}
+	}()
+
+	if err = areTablesEmpty(store.DB()); err != nil {
+		panic(err)
+	}
+
+	for _, book := range books {
+		if err := tx.Create(book).Error; err != nil {
+			panic(err)
 		}
 	}
-	panic("Tables are not empty")
+
+	if err = areTablesEmpty(store.DB()); err != nil {
+		panic(err)
+	}
+
+	for _, loan := range loans {
+		if err := tx.Create(loan).Error; err != nil {
+			panic(err)
+		}
+	}
+
+	tx.Commit()
+
 }
