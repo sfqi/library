@@ -16,4 +16,5 @@ type Store interface {
 	Transaction() Store
 	Commit() error
 	Rollback()
+	FindBookByIDForUpdate(int) (*model.Book, error)
 }

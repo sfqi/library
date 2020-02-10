@@ -134,3 +134,11 @@ func (store *Store) Commit() error {
 func (store *Store) Rollback() {
 	store.db.Rollback()
 }
+
+func (store *Store) FindBookByIDForUpdate(id int) (*model.Book, error) {
+	var book model.Book
+	if err := store.db.Set("gorm:query_option", "FOR UPDATE").First(&book, id).Error; err != nil {
+		return nil, err
+	}
+	return &book, nil
+}

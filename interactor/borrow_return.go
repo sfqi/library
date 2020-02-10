@@ -30,13 +30,19 @@ func NewBookLoan(store Store, uuidGenerator uuidGenerator) *LoanWriter {
 
 func (l *LoanWriter) Borrow(userID int, bookID int) (*model.Loan, error) {
 	tx := l.store.Transaction()
+  
 	uuid, err := l.uuidGenerator.Do()
 	if err != nil {
 		tx.Rollback()
 		return nil, err
 	}
 
-	book, err := l.store.FindBookById(bookID)
+	book, err := l.store.FindBookByIDForUpdate(bookID)
+	if err != nil {
+		tx.Rollback()
+		return nil, errors.New("Error finding book")
+	}
+
 	if book.Available != true {
 		tx.Rollback()
 		return nil, errors.New("Book is not available")
@@ -63,6 +69,7 @@ func (l *LoanWriter) Borrow(userID int, bookID int) (*model.Loan, error) {
 
 func (l *LoanWriter) Return(userID int, bookID int) (*model.Loan, error) {
 	tx := l.store.Transaction()
+  
 	uuid, err := l.uuidGenerator.Do()
 	if err != nil {
 		tx.Rollback()
