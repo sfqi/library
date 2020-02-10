@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/sfqi/library/service"
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/sfqi/library/service"
 
 	"github.com/joho/godotenv"
 	"github.com/sfqi/library/interactor"
@@ -48,18 +49,14 @@ func main() {
 
 	bookInteractor := interactor.NewBook(store, olc)
 	userInteractor := interactor.NewUser(store)
-	bookHandler := &handler.BookHandler{
-		Interactor: bookInteractor,
-	}
+	bookHandler := handler.NewBookHandler(bookInteractor)
 
 	uuidGenerator := &service.Generator{}
 	loanInteractor := interactor.NewLoan(store)
-	readLoanHandler := &handler.ReadLoanHandler{
-		Interactor: loanInteractor,
-	}
+	readLoanHandler := handler.NewReadLoanHandler(loanInteractor)
 
 	bookLoanInteractor := interactor.NewBookLoan(store, uuidGenerator)
-	writeLoanHandler := &handler.WriteLoanHandler{Interactor: bookLoanInteractor}
+	writeLoanHandler := handler.NewWriteLoanHandler(bookLoanInteractor)
 
 	logger := log.New()
 
@@ -67,10 +64,11 @@ func main() {
 		Logger: logger,
 	}
 
-	handleFunc := handler.ErrorHandler{Logger: logger}.Wrap
+	handleFunc := handler.NewErrorHandler(logger).Wrap
 
 	bookLoad := middleware.BookLoader{
 		Interactor: bookInteractor,
+		Logger:     logger,
 	}
 
 	userLoad := middleware.UserLoader{
