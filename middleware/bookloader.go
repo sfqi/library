@@ -24,14 +24,14 @@ func (bl BookLoader) GetBook(next http.Handler) http.Handler {
 		vars := mux.Vars(r)
 		id, err := strconv.Atoi(vars["id"])
 		if err != nil {
-			bl.Logger.Error(err)
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			bl.Logger.Errorf("bookloader: %s", err)
+			http.Error(w, "invalid book id", http.StatusBadRequest)
 			return
 		}
 		book, err := bl.Interactor.FindById(id)
 		if err != nil {
-			bl.Logger.Error(err)
-			http.Error(w, err.Error(), http.StatusNotFound)
+			bl.Logger.Errorf("bookloader: %s", err)
+			http.Error(w, "book not found", http.StatusNotFound)
 			return
 		}
 

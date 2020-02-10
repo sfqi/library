@@ -51,9 +51,7 @@ func TestIndex(t *testing.T) {
 		}
 
 		req, err := http.NewRequest("GET", "/books", nil)
-		if err != nil {
-			require.NoError(err)
-		}
+		require.NoError(err)
 
 		rr := httptest.NewRecorder()
 		interactor.On("FindAll").Return([]*model.Book{
@@ -94,9 +92,7 @@ func TestIndex(t *testing.T) {
 		bookHandler := handler.BookHandler{}
 
 		req, err := http.NewRequest("GET", "/books", nil)
-		if err != nil {
-			require.NoError(err)
-		}
+		require.NoError(err)
 
 		rr := httptest.NewRecorder()
 		interactor.On("FindAll").Return(nil, errors.New("Error finding books"))
