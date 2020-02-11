@@ -51,26 +51,16 @@ var loans = []*model.Loan{
 }
 
 func areTablesEmpty(db *gorm.DB) error {
-	var bookCount int
-	var loanCount int
-	var count int
+	tables := []string{"books", "loans"}
+	for _, table := range tables {
+		var count int
 
-	switch count {
-	case bookCount:
-		if err := db.Model(&model.Book{}).Count(&bookCount).Error; err != nil {
+		if err := db.Table(table).Count(&count).Error; err != nil {
 			return err
 		}
-	case loanCount:
-		if err := db.Model(&model.Loan{}).Count(&loanCount).Error; err != nil {
-			return err
+		if count != 0 {
+			return errors.New("table " + table + " is not empty")
 		}
-	}
-
-	switch count {
-	case bookCount:
-		return errors.New("Table book is not empty!")
-	case loanCount:
-		return errors.New("Table loan is not empty!")
 	}
 	return nil
 }
