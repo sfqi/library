@@ -1,8 +1,13 @@
 package main
 
 import (
-	"github.com/google/uuid"
+	"errors"
+	"fmt"
 	"time"
+
+	"github.com/jinzhu/gorm"
+
+	"github.com/google/uuid"
 
 	"github.com/sfqi/library/domain/model"
 	"github.com/sfqi/library/repository/postgres"
@@ -10,6 +15,7 @@ import (
 
 var books = []*model.Book{
 	{
+		Id:            1,
 		Title:         "Information systems literacy.",
 		Author:        "Hossein Bidgoli",
 		Isbn:          "0023095334",
@@ -17,10 +23,9 @@ var books = []*model.Book{
 		OpenLibraryId: "OL1733511M",
 		Year:          1993,
 		Publisher:     "Maxwell Macmillan International",
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
 	},
 	{
+		Id:            2,
 		Title:         "Programming the World Wide Web",
 		Author:        "Robert W. Sebesta",
 		Isbn:          "0321303326",
@@ -28,8 +33,21 @@ var books = []*model.Book{
 		OpenLibraryId: "OL3393672M",
 		Year:          2005,
 		Publisher:     "Pearson/Addison-Wesley",
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
+	},
+}
+
+var loans = []*model.Loan{
+	{
+		TransactionID: uuid.New().String(),
+		UserID:        5,
+		BookID:        1,
+		Type:          1,
+	},
+	{
+		TransactionID: uuid.New().String(),
+		UserID:        10,
+		BookID:        2,
+		Type:          0,
 	},
 }
 
@@ -60,28 +78,19 @@ var users = []*model.User{
 	},
 }
 
-var loans = []*model.Loan{
-	{
-		ID:            1,
-		TransactionID: uuid.New().String(),
-		UserID:        1,
-		BookID:        2,
-		Type:          1,
-	},
-	{
-		ID:            2,
-		TransactionID: uuid.New().String(),
-		UserID:        2,
-		BookID:        1,
-		Type:          0,
-	},
-	{
-		ID:            3,
-		TransactionID: uuid.New().String(),
-		UserID:        1,
-		BookID:        1,
-		Type:          1,
-	},
+func areTablesEmpty(db *gorm.DB) error {
+	tables := []string{"books", "loans", "users"}
+	for _, table := range tables {
+		var count int
+
+		if err := db.Table(table).Count(&count).Error; err != nil {
+			return err
+		}
+		if count != 0 {
+			return errors.New("table " + table + " is not empty")
+		}
+	}
+	return nil
 }
 
 func main() {
@@ -99,15 +108,39 @@ func main() {
 		panic(err)
 	}
 	defer store.Close()
+
+	tx := store.DB().Begin()
+
+	defer func() {
+		store.Close()
+		if r := recover(); r != nil {
+			fmt.Println(r.(error))
+			tx.Rollback()
+		}
+	}()
+
+	if err = areTablesEmpty(store.DB()); err != nil {
+		panic(err)
+	}
+
 	for _, book := range books {
-		if err := store.CreateBook(book); err != nil {
+		if err := tx.Create(book).Error; err != nil {
 			panic(err)
 		}
 	}
+
+	if err = areTablesEmpty(store.DB()); err != nil {
+		panic(err)
+	}
+
 	for _, loan := range loans {
-		if err := store.CreateLoan(loan); err != nil {
+		if err := tx.Create(loan).Error; err != nil {
 			panic(err)
 		}
+	}
+
+	if err = areTablesEmpty(store.DB()); err != nil {
+		panic(err)
 	}
 
 	for _, user := range users {
@@ -115,5 +148,7 @@ func main() {
 			panic(err)
 		}
 	}
+
+	tx.Commit()
 
 }

@@ -30,7 +30,7 @@ func NewBookLoan(store Store, uuidGenerator uuidGenerator) *LoanWriter {
 
 func (l *LoanWriter) Borrow(userID int, bookID int) (*model.Loan, error) {
 	tx := l.store.Transaction()
-  
+
 	uuid, err := l.uuidGenerator.Do()
 	if err != nil {
 		tx.Rollback()
@@ -69,7 +69,7 @@ func (l *LoanWriter) Borrow(userID int, bookID int) (*model.Loan, error) {
 
 func (l *LoanWriter) Return(userID int, bookID int) (*model.Loan, error) {
 	tx := l.store.Transaction()
-  
+
 	uuid, err := l.uuidGenerator.Do()
 	if err != nil {
 		tx.Rollback()

@@ -15,7 +15,7 @@ import (
 var yearRgx = regexp.MustCompile(`[0-9]{4}`)
 
 type BookHandler struct {
-	interactor bookInteractor
+	Interactor bookInteractor
 }
 
 func NewBookHandler(bookInteractor bookInteractor) *BookHandler {
@@ -48,7 +48,7 @@ func toBookResponse(b model.Book) *dto.BookResponse {
 func (b *BookHandler) Index(w http.ResponseWriter, r *http.Request) *HTTPError {
 
 	w.Header().Set("Content-Type", "application/json")
-	allBooks, err := b.interactor.FindAll()
+	allBooks, err := b.Interactor.FindAll()
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
@@ -76,7 +76,7 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) *HTTPError 
 	}
 
 	fmt.Println(createBook.ISBN)
-	book, err := b.interactor.Create(createBook)
+	book, err := b.Interactor.Create(createBook)
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
@@ -102,7 +102,7 @@ func (b *BookHandler) Update(w http.ResponseWriter, r *http.Request) *HTTPError 
 		return newHTTPError(http.StatusBadRequest, err)
 	}
 
-	updatedBook, err := b.interactor.Update(book, updateBookRequest)
+	updatedBook, err := b.Interactor.Update(book, updateBookRequest)
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
@@ -142,7 +142,7 @@ func (b *BookHandler) Delete(w http.ResponseWriter, r *http.Request) *HTTPError 
 	}
 	fmt.Println("Book from context: ", book)
 
-	if err := b.interactor.Delete(book); err != nil {
+	if err := b.Interactor.Delete(book); err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}
 	w.WriteHeader(http.StatusNoContent)
