@@ -10,26 +10,18 @@ import (
 	"strings"
 )
 
-type store interface {
-	FindBookById(int) (*model.Book, error)
-	CreateBook(*model.Book) error
-	UpdateBook(*model.Book) error
-	FindAllBooks() ([]*model.Book, error)
-	DeleteBook(*model.Book) error
-}
-
 type openlibraryClient interface {
 	FetchBook(isbn string) (*openlibrarydto.Book, error)
 }
 
 type Book struct {
-	store   store
+	store   Store
 	openlib openlibraryClient
 }
 
 var yearRgx = regexp.MustCompile(`[0-9]{4}`)
 
-func NewBook(store store, olc openlibraryClient) *Book {
+func NewBook(store Store, olc openlibraryClient) *Book {
 	return &Book{
 		store:   store,
 		openlib: olc,

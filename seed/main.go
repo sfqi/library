@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/jinzhu/gorm"
 
@@ -50,8 +51,35 @@ var loans = []*model.Loan{
 	},
 }
 
+var users = []*model.User{
+	{
+		Id:        1,
+		Email:     "joe@doe.com",
+		Name:      "Joe",
+		LastName:  "Doe",
+		CreatedAt: time.Time{},
+		UpdatedAt: time.Time{},
+	},
+	{
+		Id:        2,
+		Email:     "jane@doe.com",
+		Name:      "Jane",
+		LastName:  "Doe",
+		CreatedAt: time.Time{},
+		UpdatedAt: time.Time{},
+	},
+	{
+		Id:        3,
+		Email:     "john@smith.com",
+		Name:      "John",
+		LastName:  "Smith",
+		CreatedAt: time.Time{},
+		UpdatedAt: time.Time{},
+	},
+}
+
 func areTablesEmpty(db *gorm.DB) error {
-	tables := []string{"books", "loans"}
+	tables := []string{"books", "loans", "users"}
 	for _, table := range tables {
 		var count int
 
@@ -107,6 +135,16 @@ func main() {
 
 	for _, loan := range loans {
 		if err := tx.Create(loan).Error; err != nil {
+			panic(err)
+		}
+	}
+
+	if err = areTablesEmpty(store.DB()); err != nil {
+		panic(err)
+	}
+
+	for _, user := range users {
+		if err := store.CreateUser(user); err != nil {
 			panic(err)
 		}
 	}

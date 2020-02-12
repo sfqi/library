@@ -7,6 +7,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/sfqi/library/middleware"
 )
@@ -16,11 +17,11 @@ func testHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func TestDump(t *testing.T) {
+	require := require.New(t)
 	assert := assert.New(t)
 	req, err := http.NewRequest("GET", "/testmiddleware", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(err)
+
 	handler := http.HandlerFunc(testHandler)
 	logger := logrus.New()
 	rr := httptest.NewRecorder()

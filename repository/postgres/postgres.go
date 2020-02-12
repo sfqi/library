@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"fmt"
+	"github.com/sfqi/library/interactor"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -110,4 +111,38 @@ func (store *Store) FindLoansByUserID(userID int) ([]*model.Loan, error) {
 		return nil, err
 	}
 	return loans, nil
+}
+
+func (store *Store) CreateUser(user *model.User) error {
+	return store.db.Create(&user).Error
+
+}
+
+func (store *Store) FindUserByID(id int) (*model.User, error) {
+	user := &model.User{}
+	if err := store.db.First(&user, id).Error; err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (store *Store) Transaction() interactor.Store {
+	tx := store.db.Begin()
+	return NewStore(tx)
+}
+
+func (store *Store) Commit() error {
+	return store.db.Commit().Error
+}
+
+func (store *Store) Rollback() {
+	store.db.Rollback()
+}
+
+func (store *Store) FindBookByIDForUpdate(id int) (*model.Book, error) {
+	var book model.Book
+	if err := store.db.Set("gorm:query_option", "FOR UPDATE").First(&book, id).Error; err != nil {
+		return nil, err
+	}
+	return &book, nil
 }

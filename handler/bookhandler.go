@@ -18,6 +18,10 @@ type BookHandler struct {
 	Interactor bookInteractor
 }
 
+func NewBookHandler(bookInteractor bookInteractor) *BookHandler {
+	return &BookHandler{bookInteractor}
+}
+
 type bookInteractor interface {
 	FindAll() ([]*model.Book, error)
 	Create(bookRequest dto.CreateBookRequest) (*model.Book, error)
@@ -73,7 +77,6 @@ func (b *BookHandler) Create(w http.ResponseWriter, r *http.Request) *HTTPError 
 
 	fmt.Println(createBook.ISBN)
 	book, err := b.Interactor.Create(createBook)
-
 	if err != nil {
 		return newHTTPError(http.StatusInternalServerError, err)
 	}

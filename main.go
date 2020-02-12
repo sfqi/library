@@ -6,6 +6,8 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/sfqi/library/service"
+
 	"github.com/joho/godotenv"
 	"github.com/sfqi/library/interactor"
 	"github.com/sfqi/library/repository/postgres"
@@ -44,31 +46,56 @@ func main() {
 	}
 	defer store.Close()
 	fmt.Println("Successfully connected")
+
 	bookInteractor := interactor.NewBook(store, olc)
-	bookHandler := &handler.BookHandler{
-		Interactor: bookInteractor,
-	}
+	userInteractor := interactor.NewUser(store)
+	bookHandler := handler.NewBookHandler(bookInteractor)
+
+	uuidGenerator := &service.Generator{}
+	loanInteractor := interactor.NewLoan(store)
+	readLoanHandler := handler.NewReadLoanHandler(loanInteractor)
+
+	bookLoanInteractor := interactor.NewBookLoan(store, uuidGenerator)
+	writeLoanHandler := handler.NewWriteLoanHandler(bookLoanInteractor)
+
 	logger := log.New()
 
 	bodyDump := middleware.BodyDump{
 		Logger: logger,
 	}
 
-	handleFunc := handler.ErrorHandler{Logger: logger}.Wrap
+	handleFunc := handler.NewErrorHandler(logger).Wrap
 
 	bookLoad := middleware.BookLoader{
 		Interactor: bookInteractor,
+		Logger:     logger,
 	}
+
+	userLoad := middleware.UserLoader{
+		Interactor: userInteractor,
+	}
+
 	r := mux.NewRouter()
 	s := r.PathPrefix("/books").Subrouter()
+	u := r.PathPrefix("/users").Subrouter()
 
 	r.Handle("/books", handleFunc(bookHandler.Index)).Methods("GET")
 	r.Handle("/books", handleFunc(bookHandler.Create)).Methods("POST")
 	s.Handle("/{id}", handleFunc(bookHandler.Update)).Methods("PUT")
 	s.Handle("/{id}", handleFunc(bookHandler.Get)).Methods("GET")
 	s.Handle("/{id}", handleFunc(bookHandler.Delete)).Methods("DELETE")
+
+	//loans endpoints
+	s.Handle("/{id}/loans", handleFunc(readLoanHandler.FindLoansByBookID)).Methods("GET")
+	s.Handle("/{id}/borrow", handleFunc(writeLoanHandler.BorrowBook)).Methods("POST")
+
+	s.Handle("/{id}/return", handleFunc(writeLoanHandler.ReturnBook)).Methods("POST")
+
+	u.Handle("/{id}/loans", handleFunc(readLoanHandler.FindLoansByUserID)).Methods("GET")
+
 	r.Use(bodyDump.Dump)
 	s.Use(bookLoad.GetBook)
+	u.Use(userLoad.GetUser)
 
 	http.ListenAndServe(":8080", r)
 }
