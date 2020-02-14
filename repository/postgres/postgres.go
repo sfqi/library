@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"fmt"
+
 	"github.com/sfqi/library/interactor"
 
 	"github.com/jinzhu/gorm"

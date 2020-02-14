@@ -6,7 +6,7 @@ type User struct {
 	Id        int
 	Email     string
 	Name      string
-	LastName  string
+	Lastname  string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
